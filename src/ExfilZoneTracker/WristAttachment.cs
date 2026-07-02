@@ -41,6 +41,17 @@ public sealed class WristAttachment
         _reportedWaiting = false;
     }
 
+    /// <summary>Re-applies the transform to the current device, e.g. after a scene-app switch.</summary>
+    public void ReassertTransform()
+    {
+        if (!Present)
+            return;
+        var offset = _offset;
+        var error = OpenVR.Overlay.SetOverlayTransformTrackedDeviceRelative(_overlay.Handle, _deviceIndex, ref offset);
+        if (error != EVROverlayError.None)
+            Console.Error.WriteLine($"warning: transform re-assert failed: {error}");
+    }
+
     public void Update(bool devicesChanged)
     {
         if (!devicesChanged && Present && _sinceLastCheck.ElapsedMilliseconds < RecheckIntervalMs)

@@ -11,11 +11,13 @@ namespace ExfilZoneTracker;
 public sealed class ChecklistUI
 {
     private const float FadeDurationMs = 200f;
+    private const int WatchdogIntervalMs = 5000;
 
     private readonly OverlayManager _overlay;
     private readonly AppConfig _config;
     private readonly ChecklistData _checklist;
     private readonly TrackedDevicePose_t[] _poses = new TrackedDevicePose_t[OpenVR.k_unMaxTrackedDeviceCount];
+    private readonly System.Diagnostics.Stopwatch _watchdog = System.Diagnostics.Stopwatch.StartNew();
 
     private bool _userVisible;
     private bool _shown;
@@ -47,6 +49,18 @@ public sealed class ChecklistUI
             _dirty = true;
 
         UpdateAlpha(deltaMs, wristControllerPresent);
+
+        // Self-heal: some setups drop overlay visibility/texture on scene-app switches,
+        // so periodically re-assert both while the panel is supposed to be on screen.
+        if (_shown && _watchdog.ElapsedMilliseconds >= WatchdogIntervalMs)
+        {
+            _watchdog.Restart();
+            var vrOverlay = OpenVR.Overlay;
+            if (!vrOverlay.IsOverlayVisible(_overlay.Handle))
+                Console.WriteLine("note: compositor reports the panel hidden while it should be visible, re-showing.");
+            vrOverlay.ShowOverlay(_overlay.Handle);
+            _dirty = true; // re-upload the texture as well
+        }
 
         var hover = -1;
         if (_shown && pointerDeviceIndex != OpenVR.k_unTrackedDeviceIndexInvalid)

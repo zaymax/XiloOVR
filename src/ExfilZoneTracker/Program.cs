@@ -72,7 +72,7 @@ internal static class Program
         var lastMs = clock.Elapsed.TotalMilliseconds;
         while (_running)
         {
-            if (!overlay.PumpEvents(out var devicesChanged))
+            if (!overlay.PumpEvents(out var devicesChanged, out var sceneAppChanged))
                 break; // SteamVR is shutting down
 
             if (_configChanged)
@@ -86,6 +86,11 @@ internal static class Program
             lastMs = now;
 
             wrist.Update(devicesChanged);
+            if (sceneAppChanged)
+            {
+                wrist.ReassertTransform();
+                ui.MarkDirty();
+            }
             input.Update();
 
             if (input.PollToggleLongPress(config.ToggleHoldMs))

@@ -206,6 +206,19 @@ data/items_database.json   editable game-item reference
 
 ## Troubleshooting
 
+- **Panel shows in SteamVR Home but disappears in every game** — the game is
+  almost certainly running through a different OpenXR runtime (Oculus, VDXR)
+  and bypassing SteamVR's compositor entirely; SteamVR overlays can only
+  exist inside SteamVR. Fixes, in order:
+  1. If the game's Steam launch dialog offers a mode choice (ExfilZone does),
+     pick **SteamVR**, not OpenXR.
+  2. In **SteamVR → Settings → General** enable **“Set SteamVR as OpenXR
+     runtime”**, then restart the game.
+  3. Virtual Desktop users: launch the game from Steam/SteamVR Home, not from
+     VD's Games tab (which prefers VDXR), or set VD's OpenXR runtime to
+     SteamVR.
+  Quick check: if you cannot open the SteamVR dashboard inside the game, the
+  game is not running under SteamVR.
 - **“SteamVR is not running…”** — start SteamVR first, then the tracker.
 - **Panel not visible** — is the watch-hand controller on and tracked? The
   panel hides while it is missing; watch the console. Also rotate your wrist

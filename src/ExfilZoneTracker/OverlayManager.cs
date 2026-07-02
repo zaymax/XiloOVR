@@ -62,9 +62,10 @@ public sealed class OverlayManager : IDisposable
     }
 
     /// <summary>Drains the SteamVR event queue. Returns false when SteamVR asks us to exit.</summary>
-    public bool PumpEvents(out bool devicesChanged)
+    public bool PumpEvents(out bool devicesChanged, out bool sceneAppChanged)
     {
         devicesChanged = false;
+        sceneAppChanged = false;
         if (_system == null)
             return false;
 
@@ -84,6 +85,22 @@ public sealed class OverlayManager : IDisposable
                 case EVREventType.VREvent_TrackedDeviceDeactivated:
                 case EVREventType.VREvent_TrackedDeviceRoleChanged:
                     devicesChanged = true;
+                    break;
+
+                case EVREventType.VREvent_SceneApplicationChanged:
+                    // A game started or stopped; some setups drop overlay state here.
+                    Console.WriteLine("Scene application changed, re-asserting the panel.");
+                    sceneAppChanged = true;
+                    break;
+
+                case EVREventType.VREvent_Input_BindingLoadSuccessful:
+                    Console.WriteLine("SteamVR loaded controller bindings for the tracker.");
+                    break;
+
+                case EVREventType.VREvent_Input_BindingLoadFailed:
+                    Console.Error.WriteLine(
+                        "warning: SteamVR failed to load the default controller bindings; " +
+                        "bind the two actions manually in SteamVR > Settings > Controllers > Manage Controller Bindings.");
                     break;
             }
         }
