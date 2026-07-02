@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "game": "Contractors Showdown: ExfilZone",
+  "comment": "Reference database of game items. Sample entries below are placeholders: verify names against the official wiki / community sheets and extend freely. The app will start reading this file in the checklist milestone; edit it with any text editor, no rebuild needed.",
+  "categories": ["quest", "valuables", "weapon_parts", "meds", "electronics", "keys", "misc"],
+  "items": [
+    { "id": "meds-bandage", "name": "Bandage", "category": "meds", "icon": null, "note": "Sample entry, verify the exact in-game name." },
+    { "id": "meds-first-aid-kit", "name": "First Aid Kit", "category": "meds", "icon": null, "note": "Sample entry." },
+    { "id": "elec-graphics-card", "name": "Graphics Card", "category": "electronics", "icon": null, "note": "Sample entry." },
+    { "id": "val-gold-bar", "name": "Gold Bar", "category": "valuables", "icon": null, "note": "Sample entry." },
+    { "id": "wpn-suppressor", "name": "Suppressor", "category": "weapon_parts", "icon": null, "note": "Sample entry." },
+    { "id": "quest-usb-drive", "name": "USB Drive", "category": "quest", "icon": null, "note": "Sample entry." }
+  ]
+}
