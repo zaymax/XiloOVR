@@ -8,34 +8,52 @@ using System.Runtime.InteropServices;
 namespace ExfilZoneTracker;
 
 /// <summary>
-/// Renders the checklist panel into an RGBA8 pixel buffer for IVROverlay.SetOverlayRaw,
-/// and owns the pixel layout used for laser hit-testing: RowAtPixel must mirror the
-/// rectangles drawn in RenderChecklist. GDI+ is Windows-only, which matches the app.
+/// Renders the checklist panel — a grid of item icons with collected/needed counters —
+/// into an RGBA8 pixel buffer for IVROverlay.SetOverlayRaw. Also owns the pixel layout
+/// used for laser hit-testing: CellAtPixel must mirror the rectangles drawn here.
+/// GDI+ is Windows-only, which matches the app's target.
 /// </summary>
 public static class PanelRenderer
 {
     private const int Margin = 16;
     private const int HeaderHeight = 60;
     private const int FooterHeight = 34;
-    private const int RowHeight = 44;
-    private const int CheckboxSize = 24;
+    private const int Columns = 4;
+    private const int CellGap = 8;
 
     private static readonly Color Background = Color.FromArgb(235, 16, 20, 28);
+    private static readonly Color CellFill = Color.FromArgb(255, 26, 32, 44);
     private static readonly Color Accent = Color.FromArgb(255, 90, 200, 250);
-    private static readonly Color HoverFill = Color.FromArgb(60, 90, 200, 250);
+    private static readonly Color HoverFill = Color.FromArgb(70, 90, 200, 250);
+    private static readonly Color DoneGreen = Color.FromArgb(255, 110, 220, 130);
 
-    public static int VisibleRowCapacity(AppConfig config) =>
-        Math.Max(0, (config.PanelPixelHeight - HeaderHeight - FooterHeight) / RowHeight);
+    public static int CellSize(AppConfig config) =>
+        (config.PanelPixelWidth - 2 * Margin - (Columns - 1) * CellGap) / Columns;
 
-    /// <summary>Maps a panel pixel to a checklist row index, or -1 outside any row.</summary>
-    public static int RowAtPixel(AppConfig config, int entryCount, int x, int y)
+    public static int VisibleCellCapacity(AppConfig config)
     {
-        if (x < Margin || x > config.PanelPixelWidth - Margin || y < HeaderHeight)
+        var stride = CellSize(config) + CellGap;
+        var rows = (config.PanelPixelHeight - HeaderHeight - FooterHeight + CellGap) / stride;
+        return Math.Max(0, rows) * Columns;
+    }
+
+    /// <summary>Maps a panel pixel to a checklist cell index, or -1 outside any cell.</summary>
+    public static int CellAtPixel(AppConfig config, int entryCount, int x, int y)
+    {
+        var cell = CellSize(config);
+        var stride = cell + CellGap;
+        var localX = x - Margin;
+        var localY = y - HeaderHeight;
+        if (localX < 0 || localY < 0)
             return -1;
-        var row = (y - HeaderHeight) / RowHeight;
-        if (row >= Math.Min(entryCount, VisibleRowCapacity(config)))
+
+        var column = localX / stride;
+        var row = localY / stride;
+        if (column >= Columns || localX % stride > cell || localY % stride > cell)
             return -1;
-        return row;
+
+        var index = row * Columns + column;
+        return index < Math.Min(entryCount, VisibleCellCapacity(config)) ? index : -1;
     }
 
     public static byte[] RenderChecklist(AppConfig config, ChecklistData checklist, int hoverIndex, out int width, out int height)
@@ -48,73 +66,94 @@ public static class PanelRenderer
         {
             g.SmoothingMode = SmoothingMode.AntiAlias;
             g.TextRenderingHint = TextRenderingHint.AntiAliasGridFit;
+            g.InterpolationMode = InterpolationMode.HighQualityBicubic;
 
             g.Clear(Background);
             using var borderPen = new Pen(Accent, 3);
             g.DrawRectangle(borderPen, 1, 1, width - 3, height - 3);
 
             using var titleFont = new Font("Segoe UI", 26, FontStyle.Bold, GraphicsUnit.Pixel);
-            using var rowFont = new Font("Segoe UI", 22, FontStyle.Regular, GraphicsUnit.Pixel);
-            using var foundFont = new Font("Segoe UI", 22, FontStyle.Strikeout, GraphicsUnit.Pixel);
-            using var smallFont = new Font("Segoe UI", 16, FontStyle.Regular, GraphicsUnit.Pixel);
+            using var countFont = new Font("Segoe UI", 19, FontStyle.Bold, GraphicsUnit.Pixel);
+            using var smallFont = new Font("Segoe UI", 15, FontStyle.Regular, GraphicsUnit.Pixel);
             using var accentBrush = new SolidBrush(Accent);
+            using var cellBrush = new SolidBrush(CellFill);
             using var hoverBrush = new SolidBrush(HoverFill);
+            using var doneBrush = new SolidBrush(DoneGreen);
+            using var dimBrush = new SolidBrush(Color.FromArgb(150, 10, 12, 18));
             using var rightAlign = new StringFormat { Alignment = StringAlignment.Far };
-            using var singleLine = new StringFormat
-            {
-                FormatFlags = StringFormatFlags.NoWrap,
-                Trimming = StringTrimming.EllipsisCharacter,
-            };
+            using var center = new StringFormat { Alignment = StringAlignment.Center, LineAlignment = StringAlignment.Center };
 
-            // Header: title left, found/total progress right.
-            var (found, total) = checklist.Progress;
+            // Header: title left, done/total progress right.
+            var (done, total) = checklist.Progress;
             g.DrawString("ExfilZone Tracker", titleFont, Brushes.White, Margin, 16);
-            g.DrawString($"{found}/{total}", titleFont, accentBrush, new RectangleF(0, 16, width - Margin, 34), rightAlign);
+            g.DrawString($"{done}/{total}", titleFont, accentBrush, new RectangleF(0, 16, width - Margin, 34), rightAlign);
             using var dividerPen = new Pen(Color.FromArgb(120, 90, 200, 250), 1);
             g.DrawLine(dividerPen, Margin, HeaderHeight - 4, width - Margin, HeaderHeight - 4);
 
             var entries = checklist.Entries;
-            var capacity = VisibleRowCapacity(config);
+            var capacity = VisibleCellCapacity(config);
+            var cell = CellSize(config);
+            var stride = cell + CellGap;
 
             if (entries.Count == 0)
             {
-                g.DrawString("Checklist is empty.", rowFont, Brushes.LightGray, Margin, HeaderHeight + 20);
-                g.DrawString("Add items to checklist.json next to the exe.", smallFont, Brushes.Gray, Margin, HeaderHeight + 56);
+                g.DrawString("Checklist is empty.", countFont, Brushes.LightGray, Margin, HeaderHeight + 20);
+                g.DrawString("Add items to checklist.json next to the exe.", smallFont, Brushes.Gray, Margin, HeaderHeight + 52);
             }
 
             for (var i = 0; i < entries.Count && i < capacity; i++)
             {
-                var rowTop = HeaderHeight + i * RowHeight;
-                if (i == hoverIndex)
-                    g.FillRectangle(hoverBrush, Margin, rowTop + 2, width - 2 * Margin, RowHeight - 4);
-
                 var entry = entries[i];
-                var boxY = rowTop + (RowHeight - CheckboxSize) / 2;
-                using var boxPen = new Pen(entry.Found ? Accent : Color.LightGray, 2);
-                g.DrawRectangle(boxPen, Margin + 6, boxY, CheckboxSize, CheckboxSize);
-                if (entry.Found)
+                var x = Margin + (i % Columns) * stride;
+                var y = HeaderHeight + (i / Columns) * stride;
+                var cellRect = new Rectangle(x, y, cell, cell);
+
+                g.FillRectangle(cellBrush, cellRect);
+                if (i == hoverIndex)
                 {
-                    using var checkPen = new Pen(Accent, 3);
+                    g.FillRectangle(hoverBrush, cellRect);
+                    using var hoverPen = new Pen(Accent, 2);
+                    g.DrawRectangle(hoverPen, x, y, cell - 1, cell - 1);
+                }
+
+                // Icon area: square, leaving a strip at the bottom for the counter.
+                var iconSide = cell - 34;
+                var iconRect = new Rectangle(x + (cell - iconSide) / 2, y + 5, iconSide, iconSide);
+                var icon = IconCache.Get(checklist.IconPathFor(entry));
+                if (icon != null)
+                {
+                    g.DrawImage(icon, iconRect);
+                }
+                else
+                {
+                    // No icon: show the item name instead so the cell is still usable.
+                    g.DrawString(checklist.DisplayName(entry), smallFont, Brushes.LightGray,
+                        new RectangleF(x + 4, y + 4, cell - 8, cell - 30), center);
+                }
+
+                if (entry.IsComplete)
+                {
+                    g.FillRectangle(dimBrush, iconRect); // dim the icon
+                    using var checkPen = new Pen(DoneGreen, 5);
+                    var cxm = iconRect.X + iconRect.Width / 2;
+                    var cym = iconRect.Y + iconRect.Height / 2;
                     g.DrawLines(checkPen, new[]
                     {
-                        new Point(Margin + 11, boxY + 12),
-                        new Point(Margin + 16, boxY + 18),
-                        new Point(Margin + 25, boxY + 6),
+                        new Point(cxm - 18, cym + 2),
+                        new Point(cxm - 6, cym + 14),
+                        new Point(cxm + 18, cym - 12),
                     });
                 }
 
-                g.DrawString(
-                    checklist.DisplayName(entry),
-                    entry.Found ? foundFont : rowFont,
-                    entry.Found ? Brushes.Gray : Brushes.White,
-                    new RectangleF(Margin + CheckboxSize + 18, rowTop + 8, width - Margin * 2 - CheckboxSize - 22, RowHeight - 10),
-                    singleLine);
+                g.DrawString($"{entry.Collected}/{entry.Needed}", countFont,
+                    entry.IsComplete ? doneBrush : Brushes.White,
+                    new RectangleF(x, y + cell - 26, cell - 6, 22), rightAlign);
             }
 
             var footerText = entries.Count > capacity
                 ? $"+{entries.Count - capacity} more, edit checklist.json"
-                : "point with the free hand, trigger to check";
-            g.DrawString(footerText, smallFont, Brushes.Gray, Margin, height - FooterHeight + 6);
+                : "free hand: trigger +1, grip/A -1";
+            g.DrawString(footerText, smallFont, Brushes.Gray, Margin, height - FooterHeight + 8);
         }
 
         return ToRgba(bitmap);

@@ -12,27 +12,28 @@ The app is a pure `IVROverlay` client on top of the SteamVR compositor:
 - it knows nothing about the running game — it just draws a panel in VR space,
   next to any VR title.
 
-**Status: MVP complete, pending in-headset verification.** Checklist on the
-wrist, laser-pointer checking with the free hand, button toggle, JSON
-persistence, live hot-reload of every data file.
-
-## Features (MVP)
+## Features
 
 - [x] **Overlay initialization** — connects to the SteamVR runtime, readable
   error (not a crash) when SteamVR is unavailable
 - [x] **Wrist attachment** — panel glued to the left/right controller with a
-  configurable position/rotation offset; survives controller reconnects
-- [x] **Show/hide toggle** — hold a controller button (~0.6 s); actions are
-  rebindable in SteamVR's controller-bindings UI, with a short fade in/out
-- [x] **Checklist UI** — items with checkboxes; point at the panel with the
-  free hand and pull the trigger to check/uncheck (custom laser hit-testing via
-  `ComputeOverlayIntersection`); state saved to `checklist.json` and restored
-  on launch
+  configurable position/rotation offset; survives controller reconnects and
+  scene-app switches (self-healing re-assert)
+- [x] **Show/hide toggle** — click a controller button (X on Touch by
+  default); rebindable in SteamVR's controller-bindings UI; short fade in/out
+- [x] **Icon-grid checklist** — item icons with `collected/needed` counters;
+  point at a cell with the free hand: **trigger +1**, **grip −1** (custom
+  laser hit-testing via `ComputeOverlayIntersection`); completed items get
+  dimmed with a green check; state persists to `checklist.json`
+- [x] **Real item database** — 600+ items with icons, imported from the
+  community project
+  [exfil-zone-assistant](https://github.com/zelengeo/exfil-zone-assistant) (MIT)
 - [x] **Live editing** — `config.json`, `checklist.json` and
   `data/items_database.json` are watched and hot-reloaded; edit them on the
   desktop and the wrist panel updates without restarting
-- [ ] Next: in-VR item picker with search over the database, laser beam
-  visual, autostart with SteamVR, scrolling for long lists
+- [ ] Next: merged Twitch/YouTube stream-chat feed on the panel (LIV-style,
+  one list with a source tag per message), in-VR item picker with search,
+  laser beam visual, autostart with SteamVR
 
 Out of scope by design: memory reading, DLL injection, traffic parsing, OCR.
 
@@ -70,36 +71,31 @@ cd VROverlayTracker
 dotnet run --project src/ExfilZoneTracker -c Release
 ```
 
-Standalone single-file exe (no .NET runtime needed on the target machine):
+Standalone single-file exe:
 
 ```powershell
 dotnet publish src/ExfilZoneTracker -c Release -r win-x64 --self-contained -p:PublishSingleFile=true -o publish
-.\publish\ExfilZoneTracker.exe
 ```
-
-For a much smaller build that requires the .NET 8 runtime on the machine,
-replace `--self-contained` with `--self-contained false`.
 
 Command line: `--hand left` / `--hand right` overrides the configured hand for
 one run.
 
 ## Controls
 
-The panel lives on the **watch hand** (`Hand` in config, default right); the
-other, **free hand** is the pointer.
+The panel lives on the **watch hand** (`Hand` in config, default **left**);
+the other, **free hand** is the pointer.
 
 | Action | Default binding | Notes |
 | --- | --- | --- |
-| Show / hide panel | hold **B** (Index), **Y/B** (Touch), **menu** (Vive) ~0.6 s | either hand; hold time = `ToggleHoldMs` |
-| Check / uncheck item | **trigger** on the free hand while pointing at the panel | hovered row is highlighted |
+| Show / hide panel | **X click** (Touch, left hand), **B** (Index), **menu** (Vive) | set `ToggleHoldMs` > 0 to require a long-press |
+| +1 collected | **trigger** on the free hand while pointing at an item cell | hovered cell is highlighted |
+| −1 collected | **grip** (Touch/Vive) or **A** (Index) on the free hand | |
 
 Rebind anytime in **SteamVR → Settings → Controllers → Manage Controller
 Bindings → ExfilZone Wrist Tracker** (the app registers itself with SteamVR on
-launch). If a default binding does not load on your controller type, bind the
-two actions there manually once.
-
-There is no visible laser beam yet — aim with the free controller and watch
-for the row highlight, then pull the trigger.
+launch; binding load success/failure is logged to the console). There is no
+visible laser beam yet — aim with the free controller and watch for the cell
+highlight.
 
 ## Configuration
 
@@ -108,14 +104,14 @@ on save — tune the offsets live while wearing the headset:
 
 ```json
 {
-  "Hand": "right",
+  "Hand": "left",
   "WidthMeters": 0.22,
   "PositionMeters": { "X": 0, "Y": 0.02, "Z": 0.13 },
   "RotationDegrees": { "X": -90, "Y": 0, "Z": 0 },
   "PanelPixelWidth": 600,
-  "PanelPixelHeight": 480,
+  "PanelPixelHeight": 520,
   "StartVisible": true,
-  "ToggleHoldMs": 600,
+  "ToggleHoldMs": 0,
   "MaxLaserDistanceMeters": 2
 }
 ```
@@ -126,9 +122,9 @@ on save — tune the offsets live while wearing the headset:
 | `WidthMeters` | physical panel width; height follows the pixel aspect ratio |
 | `PositionMeters` | offset from the controller origin, meters, controller-local axes |
 | `RotationDegrees` | `X` = pitch, `Y` = yaw, `Z` = roll; applied yaw → pitch → roll |
-| `PanelPixelWidth/Height` | texture resolution (also defines how many rows fit) |
+| `PanelPixelWidth/Height` | texture resolution (also defines how many icon cells fit) |
 | `StartVisible` | show the panel right after launch |
-| `ToggleHoldMs` | how long the toggle button must be held |
+| `ToggleHoldMs` | 0 = toggle on click; > 0 = button must be held that long |
 | `MaxLaserDistanceMeters` | laser clicks farther than this are ignored |
 
 Controller-local axes (OpenVR convention): **+X** to the right, **+Y** up out
@@ -146,43 +142,45 @@ wands, so expect to adjust (live, thanks to hot-reload):
 
 ## Data files
 
-Two separate concerns, both plain JSON, both hot-reloaded:
-
-**`data/items_database.json`** — the static reference of game items (id, name,
-category, optional icon/note). Ships with the app; edit it with a text editor
-after game patches, no rebuild needed. The current entries are **samples** —
-fill in real items from the game's wiki and community sheets.
+**`data/items_database.json` + `data/icons/`** — the reference database:
+600+ items (id, name, category, icon) generated from
+[exfil-zone-assistant](https://github.com/zelengeo/exfil-zone-assistant)
+(MIT) by [tools/import_assistant_data.py](tools/import_assistant_data.py);
+icons are downscaled to 96 px PNGs. Re-run the script after game patches to
+refresh, or edit the JSON by hand — it hot-reloads.
 
 **`checklist.json`** (created next to the exe on first run) — your active
-hunt: references database items by id plus a found flag. This is also how you
-add/remove items in the MVP:
+hunt: database item ids plus how many you need and how many you've collected.
+This file is also how you add/remove items for now:
 
 ```json
 {
   "entries": [
-    { "itemId": "meds-first-aid-kit", "found": false },
-    { "itemId": "elec-graphics-card", "found": true }
+    { "itemId": "taskitem_ark_floppydisk", "needed": 1, "collected": 0 },
+    { "itemId": "taskitem_electricdrill_blue", "needed": 3, "collected": 1 }
   ]
 }
 ```
 
-Rows that don't fit the panel show up as “+N more”; raise `PanelPixelHeight`
-to fit more rows (44 px per row).
+Look up ids in `data/items_database.json` (search by item name). The old
+v0.1 format (`"found": true/false`) migrates automatically. Cells that don't
+fit the panel show up as “+N more”; raise `PanelPixelHeight` to fit more rows
+of the grid.
 
 ## What you should see (verification checklist)
 
 1. Start SteamVR, turn both controllers on, run the tracker.
 2. Console: `Connected to SteamVR` → `SteamVR Input ready` → `Panel attached`.
-3. In the headset: a dark checklist panel with sample items on the back of
-   your right forearm, following the controller like a watch.
-4. Point at it with the left controller — rows highlight; pull the trigger —
-   the checkbox ticks, the name gets struck through, the progress counter in
-   the header updates, and `checklist.json` on disk changes.
-5. Hold the toggle button ~0.6 s — panel fades out; hold again — fades back.
+3. In the headset: a panel with a grid of item icons and counters on your left
+   forearm, following the controller like a watch.
+4. Point at a cell with the free hand — it highlights; trigger bumps the
+   counter (`1/3`), grip drops it; a full counter dims the icon under a green
+   check and the header progress updates; `checklist.json` changes on disk.
+5. Click X (left Touch controller) — the panel fades out; click again — back.
 6. Edit `config.json` / `checklist.json` / the item database on the desktop —
    the panel updates within a second, no restart.
 7. Turn the watch-hand controller off → panel hides; on → reappears. Restart
-   the tracker → checked items are still checked.
+   the tracker → counters are preserved.
 8. Quit SteamVR → the tracker prints `SteamVR is shutting down` and exits.
 
 ## Project layout
@@ -192,16 +190,19 @@ src/ExfilZoneTracker/
   Program.cs           entry point, main loop, config hot-reload, clean shutdown
   OverlayManager.cs    OpenVR init, overlay lifecycle, SteamVR event pump
   WristAttachment.cs   controller discovery + offset matrix (wrist attach)
-  ChecklistUI.cs       visibility/fade, laser hover + click, texture updates
-  PanelRenderer.cs     GDI+ checklist rendering + pixel layout for hit-testing
-  InputManager.cs      SteamVR Input: app/action manifests, toggle + interact
+  ChecklistUI.cs       visibility/fade, laser hover + clicks, texture updates
+  PanelRenderer.cs     GDI+ icon-grid rendering + pixel layout for hit-testing
+  IconCache.cs         item icon bitmaps, reloaded when data changes
+  InputManager.cs      SteamVR Input: app/action manifests, toggle/+1/−1
   ChecklistData.cs     active checklist model, persistence, file watchers
   ItemDatabase.cs      game-item reference loading
   AppConfig.cs         config model + load/create
   app.vrmanifest       SteamVR application manifest (app key, action manifest)
   input/               action manifest + default bindings (Index/Touch/Vive)
   OpenVR/              vendored Valve C# binding + win64 openvr_api.dll
-data/items_database.json   editable game-item reference
+data/items_database.json   generated game-item reference (hot-reloaded)
+data/icons/                item icons, 96 px PNG (generated)
+tools/import_assistant_data.py   regenerates the database + icons
 ```
 
 ## Troubleshooting
@@ -223,10 +224,12 @@ data/items_database.json   editable game-item reference
 - **Panel not visible** — is the watch-hand controller on and tracked? The
   panel hides while it is missing; watch the console. Also rotate your wrist
   as if checking a watch, and check `StartVisible` in config.
-- **Buttons do nothing** — console should say `SteamVR Input ready`. Open
-  SteamVR's controller-bindings UI and make sure the two tracker actions are
-  bound for your controller type.
-- **Clicks land on the wrong row** — please open an issue: the UV→pixel
+- **Buttons do nothing** — console should say `SteamVR Input ready` and
+  `SteamVR loaded controller bindings`. If it reports a binding load failure,
+  bind the three actions manually in SteamVR's binding UI.
+- **Cell shows an item name instead of an icon** — the `itemId` is not in the
+  database (typo?) or its icon file is missing from `data/icons/`.
+- **Clicks land on the wrong cell** — please open an issue: the UV→pixel
   mapping in `ChecklistUI.ComputeHoveredRow` likely needs its vertical flip
   inverted for your setup.
 - **Panel colors look swapped (blue/orange tint)** — open an issue; the
@@ -235,5 +238,7 @@ data/items_database.json   editable game-item reference
 
 ## License
 
-[MIT](LICENSE). Vendored OpenVR files are © Valve Corporation, BSD-3-Clause —
-see [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md).
+[MIT](LICENSE). Vendored OpenVR files are © Valve Corporation (BSD-3-Clause);
+item data and icons come from
+[exfil-zone-assistant](https://github.com/zelengeo/exfil-zone-assistant) (MIT)
+— see [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md).

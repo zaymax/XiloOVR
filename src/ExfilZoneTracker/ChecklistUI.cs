@@ -43,10 +43,13 @@ public sealed class ChecklistUI
 
     public void MarkDirty() => _dirty = true;
 
-    public void Update(double deltaMs, bool wristControllerPresent, uint pointerDeviceIndex, bool interactClicked)
+    public void Update(double deltaMs, bool wristControllerPresent, uint pointerDeviceIndex, bool incrementClicked, bool decrementClicked)
     {
         if (_checklist.ConsumeFileChanges())
+        {
+            IconCache.Clear(); // icons may have changed together with the database
             _dirty = true;
+        }
 
         UpdateAlpha(deltaMs, wristControllerPresent);
 
@@ -71,10 +74,18 @@ public sealed class ChecklistUI
             _dirty = true;
         }
 
-        if (interactClicked && _shown && _hoverIndex >= 0)
+        if (_shown && _hoverIndex >= 0)
         {
-            _checklist.ToggleFound(_hoverIndex);
-            _dirty = true;
+            if (incrementClicked)
+            {
+                _checklist.Increment(_hoverIndex);
+                _dirty = true;
+            }
+            if (decrementClicked)
+            {
+                _checklist.Decrement(_hoverIndex);
+                _dirty = true;
+            }
         }
 
         if (_dirty)
@@ -147,6 +158,6 @@ public sealed class ChecklistUI
         // Overlay UVs are bottom-left origin; raw texture rows start at the top.
         var x = (int)(results.vUVs.v0 * _config.PanelPixelWidth);
         var y = (int)((1f - results.vUVs.v1) * _config.PanelPixelHeight);
-        return PanelRenderer.RowAtPixel(_config, _checklist.Entries.Count, x, y);
+        return PanelRenderer.CellAtPixel(_config, _checklist.Entries.Count, x, y);
     }
 }

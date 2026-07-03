@@ -11,7 +11,7 @@
     <!-- vendored OpenVR/openvr_api.cs predates nullable reference types; app files opt in via #nullable enable -->
     <Nullable>disable</Nullable>
     <InvariantGlobalization>true</InvariantGlobalization>
-    <Version>0.1.1</Version>
+    <Version>0.2.0</Version>
   </PropertyGroup>
 
   <ItemGroup>
@@ -24,8 +24,9 @@
     <!-- SteamVR app manifest + input actions/bindings, loaded by absolute path at runtime -->
     <None Include="app.vrmanifest" CopyToOutputDirectory="PreserveNewest" />
     <None Include="input\*.json" CopyToOutputDirectory="PreserveNewest" />
-    <!-- Editable game-item reference database -->
+    <!-- Editable game-item reference database + item icons -->
     <None Include="..\..\data\items_database.json" Link="data\items_database.json" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\..\data\icons\**\*.png" Link="data\icons\%(RecursiveDir)%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
 </Project>

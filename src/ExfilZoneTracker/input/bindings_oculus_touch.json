@@ -3,14 +3,7 @@
     "/actions/main": {
       "sources": [
         {
-          "path": "/user/hand/left/input/y",
-          "mode": "button",
-          "inputs": {
-            "click": { "output": "/actions/main/in/toggle_panel" }
-          }
-        },
-        {
-          "path": "/user/hand/right/input/b",
+          "path": "/user/hand/left/input/x",
           "mode": "button",
           "inputs": {
             "click": { "output": "/actions/main/in/toggle_panel" }
@@ -18,16 +11,30 @@
         },
         {
           "path": "/user/hand/left/input/trigger",
-          "mode": "button",
+          "mode": "trigger",
           "inputs": {
             "click": { "output": "/actions/main/in/interact" }
           }
         },
         {
           "path": "/user/hand/right/input/trigger",
-          "mode": "button",
+          "mode": "trigger",
           "inputs": {
             "click": { "output": "/actions/main/in/interact" }
+          }
+        },
+        {
+          "path": "/user/hand/left/input/grip",
+          "mode": "trigger",
+          "inputs": {
+            "click": { "output": "/actions/main/in/decrement" }
+          }
+        },
+        {
+          "path": "/user/hand/right/input/grip",
+          "mode": "trigger",
+          "inputs": {
+            "click": { "output": "/actions/main/in/decrement" }
           }
         }
       ]

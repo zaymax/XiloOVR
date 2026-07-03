@@ -1,14 +1,4242 @@
 {
   "schemaVersion": 1,
   "game": "Contractors Showdown: ExfilZone",
-  "comment": "Reference database of game items. Sample entries below are placeholders: verify names against the official wiki / community sheets and extend freely. The app will start reading this file in the checklist milestone; edit it with any text editor, no rebuild needed.",
-  "categories": ["quest", "valuables", "weapon_parts", "meds", "electronics", "keys", "misc"],
+  "credit": "Item data and images from https://github.com/zelengeo/exfil-zone-assistant (MIT)",
   "items": [
-    { "id": "meds-bandage", "name": "Bandage", "category": "meds", "icon": null, "note": "Sample entry, verify the exact in-game name." },
-    { "id": "meds-first-aid-kit", "name": "First Aid Kit", "category": "meds", "icon": null, "note": "Sample entry." },
-    { "id": "elec-graphics-card", "name": "Graphics Card", "category": "electronics", "icon": null, "note": "Sample entry." },
-    { "id": "val-gold-bar", "name": "Gold Bar", "category": "valuables", "icon": null, "note": "Sample entry." },
-    { "id": "wpn-suppressor", "name": "Suppressor", "category": "weapon_parts", "icon": null, "note": "Sample entry." },
-    { "id": "quest-usb-drive", "name": "USB Drive", "category": "quest", "icon": null, "note": "Sample entry." }
+    {
+      "id": "ammo-556x45-apv2",
+      "name": "5.56x45mm AP",
+      "category": "ammo",
+      "icon": "icons/ammo/556X45_AP.png",
+      "note": "5.56x45mm"
+    },
+    {
+      "id": "ammo-556x45-apv1",
+      "name": "5.56x45mm M995",
+      "category": "ammo",
+      "icon": "icons/ammo/556X45_M995.png",
+      "note": "5.56x45mm"
+    },
+    {
+      "id": "ammo-556x45-mk318",
+      "name": "5.56x45mm Mk318",
+      "category": "ammo",
+      "icon": "icons/ammo/556X45_MK318.png",
+      "note": "5.56x45mm"
+    },
+    {
+      "id": "ammo-556x45-fmj",
+      "name": "5.56x45mm FMJ",
+      "category": "ammo",
+      "icon": "icons/ammo/556X45_FMJ.png",
+      "note": "5.56x45mm"
+    },
+    {
+      "id": "ammo-556x45-tracer",
+      "name": "5.56x45mm Mk255",
+      "category": "ammo",
+      "icon": "icons/ammo/556X45_MK255.png",
+      "note": "5.56x45mm"
+    },
+    {
+      "id": "ammo-762x39-apv2",
+      "name": "7.62x39mm AP",
+      "category": "ammo",
+      "icon": "icons/ammo/762x39mm_AP.png",
+      "note": "7.62x39mm"
+    },
+    {
+      "id": "ammo-762x39-apv1",
+      "name": "7.62x39mm BP",
+      "category": "ammo",
+      "icon": "icons/ammo/762x39mm_BP.png",
+      "note": "7.62x39mm"
+    },
+    {
+      "id": "ammo-762x39-ps",
+      "name": "7.62x39mm PS",
+      "category": "ammo",
+      "icon": "icons/ammo/762x39mm_PS.png",
+      "note": "7.62x39mm"
+    },
+    {
+      "id": "ammo-762x39-tracer",
+      "name": "7.62x39mm FMJ Tracer",
+      "category": "ammo",
+      "icon": "icons/ammo/762x39mm_FMJ.png",
+      "note": "7.62x39mm"
+    },
+    {
+      "id": "ammo-762x39-hp",
+      "name": "7.62x39mm SP",
+      "category": "ammo",
+      "icon": "icons/ammo/762x39mm_SP.png",
+      "note": "7.62x39mm"
+    },
+    {
+      "id": "ammo-762x51-apv2",
+      "name": "7.62x51mm M993",
+      "category": "ammo",
+      "icon": "icons/ammo/762x51mm_M993.png",
+      "note": "7.62x51mm"
+    },
+    {
+      "id": "ammo-762x51-apv1",
+      "name": "7.62x51mm M61",
+      "category": "ammo",
+      "icon": "icons/ammo/762x51mm_M61.png",
+      "note": "7.62x51mm"
+    },
+    {
+      "id": "ammo-762x51-M80",
+      "name": "7.62x51mm M80",
+      "category": "ammo",
+      "icon": "icons/ammo/762x51mm_M80.png",
+      "note": "7.62x51mm"
+    },
+    {
+      "id": "ammo-762x51-fmj",
+      "name": "7.62x51mm FMJ",
+      "category": "ammo",
+      "icon": "icons/ammo/762x51mm_FMJ.png",
+      "note": "7.62x51mm"
+    },
+    {
+      "id": "ammo-762x51-hp",
+      "name": "7.62x51mm SP",
+      "category": "ammo",
+      "icon": "icons/ammo/762x51mm_SP.png",
+      "note": "7.62x51mm"
+    },
+    {
+      "id": "ammo-9x19-apv1",
+      "name": "9x19mm AP",
+      "category": "ammo",
+      "icon": "icons/ammo/9x19mm_APV1.png",
+      "note": "9x19mm"
+    },
+    {
+      "id": "ammo-9x19-tracer",
+      "name": "9x19mm PST Tracer",
+      "category": "ammo",
+      "icon": "icons/ammo/9x19mm_tracer.png",
+      "note": "9x19mm"
+    },
+    {
+      "id": "ammo-9x19-fmj",
+      "name": "9x19mm FMJ",
+      "category": "ammo",
+      "icon": "icons/ammo/9x19mm_FMJ.png",
+      "note": "9x19mm"
+    },
+    {
+      "id": "ammo-9x19-pso",
+      "name": "9x19mm PSO",
+      "category": "ammo",
+      "icon": "icons/ammo/9x19mm_Hpv1.png",
+      "note": "9x19mm"
+    },
+    {
+      "id": "ammo-545x39-apv2",
+      "name": "5.45x39mm BS",
+      "category": "ammo",
+      "icon": "icons/ammo/545x39mm_BS.png",
+      "note": "5.45x39mm"
+    },
+    {
+      "id": "ammo-545x39-apv1",
+      "name": "5.45x39mm 7N40",
+      "category": "ammo",
+      "icon": "icons/ammo/545x39mm_7N40.png",
+      "note": "5.45x39mm"
+    },
+    {
+      "id": "ammo-545x39-tracer",
+      "name": "5.45x39mm PP Tracer",
+      "category": "ammo",
+      "icon": "icons/ammo/545x39mm_PP.png",
+      "note": "5.45x39mm"
+    },
+    {
+      "id": "ammo-545x39-fmj",
+      "name": "5.45x39mm FMJ",
+      "category": "ammo",
+      "icon": "icons/ammo/545x39mm_FMJ.png",
+      "note": "5.45x39mm"
+    },
+    {
+      "id": "ammo-545x39-hp",
+      "name": "5.45x39mm PRS",
+      "category": "ammo",
+      "icon": "icons/ammo/545x39mm_PRS.png",
+      "note": "5.45x39mm"
+    },
+    {
+      "id": "ammo-45acp-apv1",
+      "name": ".45 ACP AP",
+      "category": "ammo",
+      "icon": "icons/ammo/45acp_APV1.png",
+      "note": ".45 ACP"
+    },
+    {
+      "id": "ammo-45acp-tracer",
+      "name": ".45 ACP L-Match Tracer",
+      "category": "ammo",
+      "icon": "icons/ammo/45acp_L-Match.png",
+      "note": ".45 ACP"
+    },
+    {
+      "id": "ammo-45acp-fmj",
+      "name": ".45 ACP FMJ",
+      "category": "ammo",
+      "icon": "icons/ammo/45acp_FMJ.png",
+      "note": ".45 ACP"
+    },
+    {
+      "id": "ammo-45acp-tracer2",
+      "name": ".45 ACP Tracer",
+      "category": "ammo",
+      "icon": "icons/ammo/45acp_TRACER.png",
+      "note": ".45 ACP"
+    },
+    {
+      "id": "ammo-12ga-slug-ap",
+      "name": "12 Gauge AP-20 Slug",
+      "category": "ammo",
+      "icon": "icons/ammo/12ga_SLUG_AP.png",
+      "note": "12 Gauge"
+    },
+    {
+      "id": "ammo-12ga-buckshot-ap",
+      "name": "12 Gauge Flechette",
+      "category": "ammo",
+      "icon": "icons/ammo/12ga_BUCK_AP.png",
+      "note": "12 Gauge"
+    },
+    {
+      "id": "ammo-12ga-buckshot-hp",
+      "name": "12 Gauge Buckshot",
+      "category": "ammo",
+      "icon": "icons/ammo/12ga_BUCK_HP.png",
+      "note": "12 Gauge"
+    },
+    {
+      "id": "ammo-12ga-slug-hp",
+      "name": "12 Gauge RIP slug",
+      "category": "ammo",
+      "icon": "icons/ammo/12ga_SLUG_HP.png",
+      "note": "12 Gauge"
+    },
+    {
+      "id": "ammo-762x54r-apv2",
+      "name": "7.62x54mmR SNB",
+      "category": "ammo",
+      "icon": "icons/ammo/762x54r_SNB.png",
+      "note": "7.62x54mmR"
+    },
+    {
+      "id": "ammo-762x54r-apv1",
+      "name": "7.62x54mmR PS",
+      "category": "ammo",
+      "icon": "icons/ammo/762x54r_Ps.png",
+      "note": "7.62x54mmR"
+    },
+    {
+      "id": "ammo-762x54r-tracer",
+      "name": "7.62x54mmR LPS Tracer",
+      "category": "ammo",
+      "icon": "icons/ammo/762x54r_lps.png",
+      "note": "7.62x54mmR"
+    },
+    {
+      "id": "ammo-762x54r-fmj",
+      "name": "7.62x54mmR FMJ",
+      "category": "ammo",
+      "icon": "icons/ammo/762x54r_FMJ.png",
+      "note": "7.62x54mmR"
+    },
+    {
+      "id": "ammo-762x54r-hp",
+      "name": "7.62x54mmR HP",
+      "category": "ammo",
+      "icon": "icons/ammo/762x54r_hp.png",
+      "note": "7.62x54mmR"
+    },
+    {
+      "id": "ammo-68x51-apv1",
+      "name": "6.8x51mm Hybrid",
+      "category": "ammo",
+      "icon": "icons/ammo/68x51mm_APV1.png",
+      "note": "6.8x51mm"
+    },
+    {
+      "id": "ammo-68x51-fmj",
+      "name": "6.8x51mm FMJ",
+      "category": "ammo",
+      "icon": "icons/ammo/68x51mm_FMJ.png",
+      "note": "6.8x51mm"
+    },
+    {
+      "id": "armor-6b17",
+      "name": "6B17 Body Armor",
+      "category": "gear",
+      "icon": "icons/armor/Icon_SKM_Vest_013_02_Ck.png",
+      "note": "Body Armor"
+    },
+    {
+      "id": "armor-6b17-upgrade",
+      "name": "6B17 Upgraded Body Armor",
+      "category": "gear",
+      "icon": "icons/armor/Icon_SKM_Vest_013_01_Ck.png",
+      "note": "Body Armor"
+    },
+    {
+      "id": "armor-apex-bk",
+      "name": "ApexBK Body Armor",
+      "category": "gear",
+      "icon": "icons/armor/Icon_vest_lv6.png",
+      "note": "Body Armor"
+    },
+    {
+      "id": "armor-sudden-attack",
+      "name": "Sudden Attack Vest",
+      "category": "gear",
+      "icon": "icons/armor/Icon_vest_lv1-sudden.png",
+      "note": "Body Armor"
+    },
+    {
+      "id": "armor-apex-mc",
+      "name": "ApexMC Body Armor",
+      "category": "gear",
+      "icon": "icons/armor/Icon_vest_lv7.png",
+      "note": "Body Armor"
+    },
+    {
+      "id": "armor-duo-mountains",
+      "name": "Duo Mountains Vest",
+      "category": "gear",
+      "icon": "icons/armor/Icon_vest_lv3.png",
+      "note": "Body Armor"
+    },
+    {
+      "id": "armor-imtv",
+      "name": "IMTV Body Armor",
+      "category": "gear",
+      "icon": "icons/armor/Icon_vest_lv5-imtv.png",
+      "note": "Body Armor"
+    },
+    {
+      "id": "armor-iotvgen3",
+      "name": "IOTV Gen3 Full Body Armor",
+      "category": "gear",
+      "icon": "icons/armor/WarfareTecVest_IOTVGEN3.png",
+      "note": "Body Armor"
+    },
+    {
+      "id": "armor-jpc",
+      "name": "JPC Plate Carrier",
+      "category": "gear",
+      "icon": "icons/armor/Icon_vest_lv4.png",
+      "note": "Body Armor"
+    },
+    {
+      "id": "armor-police-vest",
+      "name": "Police PACA Armor",
+      "category": "gear",
+      "icon": "icons/armor/Icon_SKM_Vest_017_Hcj.png",
+      "note": "Body Armor"
+    },
+    {
+      "id": "armor-press-vest",
+      "name": "Press Vest",
+      "category": "gear",
+      "icon": "icons/armor/Icon_SKM_Vest_008_Hcj.png",
+      "note": "Body Armor"
+    },
+    {
+      "id": "armor-raid-explorer-black",
+      "name": "Raid Explorer Black",
+      "category": "gear",
+      "icon": "icons/armor/Icon_vest_lv2-black.png",
+      "note": "Body Armor"
+    },
+    {
+      "id": "armor-raid-explorer-sd",
+      "name": "Raid Explorer SD",
+      "category": "gear",
+      "icon": "icons/armor/Icon_vest_lv2-sd.png",
+      "note": "Body Armor"
+    },
+    {
+      "id": "armor-rampage",
+      "name": "Rampage Tactical Vest",
+      "category": "gear",
+      "icon": "icons/armor/Icon_vest_lv5.png",
+      "note": "Body Armor"
+    },
+    {
+      "id": "armor-rampage-od",
+      "name": "Rampage OD Tactical Vest",
+      "category": "gear",
+      "icon": "icons/armor/WarfareTecVest_Rampage_OD.png",
+      "note": "Body Armor"
+    },
+    {
+      "id": "armor-sd-protector",
+      "name": "S.D. Protector Full Body Armor",
+      "category": "gear",
+      "icon": "icons/armor/WarfareTecVest_SDprotecter.png",
+      "note": "Body Armor"
+    },
+    {
+      "id": "armor-sd-protector-black",
+      "name": "S.D. Protector Full Body Armor Black",
+      "category": "gear",
+      "icon": "icons/armor/WarfareTecVest_SDprotecter_Black.png",
+      "note": "Body Armor"
+    },
+    {
+      "id": "armor-security-vest",
+      "name": "Security PACA Armor",
+      "category": "gear",
+      "icon": "icons/armor/Icon_SKM_Vest_008_Hcj_BK.png",
+      "note": "Body Armor"
+    },
+    {
+      "id": "armor-soft-armor",
+      "name": "Soft Armor Vest",
+      "category": "gear",
+      "icon": "icons/armor/Icon_vest_lv2.png",
+      "note": "Body Armor"
+    },
+    {
+      "id": "armor-wdcs",
+      "name": "WDCS Tactical Armor",
+      "category": "gear",
+      "icon": "icons/armor/Icon_vest_lv8.png",
+      "note": "Body Armor"
+    },
+    {
+      "id": "armor-wdcs-swat",
+      "name": "WDCS SWAT Tactical Armor",
+      "category": "gear",
+      "icon": "icons/armor/Icon_WarfareTecVest_WDCS_Swat.png",
+      "note": "Body Armor"
+    },
+    {
+      "id": "armor-sudden-attack-vest",
+      "name": "Sudden Attack Tactical Vest",
+      "category": "gear",
+      "icon": "icons/armor/Icon_vest_lv1-sudden.png",
+      "note": "Body Armor"
+    },
+    {
+      "id": "armor-rampage-bells",
+      "name": "Rampage Christmas Special",
+      "category": "gear",
+      "icon": "icons/armor/Icon_event_xmas_boss.png",
+      "note": "Body Armor"
+    },
+    {
+      "id": "armor-rampage-skull",
+      "name": "Rampage Skull Edition",
+      "category": "gear",
+      "icon": "icons/armor/WarfareTecVest_Rampage_skull.png",
+      "note": "Body Armor"
+    },
+    {
+      "id": "muzzle_slr_c",
+      "name": "CLR BK",
+      "category": "attachments",
+      "icon": "icons/attachments/Icon_at_com_clrbk.png",
+      "note": "Compensators"
+    },
+    {
+      "id": "muzzle_slr_hiheat_c",
+      "name": "CLR HiHeat",
+      "category": "attachments",
+      "icon": "icons/attachments/Icon_at_06.png",
+      "note": "Compensators"
+    },
+    {
+      "id": "muzzle_aug_adaptor_c",
+      "name": "Aug 5.56x45 adpator",
+      "category": "attachments",
+      "icon": "icons/attachments/Icon_SM_Bpart_Aug_RATworx558.png",
+      "note": "Compensators"
+    },
+    {
+      "id": "muzzle_cookiecutter_c",
+      "name": "COOKI",
+      "category": "attachments",
+      "icon": "icons/attachments/Icon_at_com_cooki.png",
+      "note": "Compensators"
+    },
+    {
+      "id": "muzzle_dmr_c",
+      "name": "DMR Compensator",
+      "category": "attachments",
+      "icon": "icons/attachments/Icon_at_com_snipercom.png",
+      "note": "Compensators"
+    },
+    {
+      "id": "muzzle_dtk1_c",
+      "name": "ATK1",
+      "category": "attachments",
+      "icon": "icons/attachments/Icon_at_01.png",
+      "note": "Compensators"
+    },
+    {
+      "id": "muzzle_dtk2_c",
+      "name": "ATK2",
+      "category": "attachments",
+      "icon": "icons/attachments/Icon_at_com_atk2.png",
+      "note": "Compensators"
+    },
+    {
+      "id": "muzzle_innovations_c",
+      "name": "Sugar Lump",
+      "category": "attachments",
+      "icon": "icons/attachments/Icon_at_com_sugarlump.png",
+      "note": "Compensators"
+    },
+    {
+      "id": "muzzle_rifle_default_c",
+      "name": "Rifle Compensator",
+      "category": "attachments",
+      "icon": "icons/attachments/Icon_at_com_riflecom.png",
+      "note": "Compensators"
+    },
+    {
+      "id": "muzzle_vp09_c",
+      "name": "Viper09",
+      "category": "attachments",
+      "icon": "icons/attachments/Icon_at_com_viper9.png",
+      "note": "Compensators"
+    },
+    {
+      "id": "supressor_defaultsuppressor",
+      "name": "Rifle Suppressor",
+      "category": "attachments",
+      "icon": "icons/attachments/Icon_at_scoperail_riflesuppressor.png",
+      "note": "Suppressors"
+    },
+    {
+      "id": "supressor_kacprs_bk",
+      "name": "Quicker BK",
+      "category": "attachments",
+      "icon": "icons/attachments/Icon_at_scoperail_quickerbk.png",
+      "note": "Suppressors"
+    },
+    {
+      "id": "supressor_kacprs_sand",
+      "name": "Quicker SD",
+      "category": "attachments",
+      "icon": "icons/attachments/ICON_at_scoperail_quickersd.png",
+      "note": "Suppressors"
+    },
+    {
+      "id": "supressor_m4sd",
+      "name": "ARSD",
+      "category": "attachments",
+      "icon": "icons/attachments/Icon_at_08.png",
+      "note": "Suppressors"
+    },
+    {
+      "id": "supressor_osprey9",
+      "name": "Pelican 9",
+      "category": "attachments",
+      "icon": "icons/attachments/Icon_at_scoperail_pelican9.png",
+      "note": "Suppressors"
+    },
+    {
+      "id": "supressor_pistolsuppressor",
+      "name": "Pistol Suppressor",
+      "category": "attachments",
+      "icon": "icons/attachments/Icon_at_scoperail_pistolsuppressor.png",
+      "note": "Suppressors"
+    },
+    {
+      "id": "supressor_s_hybrid46_grey",
+      "name": "Mistrey46 GY",
+      "category": "attachments",
+      "icon": "icons/attachments/Icon_at_scoperail_mistrey46gy.png",
+      "note": "Suppressors"
+    },
+    {
+      "id": "supressor_s_hybrid46_sand",
+      "name": "Mistrey46 SD",
+      "category": "attachments",
+      "icon": "icons/attachments/Icon_at_scoperail_mistrey46sd.png",
+      "note": "Suppressors"
+    },
+    {
+      "id": "supressor_s_tbeast_normal",
+      "name": "Sleipnir",
+      "category": "attachments",
+      "icon": "icons/attachments/Icon_at_07.png",
+      "note": "Suppressors"
+    },
+    {
+      "id": "supressor_s_tbeast_u_bk",
+      "name": "Sleipnir BK Cover ",
+      "category": "attachments",
+      "icon": "icons/attachments/Icon_at_scoperail_sleipnirbkcover.png",
+      "note": "Suppressors"
+    },
+    {
+      "id": "supressor_s_tbeast_uamo",
+      "name": "Sleipnir MC Cover ",
+      "category": "attachments",
+      "icon": "icons/attachments/Icon_at_scoperail_sleipnirmccover.png",
+      "note": "Suppressors"
+    },
+    {
+      "id": "supressor_s_tbeast_ub",
+      "name": "Sleipnir SD Cover ",
+      "category": "attachments",
+      "icon": "icons/attachments/Icon_at_scoperail_sleipnirsdcover.png",
+      "note": "Suppressors"
+    },
+    {
+      "id": "supressor_mp9_suppressor",
+      "name": "MP9 Suppressor",
+      "category": "attachments",
+      "icon": "icons/attachments/WF_MP9_Suppressor.png",
+      "note": "Suppressors"
+    },
+    {
+      "id": "tactical_flashlight_h200",
+      "name": "H200 FlashLight",
+      "category": "attachments",
+      "icon": "icons/attachments/Icon_at_flashlight_h200.png",
+      "note": "Tactical"
+    },
+    {
+      "id": "tactical_laser_mawl1",
+      "name": "Laser",
+      "category": "attachments",
+      "icon": "icons/attachments/Icon_MELC1Laser.png",
+      "note": "Tactical"
+    },
+    {
+      "id": "tactical_laser_mx400",
+      "name": "Laser",
+      "category": "attachments",
+      "icon": "icons/attachments/Icon_at_light_mx400-flashlight.png",
+      "note": "Tactical"
+    },
+    {
+      "id": "tactical_laser_peq",
+      "name": "Laser",
+      "category": "attachments",
+      "icon": "icons/attachments/Icon_at_09.png",
+      "note": "Tactical"
+    },
+    {
+      "id": "tactical_laser_pistol",
+      "name": "Laser",
+      "category": "attachments",
+      "icon": "icons/attachments/Icon_at_10.png",
+      "note": "Tactical"
+    },
+    {
+      "id": "tactical_laser_vario_bkshort",
+      "name": "Laser",
+      "category": "attachments",
+      "icon": "icons/attachments/Icon_at_laser_faliro.png",
+      "note": "Tactical"
+    },
+    {
+      "id": "tactical_laser_vario_fdelong",
+      "name": "Laser",
+      "category": "attachments",
+      "icon": "icons/attachments/Icon_at_laser_falirofde.png",
+      "note": "Tactical"
+    },
+    {
+      "id": "scope_acog",
+      "name": "ACOG",
+      "category": "attachments",
+      "icon": "icons/attachments/Icon_at_4x_acog.png",
+      "note": "Sights"
+    },
+    {
+      "id": "scope_bravo4",
+      "name": "Beta4",
+      "category": "attachments",
+      "icon": "icons/attachments/Icon_at_4x_beta4.png",
+      "note": "Sights"
+    },
+    {
+      "id": "scope_devo",
+      "name": "Levo",
+      "category": "attachments",
+      "icon": "icons/attachments/Icon_WF_Devo.png",
+      "note": "Sights"
+    },
+    {
+      "id": "scope_hamrsight_4x",
+      "name": "HRMA",
+      "category": "attachments",
+      "icon": "icons/attachments/Icon_at_14.png",
+      "note": "Sights"
+    },
+    {
+      "id": "scope_mosinpu",
+      "name": "Mosin PU 3.5X scope",
+      "category": "attachments",
+      "icon": "icons/attachments/Icon_at_scope_SniperPU.png",
+      "note": "Sights"
+    },
+    {
+      "id": "scope_psgscope",
+      "name": "ScepterDR BK",
+      "category": "attachments",
+      "icon": "icons/attachments/Icon_SM_PSG_Rail_Scope.png",
+      "note": "Sights"
+    },
+    {
+      "id": "scope_spector_bk",
+      "name": "ScepterDR BK",
+      "category": "attachments",
+      "icon": "icons/attachments/Icon_at_4x_scepterdrbk.png",
+      "note": "Sights"
+    },
+    {
+      "id": "scope_spector_fde",
+      "name": "ScepterDR FDE",
+      "category": "attachments",
+      "icon": "icons/attachments/Icon_at_4x_scepterdrfde.png",
+      "note": "Sights"
+    },
+    {
+      "id": "scope_svtpu",
+      "name": "SVT PU 3.5X scope",
+      "category": "attachments",
+      "icon": "icons/attachments/Icon_WF_SvtPU.png",
+      "note": "Sights"
+    },
+    {
+      "id": "scope_falconzf",
+      "name": "scope_falconzf",
+      "category": "attachments",
+      "icon": "icons/attachments/Icon_SM_G3_Scope.png",
+      "note": "Sights"
+    },
+    {
+      "id": "scope_mark3scope",
+      "name": "Hunter3",
+      "category": "attachments",
+      "icon": "icons/attachments/Icon_at_15.png",
+      "note": "Sights"
+    },
+    {
+      "id": "scope_nighthawk",
+      "name": "LP NightHawk",
+      "category": "attachments",
+      "icon": "icons/attachments/Icon_at_lp_lpnighthawk.png",
+      "note": "Sights"
+    },
+    {
+      "id": "scope_vertex",
+      "name": "VerTac X",
+      "category": "attachments",
+      "icon": "icons/attachments/Icon_at_lp_vertacx.png",
+      "note": "Sights"
+    },
+    {
+      "id": "scope_aimpointt1sight",
+      "name": "T1 Elevating",
+      "category": "attachments",
+      "icon": "icons/attachments/Icon_at_red_t1.png",
+      "note": "Sights"
+    },
+    {
+      "id": "scope_eotechhologramsight",
+      "name": "PiTechS3 BK",
+      "category": "attachments",
+      "icon": "icons/attachments/Icon_at_03.png",
+      "note": "Sights"
+    },
+    {
+      "id": "scope_eotechhologramsight_fde",
+      "name": "PiTechS3 FDE",
+      "category": "attachments",
+      "icon": "icons/attachments/Icon_at_red_fde.png",
+      "note": "Sights"
+    },
+    {
+      "id": "scope_kobrasight_bp",
+      "name": "Cobra",
+      "category": "attachments",
+      "icon": "icons/attachments/Icon_at_17.png",
+      "note": "Sights"
+    },
+    {
+      "id": "scope_lcosight",
+      "name": "FLCO",
+      "category": "attachments",
+      "icon": "icons/attachments/Icon_at_05.png",
+      "note": "Sights"
+    },
+    {
+      "id": "scope_ocp7",
+      "name": "Cobra",
+      "category": "attachments",
+      "icon": "icons/attachments/Icon_at_red_ocp7.png",
+      "note": "Sights"
+    },
+    {
+      "id": "scope_pistolsight_doc_mount",
+      "name": "Toucan2",
+      "category": "attachments",
+      "icon": "icons/attachments/Icon_at_04.png",
+      "note": "Sights"
+    },
+    {
+      "id": "scope_romeo8t",
+      "name": "LOMIO8T",
+      "category": "attachments",
+      "icon": "icons/attachments/Icon_at_red_lomio8t.png",
+      "note": "Sights"
+    },
+    {
+      "id": "scope_srs",
+      "name": "Savior",
+      "category": "attachments",
+      "icon": "icons/attachments/Icon_at_red_savior.png",
+      "note": "Sights"
+    },
+    {
+      "id": "scope_walther",
+      "name": "Walther Reflex",
+      "category": "attachments",
+      "icon": "icons/attachments/Icon_at_16.png",
+      "note": "Sights"
+    },
+    {
+      "id": "grip_afgtrianglegrip",
+      "name": "Triangle Grip",
+      "category": "attachments",
+      "icon": "icons/attachments/Icon_at_20.png",
+      "note": "Grips"
+    },
+    {
+      "id": "grip_gunfighter_bk",
+      "name": "Triangle Grip",
+      "category": "attachments",
+      "icon": "icons/attachments/Icon_at_grip_gf_BK.png",
+      "note": "Grips"
+    },
+    {
+      "id": "grip_gunfighter_fde",
+      "name": "Vertical Grip",
+      "category": "attachments",
+      "icon": "icons/attachments/IGF_Mod_3_FDE_con.png",
+      "note": "Grips"
+    },
+    {
+      "id": "grip_gunfighter_olive",
+      "name": "Vertical Grip",
+      "category": "attachments",
+      "icon": "icons/attachments/Icon_at_grip_gfolv.png",
+      "note": "Grips"
+    },
+    {
+      "id": "grip_shift_bk",
+      "name": "Triangle Grip",
+      "category": "attachments",
+      "icon": "icons/attachments/Icon_at_24.png",
+      "note": "Grips"
+    },
+    {
+      "id": "grip_shift_olive",
+      "name": "Transfer OLV",
+      "category": "attachments",
+      "icon": "icons/attachments/Icon_at_25.png",
+      "note": "Grips"
+    },
+    {
+      "id": "grip_shift_red",
+      "name": "Transfer Red",
+      "category": "attachments",
+      "icon": "icons/attachments/Icon_at_26.png",
+      "note": "Grips"
+    },
+    {
+      "id": "grip_shift_sand",
+      "name": "Transfer Sand",
+      "category": "attachments",
+      "icon": "icons/attachments/Icon_at_27.png",
+      "note": "Grips"
+    },
+    {
+      "id": "grip_trigripobra_bk",
+      "name": "Triangle Grip",
+      "category": "attachments",
+      "icon": "icons/attachments/Icon_at_21.png",
+      "note": "Grips"
+    },
+    {
+      "id": "grip_trigripobra_od",
+      "name": "Mamba SD",
+      "category": "attachments",
+      "icon": "icons/attachments/Icon_at_22.png",
+      "note": "Grips"
+    },
+    {
+      "id": "grip_trigripobra_sand",
+      "name": "Mamba OLV",
+      "category": "attachments",
+      "icon": "icons/attachments/Icon_at23.png",
+      "note": "Grips"
+    },
+    {
+      "id": "grip_trigrip_se_bk",
+      "name": "Triangle Grip",
+      "category": "attachments",
+      "icon": "icons/attachments/Icon_at_12.png",
+      "note": "Grips"
+    },
+    {
+      "id": "grip_trigrip_se_grey",
+      "name": "STAR5 GY",
+      "category": "attachments",
+      "icon": "icons/attachments/Icon_at_scoperail_star5gy.png",
+      "note": "Grips"
+    },
+    {
+      "id": "grip_trigrip_se_olive",
+      "name": "STAR5 OLV",
+      "category": "attachments",
+      "icon": "icons/attachments/Icon_at_scoperail_star5olv.png",
+      "note": "Grips"
+    },
+    {
+      "id": "grip_trigrip_se_sand",
+      "name": "STAR5 SD",
+      "category": "attachments",
+      "icon": "icons/attachments/Icon_at_scoperail_star5sd.png",
+      "note": "Grips"
+    },
+    {
+      "id": "grip_verticalgrip_pk1b25u",
+      "name": "Vertical Grip",
+      "category": "attachments",
+      "icon": "icons/attachments/Icon_at_scoperail_pk1b25u.png",
+      "note": "Grips"
+    },
+    {
+      "id": "grip_verticalgrip_rk1",
+      "name": "Vertical Grip",
+      "category": "attachments",
+      "icon": "icons/attachments/Icon_at_scoperail_pk1.png",
+      "note": "Grips"
+    },
+    {
+      "id": "grip_verticalgrip_rvg_bk",
+      "name": "Vertical Grip",
+      "category": "attachments",
+      "icon": "icons/attachments/Icon_WF_VerticalGrip_RVG_BK.png",
+      "note": "Grips"
+    },
+    {
+      "id": "grip_verticalgrip_rvg_olive",
+      "name": "PVG OLV",
+      "category": "attachments",
+      "icon": "icons/attachments/Icon_at_grip_pvgolv.png",
+      "note": "Grips"
+    },
+    {
+      "id": "grip_verticalgrip_rvg_sand",
+      "name": "PVG SD",
+      "category": "attachments",
+      "icon": "icons/attachments/Icon_at_grip_pvgsd.png",
+      "note": "Grips"
+    },
+    {
+      "id": "grip_verticalgrip_sg",
+      "name": "Vertical Grip",
+      "category": "attachments",
+      "icon": "icons/attachments/Icon_at_28.png",
+      "note": "Grips"
+    },
+    {
+      "id": "grip_verticalgrip_td",
+      "name": "Vertical Grip",
+      "category": "attachments",
+      "icon": "icons/attachments/Icon_at_scoperail_tangodown.png",
+      "note": "Grips"
+    },
+    {
+      "id": "grip_verticalgrip_tds_bk",
+      "name": "Vertical Grip",
+      "category": "attachments",
+      "icon": "icons/attachments/TDs_BK.png",
+      "note": "Grips"
+    },
+    {
+      "id": "grip_verticalgrip_tds_olive",
+      "name": "Vertical Grip",
+      "category": "attachments",
+      "icon": "icons/attachments/TDs_Olive.png",
+      "note": "Grips"
+    },
+    {
+      "id": "grip_verticalgrip_tds_sand",
+      "name": "Vertical Grip",
+      "category": "attachments",
+      "icon": "icons/attachments/TDs_Sand.png",
+      "note": "Grips"
+    },
+    {
+      "id": "rail_default__ak74ub18_rail",
+      "name": "AK74U Rail adapter",
+      "category": "attachments",
+      "icon": "icons/attachments/AK74ub18_Rail.png",
+      "note": "Rails"
+    },
+    {
+      "id": "rail_default__ak_siderailattachment_01",
+      "name": "AK Side Rail adapter",
+      "category": "attachments",
+      "icon": "icons/attachments/AK_SideRailAttachment_01.png",
+      "note": "Rails"
+    },
+    {
+      "id": "rail_default__ak_siderailattachment_02",
+      "name": "RSR Rail adapter",
+      "category": "attachments",
+      "icon": "icons/attachments/AK_SideRailAttachment_02.png",
+      "note": "Rails"
+    },
+    {
+      "id": "rail_default__g3_railattachment_topbt3",
+      "name": "BT3 Rail adapter",
+      "category": "attachments",
+      "icon": "icons/attachments/Icon_SM_G3_Rail_bt3sidetoprail.png",
+      "note": "Rails"
+    },
+    {
+      "id": "rail_default__g3_railattachment_tophighlever",
+      "name": "RSR Rail adapter",
+      "category": "attachments",
+      "icon": "icons/attachments/Icon_SM_G3_Rail_highlever.png",
+      "note": "Rails"
+    },
+    {
+      "id": "rail_default__g3_railattachment_topmlf",
+      "name": "RSR Rail adapter",
+      "category": "attachments",
+      "icon": "icons/attachments/Icon_SM_G3_Rail_fab.png",
+      "note": "Rails"
+    },
+    {
+      "id": "rail_default__m16a2_railattachment",
+      "name": "AR15 Handle Rail",
+      "category": "attachments",
+      "icon": "icons/attachments/Icon_at_scoperail_ar15.png",
+      "note": "Rails"
+    },
+    {
+      "id": "rail_default__mlok_railattachment_l",
+      "name": "MLOK Rail Bottom",
+      "category": "attachments",
+      "icon": "icons/attachments/Icon_at_scoperail_railbottom.png",
+      "note": "Rails"
+    },
+    {
+      "id": "rail_default__mlok_railattachment_s",
+      "name": "MLOK Rail Side",
+      "category": "attachments",
+      "icon": "icons/attachments/Icon_at_scoperail_railside.png",
+      "note": "Rails"
+    },
+    {
+      "id": "rail_default__mp5_railattachment",
+      "name": "MP5 ScopeRail",
+      "category": "attachments",
+      "icon": "icons/attachments/Icon_at_scoperail_mp5.png",
+      "note": "Rails"
+    },
+    {
+      "id": "rail_default__pistol_railattachment",
+      "name": "Pistol TacticalRail",
+      "category": "attachments",
+      "icon": "icons/attachments/Icon_at_scoperail_pistol.png",
+      "note": "Rails"
+    },
+    {
+      "id": "rail_default__pkp_railattachment",
+      "name": "PKP ScopeRail",
+      "category": "attachments",
+      "icon": "icons/attachments/Icon_at_scoperail_pkp.png",
+      "note": "Rails"
+    },
+    {
+      "id": "rail_default__psg_railattachment_top",
+      "name": "RSR Rail adapter",
+      "category": "attachments",
+      "icon": "icons/attachments/Icon_SM_PSG_Rail_Scope_MountRail.png",
+      "note": "Rails"
+    },
+    {
+      "id": "rail_default__railattachmentbase",
+      "name": "SKS SopeRail",
+      "category": "attachments",
+      "icon": "icons/attachments/Icon_at_scoperail_sks.png",
+      "note": "Rails"
+    },
+    {
+      "id": "rail_default__reverserail_base",
+      "name": "45 degree Rail Adapter",
+      "category": "attachments",
+      "icon": "icons/attachments/45degreeRail.png",
+      "note": "Rails"
+    },
+    {
+      "id": "backpack_hypertec",
+      "name": "HyperTec StorageBag",
+      "category": "gear",
+      "icon": "icons/backpacks/Icon_SKM_Backpack_007_01_Jyg.png",
+      "note": "Backpacks"
+    },
+    {
+      "id": "backpack_gnjbackpack",
+      "name": "G.N.J.Backpack",
+      "category": "gear",
+      "icon": "icons/backpacks/Icon_SKM_Backpack_006_01_Jyg.png",
+      "note": "Backpacks"
+    },
+    {
+      "id": "backpack_3drt",
+      "name": "3DRT",
+      "category": "gear",
+      "icon": "icons/backpacks/Icon_backpack_lv1_01.png",
+      "note": "Backpacks"
+    },
+    {
+      "id": "backpack_eliteops",
+      "name": "Elite Ops",
+      "category": "gear",
+      "icon": "icons/backpacks/Icon_backpack_lv2_green.png",
+      "note": "Backpacks"
+    },
+    {
+      "id": "backpack_eliteops_green",
+      "name": "Elite Ops Green",
+      "category": "gear",
+      "icon": "icons/backpacks/Icon_backpack_lv2_01.png",
+      "note": "Backpacks"
+    },
+    {
+      "id": "backpack_odldos_black",
+      "name": "Odldos black Backpack",
+      "category": "gear",
+      "icon": "icons/backpacks/Icon_Backpack_010_01_Yyp.png",
+      "note": "Backpacks"
+    },
+    {
+      "id": "backpack_odldos_flower",
+      "name": "Odldos flowers Backpack",
+      "category": "gear",
+      "icon": "icons/backpacks/Icon_Backpack_011_01_Yyp.png",
+      "note": "Backpacks"
+    },
+    {
+      "id": "backpack_robinson",
+      "name": "Robinson BFM Backpack",
+      "category": "gear",
+      "icon": "icons/backpacks/Icon_Backpack_009_01_Yyp.png",
+      "note": "Backpacks"
+    },
+    {
+      "id": "backpack_rucksack",
+      "name": "Vagrant Rucksack",
+      "category": "gear",
+      "icon": "icons/backpacks/Icon_backpack_rs.png",
+      "note": "Backpacks"
+    },
+    {
+      "id": "backpack_sportbag",
+      "name": "Sports Bag",
+      "category": "gear",
+      "icon": "icons/backpacks/Icon_backpack_lv1_sportbag.png",
+      "note": "Backpacks"
+    },
+    {
+      "id": "backpack_6sh118",
+      "name": "6sh118",
+      "category": "gear",
+      "icon": "icons/backpacks/Icon_backpack_lv3_01.png",
+      "note": "Backpacks"
+    },
+    {
+      "id": "mask-ach-faceshield",
+      "name": "ACH FaceShield",
+      "category": "gear",
+      "icon": "icons/helmets/SM_Helmet_012_2_Zty.png",
+      "note": "Face Shields"
+    },
+    {
+      "id": "mask-kiver-faceshield",
+      "name": "Kiver-M FaceShield",
+      "category": "gear",
+      "icon": "icons/helmets/SM_Helmet_011_2_Zty.png",
+      "note": "Face Shields"
+    },
+    {
+      "id": "mask-lh250-goggle",
+      "name": "LH250 Goggle",
+      "category": "gear",
+      "icon": "icons/helmets/Icon_LH250google.png",
+      "note": "Eye Protection"
+    },
+    {
+      "id": "mask-lh250-mask",
+      "name": "LH250 Mask",
+      "category": "gear",
+      "icon": "icons/helmets/Icon_LH250mask.png",
+      "note": "Face Shields"
+    },
+    {
+      "id": "mask-ryst-faceshield",
+      "name": "RYS-T FaceShield",
+      "category": "gear",
+      "icon": "icons/helmets/SM_Helmet_007_02_Yyp.png",
+      "note": "Face Shields"
+    },
+    {
+      "id": "mask-ryst-faceshield-bonecrusher",
+      "name": "RYS-T FaceShield Bonecrusher",
+      "category": "gear",
+      "icon": "icons/helmets/Icon_RYS-TFaceShield_bonecrusher.png",
+      "note": "Face Shields"
+    },
+    {
+      "id": "grenade-m7290-flash",
+      "name": "M7290 Flash Grenade",
+      "category": "grenades",
+      "icon": "icons/grenades/Icon_grenade_01.png",
+      "note": "Utility"
+    },
+    {
+      "id": "grenade-f1-frag",
+      "name": "F1 Fragmentation Grenade",
+      "category": "grenades",
+      "icon": "icons/grenades/WF_FragmentGrenade_F1.png",
+      "note": "Fragmentation"
+    },
+    {
+      "id": "grenade-m67-frag",
+      "name": "M67 Fragmentation Grenade",
+      "category": "grenades",
+      "icon": "icons/grenades/Icon_grenade_02.png",
+      "note": "Fragmentation"
+    },
+    {
+      "id": "grenade-rgd5-frag",
+      "name": "RGD-5 Fragmentation Grenade",
+      "category": "grenades",
+      "icon": "icons/grenades/WF_FragmentGrenade_RDG5.png",
+      "note": "Fragmentation"
+    },
+    {
+      "id": "grenade-rgn-frag",
+      "name": "RGN Fragmentation Grenade",
+      "category": "grenades",
+      "icon": "icons/grenades/WF_FragmentGrenade_RGN.png",
+      "note": "Fragmentation"
+    },
+    {
+      "id": "grenade-rgo-frag",
+      "name": "RGO Fragmentation Grenade",
+      "category": "grenades",
+      "icon": "icons/grenades/WF_FragmentGrenade_RGO.png",
+      "note": "Fragmentation"
+    },
+    {
+      "id": "grenade-vod17-frag",
+      "name": "VOD-17 Fragmentation Grenade",
+      "category": "grenades",
+      "icon": "icons/grenades/WF_FragmentGrenade_VOG17.png",
+      "note": "Fragmentation"
+    },
+    {
+      "id": "grenade-vod25-frag",
+      "name": "VOD-25 Fragmentation Grenade",
+      "category": "grenades",
+      "icon": "icons/grenades/WF_FragmentGrenade_VOG25.png",
+      "note": "Fragmentation"
+    },
+    {
+      "id": "grenade-m18-smoke",
+      "name": "M18 Smoke Grenade",
+      "category": "grenades",
+      "icon": "icons/grenades/Icon_grenade_03.png",
+      "note": "Utility"
+    },
+    {
+      "id": "helmet-beanie",
+      "name": "Tactical Beanie",
+      "category": "gear",
+      "icon": "icons/helmets/Icon_Beanie.png",
+      "note": "Helmets"
+    },
+    {
+      "id": "helmet-op-fast-snowing",
+      "name": "OP Fast \"Snowing\"",
+      "category": "gear",
+      "icon": "icons/helmets/Icon_event_xmas_boss_head2.png",
+      "note": "Helmets"
+    },
+    {
+      "id": "helmet-op-fast-reindeer",
+      "name": "OP Fast \"Reindeer\"",
+      "category": "gear",
+      "icon": "icons/helmets/Icon_event_xmas_boss_head3.png",
+      "note": "Helmets"
+    },
+    {
+      "id": "helmet-delta",
+      "name": "Delta Helmet",
+      "category": "gear",
+      "icon": "icons/helmets/Icon_helmet_4_5.png",
+      "note": "Helmets"
+    },
+    {
+      "id": "helmet-delta-le",
+      "name": "Delta Helmet LE",
+      "category": "gear",
+      "icon": "icons/helmets/Icon_helmet_4_5.png",
+      "note": "Helmets"
+    },
+    {
+      "id": "helmet-op-highprotection",
+      "name": "OP HighProtection",
+      "category": "gear",
+      "icon": "icons/helmets/Icon_helmet_5.png",
+      "note": "Helmets"
+    },
+    {
+      "id": "helmet-safety-first",
+      "name": "Safety First",
+      "category": "gear",
+      "icon": "icons/helmets/Icon_helmet_0_7.png",
+      "note": "Helmets"
+    },
+    {
+      "id": "helmet-lightweight",
+      "name": "Lightweight Helmet",
+      "category": "gear",
+      "icon": "icons/helmets/Icon_helmet_3.png",
+      "note": "Helmets"
+    },
+    {
+      "id": "helmet-parachute-training-black",
+      "name": "Black Parachute Training Helmet",
+      "category": "gear",
+      "icon": "icons/helmets/Icon_Helmet_004_2_Hyq.png",
+      "note": "Helmets"
+    },
+    {
+      "id": "helmet-swat",
+      "name": "SWAT Helmet",
+      "category": "gear",
+      "icon": "icons/helmets/Icon_helmet_4.png",
+      "note": "Helmets"
+    },
+    {
+      "id": "helmet-rsp",
+      "name": "EVIRS Helmet",
+      "category": "gear",
+      "icon": "icons/helmets/Icon_helmet_5_5.png",
+      "note": "Helmets"
+    },
+    {
+      "id": "helmet-rsp-ne",
+      "name": "EVIRS Helmet NE",
+      "category": "gear",
+      "icon": "icons/helmets/Icon_helmet_5_5N.png",
+      "note": "Helmets"
+    },
+    {
+      "id": "helmet-rsp-black",
+      "name": "Black EVIRS Helmet",
+      "category": "gear",
+      "icon": "icons/helmets/Icon_Helmet_006_2_Zty.png",
+      "note": "Helmets"
+    },
+    {
+      "id": "helmet-skull-face",
+      "name": "Skull Face Ops Helmet",
+      "category": "gear",
+      "icon": "icons/helmets/WarfareHelmet_SkullFaceBoss.png",
+      "note": "Helmets"
+    },
+    {
+      "id": "helmet-tsh4m",
+      "name": "Tsh-4M Helmet",
+      "category": "gear",
+      "icon": "icons/helmets/Icon_SM_Helmet_019_Zm.png",
+      "note": "Helmets"
+    },
+    {
+      "id": "helmet-m1",
+      "name": "M1 Helmet",
+      "category": "gear",
+      "icon": "icons/helmets/Icon_Helmet_010_Hyq.png",
+      "note": "Helmets"
+    },
+    {
+      "id": "helmet-warrior",
+      "name": "Warrior Full Face Helmet",
+      "category": "gear",
+      "icon": "icons/helmets/Icon_Helmet_013_Hyq.png",
+      "note": "Helmets"
+    },
+    {
+      "id": "helmet-6b47",
+      "name": "6B47 Helmet",
+      "category": "gear",
+      "icon": "icons/helmets/Icon_WarfareHelmet_6B47.png",
+      "note": "Helmets"
+    },
+    {
+      "id": "helmet-pasgt",
+      "name": "PASGT Helmet",
+      "category": "gear",
+      "icon": "icons/helmets/Icon_helmet_3_5.png",
+      "note": "Helmets"
+    },
+    {
+      "id": "helmet-ach-green",
+      "name": "ACH Helmet (Green)",
+      "category": "gear",
+      "icon": "icons/helmets/SM_Helmet_012_Zty.png",
+      "note": "Helmets"
+    },
+    {
+      "id": "helmet-ach-black",
+      "name": "ACH Helmet (Black)",
+      "category": "gear",
+      "icon": "icons/helmets/SM_Helmet_012_Zty__2png.png",
+      "note": "Helmets"
+    },
+    {
+      "id": "helmet-bike",
+      "name": "Motorcycle Helmet",
+      "category": "gear",
+      "icon": "icons/helmets/Icon_helmet_1.png",
+      "note": "Helmets"
+    },
+    {
+      "id": "helmet-kiver-m",
+      "name": "Kiver-M Helmet",
+      "category": "gear",
+      "icon": "icons/helmets/SM_Helmet_011_Zty.png",
+      "note": "Helmets"
+    },
+    {
+      "id": "helmet-lh250",
+      "name": "LH250 Pilot Helmet",
+      "category": "gear",
+      "icon": "icons/helmets/Icon_SM_Helmet_018_Zty.png",
+      "note": "Helmets"
+    },
+    {
+      "id": "helmet-rys-t",
+      "name": "RYS-T Heavy Helmet",
+      "category": "gear",
+      "icon": "icons/helmets/Icon_RYS_T.png",
+      "note": "Helmets"
+    },
+    {
+      "id": "helmet-rys-t-bonecrusher",
+      "name": "RYS-T Heavy Helmet (Bonecrusher)",
+      "category": "gear",
+      "icon": "icons/helmets/Icon_WarfareHelmet_RYS_T_bonecrusher.png",
+      "note": "Helmets"
+    },
+    {
+      "id": "helmet-beanie-black",
+      "name": "Black Beret",
+      "category": "gear",
+      "icon": "icons/helmets/Icon_Helmet_016_Hcj.png",
+      "note": "Helmets"
+    },
+    {
+      "id": "helmet-beanie-camo",
+      "name": "Camouflage Beret",
+      "category": "gear",
+      "icon": "icons/helmets/Icon_Helmet_017_Hcj.png",
+      "note": "Helmets"
+    },
+    {
+      "id": "helmet-cap-green",
+      "name": "Green Military Cap",
+      "category": "gear",
+      "icon": "icons/helmets/Icon_Helmet_015_Hcj.png",
+      "note": "Helmets"
+    },
+    {
+      "id": "helmet-red-beret",
+      "name": "Red Beret",
+      "category": "gear",
+      "icon": "icons/helmets/WarfareHelmet_Redberet.png",
+      "note": "Helmets"
+    },
+    {
+      "id": "holster_556faster",
+      "name": "Faster Mag holster",
+      "category": "gear",
+      "icon": "icons/holsters/Icon_vestholster_01.png",
+      "note": "Holsters"
+    },
+    {
+      "id": "holster_grenade",
+      "name": "Grenade Holster",
+      "category": "gear",
+      "icon": "icons/holsters/Icon_vestholster_02.png",
+      "note": "Holsters"
+    },
+    {
+      "id": "holster_magd",
+      "name": "General Pouch",
+      "category": "gear",
+      "icon": "icons/holsters/Icon_VestHolster_MagD2.png",
+      "note": "Holsters"
+    },
+    {
+      "id": "holster_magl",
+      "name": "Mag Pouch Large",
+      "category": "gear",
+      "icon": "icons/holsters/Icon_vestholster_05.png",
+      "note": "Holsters"
+    },
+    {
+      "id": "holster_magm",
+      "name": "Mag Pouch Medium",
+      "category": "gear",
+      "icon": "icons/holsters/Icon_vestholster_04.png",
+      "note": "Holsters"
+    },
+    {
+      "id": "holster_mags",
+      "name": "Mag Pouch Small",
+      "category": "gear",
+      "icon": "icons/holsters/Icon_vestholster_06.png",
+      "note": "Holsters"
+    },
+    {
+      "id": "holster_water",
+      "name": "Water Pouch",
+      "category": "gear",
+      "icon": "icons/holsters/VestHolster_Water.png",
+      "note": "Holsters"
+    },
+    {
+      "id": "key_beartown_h1",
+      "name": "Bearkery Storage Key",
+      "category": "keys",
+      "icon": "icons/keys/Key_Map1_bearTown_h1.png",
+      "note": "Suburb"
+    },
+    {
+      "id": "key_highbuilding_shop",
+      "name": "Office Building 2F Key",
+      "category": "keys",
+      "icon": "icons/keys/Key_Map1_HighBuilding_shop.png",
+      "note": "Suburb"
+    },
+    {
+      "id": "key_mall_campshop",
+      "name": "Camp Shop’s Key",
+      "category": "keys",
+      "icon": "icons/keys/Key_Map1_Mall_CampShop.png",
+      "note": "Suburb"
+    },
+    {
+      "id": "key_mall_chaneo",
+      "name": "Chaneo Store's Key",
+      "category": "keys",
+      "icon": "icons/keys/Key_Map1_Mall_Chaneo.png",
+      "note": "Suburb"
+    },
+    {
+      "id": "key_motel_201",
+      "name": "Motel Room 201 Key",
+      "category": "keys",
+      "icon": "icons/keys/Key_Map1_motel_201.png",
+      "note": "Suburb"
+    },
+    {
+      "id": "key_motel_206",
+      "name": "Motel Room 206 Key",
+      "category": "keys",
+      "icon": "icons/keys/Key_Map1_bearTown_h1.png",
+      "note": "Suburb"
+    },
+    {
+      "id": "key_policeoffice_f2",
+      "name": "Police Station 2F Key",
+      "category": "keys",
+      "icon": "icons/keys/Key_Map1_PoliceOffice_F2.png",
+      "note": "Suburb"
+    },
+    {
+      "id": "key_police_f1",
+      "name": "Police Station 1F Key",
+      "category": "keys",
+      "icon": "icons/keys/Key_Map1_Police_F1.png",
+      "note": "Suburb"
+    },
+    {
+      "id": "key_westbunker",
+      "name": "Suburb Western Bunker's Key",
+      "category": "keys",
+      "icon": "icons/keys/Key_Map1_WestBunker.png",
+      "note": "Suburb"
+    },
+    {
+      "id": "key_wyethfarm",
+      "name": "Wyeth Farm's Key",
+      "category": "keys",
+      "icon": "icons/keys/Key_Map1_WestBunker.png",
+      "note": "Suburb"
+    },
+    {
+      "id": "key_clifton_shop",
+      "name": "Ellie's Shop Key",
+      "category": "keys",
+      "icon": "icons/keys/Key_Map1_Mall_Chaneo.png",
+      "note": "Dam"
+    },
+    {
+      "id": "key_dam_station_east",
+      "name": "East Dam Inlet's Key",
+      "category": "keys",
+      "icon": "icons/keys/Key_Map2_Dam_Station_East.png",
+      "note": "Dam"
+    },
+    {
+      "id": "key_dam_station_west",
+      "name": "West Dam Inlet's Key",
+      "category": "keys",
+      "icon": "icons/keys/Key_Map2_Dam_Station_East.png",
+      "note": "Dam"
+    },
+    {
+      "id": "key_dockhouse",
+      "name": "Dock Office's Key",
+      "category": "keys",
+      "icon": "icons/keys/Key_Map2_DockHouse.png",
+      "note": "Dam"
+    },
+    {
+      "id": "key_factory_a1",
+      "name": "Factory A1 zone Key",
+      "category": "keys",
+      "icon": "icons/keys/Key_Map2_Factory_A1.png",
+      "note": "Dam"
+    },
+    {
+      "id": "key_factory_b",
+      "name": "Factory B zone Key",
+      "category": "keys",
+      "icon": "icons/keys/Key_Map2_Factory_B.png",
+      "note": "Dam"
+    },
+    {
+      "id": "key_mid_bunker",
+      "name": "Dam Central Bunker's Key",
+      "category": "keys",
+      "icon": "icons/keys/Key_Map2_mid_Bunker.png",
+      "note": "Dam"
+    },
+    {
+      "id": "key_armorhouse",
+      "name": "Armory's Key",
+      "category": "keys",
+      "icon": "icons/keys/Key_Map2_Factory_B.png",
+      "note": "Metro"
+    },
+    {
+      "id": "key_datastorage",
+      "name": "Data storage's Key",
+      "category": "keys",
+      "icon": "icons/keys/Key_Map2_Factory_B.png",
+      "note": "Metro"
+    },
+    {
+      "id": "key_exitlock_f3_sewer",
+      "name": "Lower Sewer exit’s Key",
+      "category": "keys",
+      "icon": "icons/keys/Key_Map2_mid_Bunker.png",
+      "note": "Metro"
+    },
+    {
+      "id": "key_exitlock_trainroad",
+      "name": "West railways exit's Key",
+      "category": "keys",
+      "icon": "icons/keys/Key_Map2_Factory_B.png",
+      "note": "Metro"
+    },
+    {
+      "id": "key_f3_factoryroom",
+      "name": "Sewer's room Key",
+      "category": "keys",
+      "icon": "icons/keys/Key_Map2_Factory_B.png",
+      "note": "Metro"
+    },
+    {
+      "id": "key_officerroom",
+      "name": "Officer's room Key",
+      "category": "keys",
+      "icon": "icons/keys/Key_Map1_Mall_Chaneo.png",
+      "note": "Metro"
+    },
+    {
+      "id": "key_operatingroom",
+      "name": "Medical lab's Key",
+      "category": "keys",
+      "icon": "icons/keys/Key_Map2_DockHouse.png",
+      "note": "Metro"
+    },
+    {
+      "id": "key_apartment",
+      "name": "Apartment 2F Key",
+      "category": "keys",
+      "icon": "icons/keys/card_map4_Apartment.png",
+      "note": "Resort"
+    },
+    {
+      "id": "key_bankf2",
+      "name": "Bank 2F Key",
+      "category": "keys",
+      "icon": "icons/keys/card_map4_BankF2.png",
+      "note": "Resort"
+    },
+    {
+      "id": "key_banksewer",
+      "name": "Bank Sewer Key",
+      "category": "keys",
+      "icon": "icons/keys/card_map4_BankSewer.png",
+      "note": "Resort"
+    },
+    {
+      "id": "key_hospitalf2",
+      "name": "Hospital 2F Key",
+      "category": "keys",
+      "icon": "icons/keys/card_map4_HospitalF2.png",
+      "note": "Resort"
+    },
+    {
+      "id": "key_resorthotel",
+      "name": "Resort hotel 208 Key",
+      "category": "keys",
+      "icon": "icons/keys/card_map4_Apartment.png",
+      "note": "Resort"
+    },
+    {
+      "id": "key_tunnel",
+      "name": "Sunset tunnel Key",
+      "category": "keys",
+      "icon": "icons/keys/card_map4_Tunnel.png",
+      "note": "Resort"
+    },
+    {
+      "id": "key_voyages",
+      "name": "Halif Voyage 1F storage room Key",
+      "category": "keys",
+      "icon": "icons/keys/card_map4_Voyages.png",
+      "note": "Resort"
+    },
+    {
+      "id": "key_bomb",
+      "name": "Bomb",
+      "category": "keys",
+      "icon": "icons/keys/Icon_WF_Bomb.png",
+      "note": "Metro"
+    },
+    {
+      "id": "key_metro_entry_ticket",
+      "name": "Metro Entry Ticket",
+      "category": "keys",
+      "icon": "icons/keys/Icon_Metro_Entry_Ticket.png",
+      "note": "Metro"
+    },
+    {
+      "id": "mag_45acp_11",
+      "name": "M1911 .45 ACP Magazine",
+      "category": "attachments",
+      "icon": "icons/magazines/Icon_magazine_m1911.png",
+      "note": "Magazines"
+    },
+    {
+      "id": "mag_45acp_25",
+      "name": "Thompson M1928 Magazine",
+      "category": "attachments",
+      "icon": "icons/magazines/Icon_magazine_m1928.png",
+      "note": "Magazines"
+    },
+    {
+      "id": "mag_45acp_30_m3a1",
+      "name": "M3A1 Grease Gun Magazine",
+      "category": "attachments",
+      "icon": "icons/magazines/Icon_magazine_WF_M3A1.png",
+      "note": "Magazines"
+    },
+    {
+      "id": "mag_45acp_25_2",
+      "name": "UMP45 25-Round Magazine",
+      "category": "attachments",
+      "icon": "icons/magazines/WF_ump45_Clip.png",
+      "note": "Magazines"
+    },
+    {
+      "id": "mag_12GA_10",
+      "name": "Flame12 Shotgun Magazine",
+      "category": "attachments",
+      "icon": "icons/magazines/Icon_magazine_flame12.png",
+      "note": "Magazines"
+    },
+    {
+      "id": "mag_545x39_60",
+      "name": "AK-74 60-Round Drum Magazine",
+      "category": "attachments",
+      "icon": "icons/magazines/WF_545Mag_PUFGUN.png",
+      "note": "Magazines"
+    },
+    {
+      "id": "mag_545x39_30_black",
+      "name": "AK-74 Polymer Magazine (Black)",
+      "category": "attachments",
+      "icon": "icons/magazines/Icon_magazine_aks74u.png",
+      "note": "Magazines"
+    },
+    {
+      "id": "mag_545x39_30_orange",
+      "name": "AK-74 Polymer Magazine (Orange)",
+      "category": "attachments",
+      "icon": "icons/magazines/WF_545y_Mag.png",
+      "note": "Magazines"
+    },
+    {
+      "id": "mag_545x39_30_2",
+      "name": "AK-74 PMag 30-Round",
+      "category": "attachments",
+      "icon": "icons/magazines/Icon_magazine_762p30.png",
+      "note": "Magazines"
+    },
+    {
+      "id": "mag_556x45_50",
+      "name": "AR-15 Drum Magazine (50-Round)",
+      "category": "attachments",
+      "icon": "icons/magazines/Icon_magazine_556x45NATO_Drum50.png",
+      "note": "Magazines"
+    },
+    {
+      "id": "mag_556x45_30",
+      "name": "AUG A3 Standard Magazine",
+      "category": "attachments",
+      "icon": "icons/magazines/Icon_SM_Bpart_AUG_A3_Mag_30.png",
+      "note": "Magazines"
+    },
+    {
+      "id": "mag_556x45_42",
+      "name": "AUG A3 Extended Magazine",
+      "category": "attachments",
+      "icon": "icons/magazines/Icon_SM_Bpart_Aug_Mag_42.png",
+      "note": "Magazines"
+    },
+    {
+      "id": "mag_556x45_30_hk416",
+      "name": "HK416 Standard Magazine",
+      "category": "attachments",
+      "icon": "icons/magazines/Icon_magazine_hk416.png",
+      "note": "Magazines"
+    },
+    {
+      "id": "mag_556x45_60",
+      "name": "AR-15 P-Mag Drum (60-Round)",
+      "category": "attachments",
+      "icon": "icons/magazines/Icon_magazine_556x45NATO_Pmag60.png",
+      "note": "Magazines"
+    },
+    {
+      "id": "mag_556x45_60_sf",
+      "name": "AR-15 P-Mag Drum (60-Round)",
+      "category": "attachments",
+      "icon": "icons/magazines/Icon_magazine_556x45NATO_SF60.png",
+      "note": "Magazines"
+    },
+    {
+      "id": "mag_556x45_20",
+      "name": "AR-15 20-Round",
+      "category": "attachments",
+      "icon": "icons/magazines/Icon_magazine_ar15h.png",
+      "note": "Magazines"
+    },
+    {
+      "id": "mag_556x45_30_stanag",
+      "name": "STANAG 30-Round mag",
+      "category": "attachments",
+      "icon": "icons/magazines/Icon_magazine_seca16.png",
+      "note": "Magazines"
+    },
+    {
+      "id": "mag_556x45_30_pmag",
+      "name": "AR-15 P-Mag 30-Round",
+      "category": "attachments",
+      "icon": "icons/magazines/Icon_magazine_556x45NATO_Pmag30.png",
+      "note": "Magazines"
+    },
+    {
+      "id": "mag_68x51_25",
+      "name": "XM5 25-Round Magazine",
+      "category": "attachments",
+      "icon": "icons/magazines/Icon_magazine_xm5.png",
+      "note": "Magazines"
+    },
+    {
+      "id": "mag_762x39_30",
+      "name": "AKM Steel Magazine",
+      "category": "attachments",
+      "icon": "icons/magazines/Icon_magazine_akm.png",
+      "note": "Magazines"
+    },
+    {
+      "id": "mag_762x39_30_2",
+      "name": "AKM Polymer Magazine",
+      "category": "attachments",
+      "icon": "icons/magazines/Icon_magazine_762p30.png",
+      "note": "Magazines"
+    },
+    {
+      "id": "mag_762x39_20",
+      "name": "AK 20-Round Magazine",
+      "category": "attachments",
+      "icon": "icons/magazines/Icon_WF_AKM_MagC20R__1_.png",
+      "note": "Magazines"
+    },
+    {
+      "id": "mag_762x39_10",
+      "name": "AK 10-Round Magazine",
+      "category": "attachments",
+      "icon": "icons/magazines/Icon_WF_AKM_MagC20R__9_.png",
+      "note": "Magazines"
+    },
+    {
+      "id": "mag_762x39_75",
+      "name": "AKM MA-Drum 75-Round",
+      "category": "attachments",
+      "icon": "icons/magazines/Icon_WF_AKM_MagC20R__8_.png",
+      "note": "Magazines"
+    },
+    {
+      "id": "mag_762x39_10_2",
+      "name": "AK Polymer 10-Round (Black)",
+      "category": "attachments",
+      "icon": "icons/magazines/Icon_WF_AKM_MagC20R__2_.png",
+      "note": "Magazines"
+    },
+    {
+      "id": "mag_762x39_10_3",
+      "name": "AK Polymer 10-Round (FDE)",
+      "category": "attachments",
+      "icon": "icons/magazines/Icon_WF_AKM_MagC20R__3_.png",
+      "note": "Magazines"
+    },
+    {
+      "id": "mag_762x39_20_2",
+      "name": "AK Polymer 20-Round (Black)",
+      "category": "attachments",
+      "icon": "icons/magazines/Icon_WF_AKM_MagC20R__4_.png",
+      "note": "Magazines"
+    },
+    {
+      "id": "mag_762x39_20_3",
+      "name": "AK Polymer 20-Round (FDE)",
+      "category": "attachments",
+      "icon": "icons/magazines/Icon_WF_AKM_MagC20R__5_.png",
+      "note": "Magazines"
+    },
+    {
+      "id": "mag_762x39_60",
+      "name": "AK Polymer 60-Round (Black)",
+      "category": "attachments",
+      "icon": "icons/magazines/Icon_WF_AKM_MagC20R__6_.png",
+      "note": "Magazines"
+    },
+    {
+      "id": "mag_762x39_60_2",
+      "name": "AK Polymer 60-Round (FDE)",
+      "category": "attachments",
+      "icon": "icons/magazines/Icon_WF_AKM_MagC20R__7_.png",
+      "note": "Magazines"
+    },
+    {
+      "id": "mag_762x39_15",
+      "name": "SKS 15-Round Magazine",
+      "category": "attachments",
+      "icon": "icons/magazines/Icon_magazine_sks.png",
+      "note": "Magazines"
+    },
+    {
+      "id": "mag_762x51_20_2",
+      "name": "FAL 20-Round Magazine",
+      "category": "attachments",
+      "icon": "icons/magazines/Icon_magazine_fal.png",
+      "note": "Magazines"
+    },
+    {
+      "id": "mag_762x51_10_2",
+      "name": "G3 10-Round Magazine",
+      "category": "attachments",
+      "icon": "icons/magazines/Icon_G3_10_Round_Magazine.png",
+      "note": "Magazines"
+    },
+    {
+      "id": "mag_762x51_20_3",
+      "name": "G3 20-Round Magazine",
+      "category": "attachments",
+      "icon": "icons/magazines/Icon_WF_G3SG1_Clip.png",
+      "note": "Magazines"
+    },
+    {
+      "id": "mag_762x51_30",
+      "name": "G3 30-Round Magazine",
+      "category": "attachments",
+      "icon": "icons/magazines/Icon_G3_30_Round_Magazine.png",
+      "note": "Magazines"
+    },
+    {
+      "id": "mag_762x51_50",
+      "name": "G3 X-Products Drum (Black)",
+      "category": "attachments",
+      "icon": "icons/magazines/Icon_G3_50_Round_drum_2.png",
+      "note": "Magazines"
+    },
+    {
+      "id": "mag_762x51_50_2",
+      "name": "G3 X-Products Drum (Olive)",
+      "category": "attachments",
+      "icon": "icons/magazines/Icon_G3_50_Round_drum.png",
+      "note": "Magazines"
+    },
+    {
+      "id": "mag_762x51_10",
+      "name": "AR-308 10-Round Magazine",
+      "category": "attachments",
+      "icon": "icons/magazines/Icon_magazineAR308_LT.png",
+      "note": "Magazines"
+    },
+    {
+      "id": "mag_762x51_20",
+      "name": "AR-308 20-Round Magazine",
+      "category": "attachments",
+      "icon": "icons/magazines/Icon_magazine_AR308.png",
+      "note": "Magazines"
+    },
+    {
+      "id": "mag_762x51_10_3",
+      "name": "M40A5 10-Round Magazine (Desert)",
+      "category": "attachments",
+      "icon": "icons/magazines/Icon_magazine_m40a5_de.png",
+      "note": "Magazines"
+    },
+    {
+      "id": "mag_762x51_5",
+      "name": "M40A5 5-Round Magazine",
+      "category": "attachments",
+      "icon": "icons/magazines/Icon_magazine_m40a5_short.png",
+      "note": "Magazines"
+    },
+    {
+      "id": "mag_762x51_20_4",
+      "name": "SECA17 Magazine (Black)",
+      "category": "attachments",
+      "icon": "icons/magazines/Icon_magazine_SECA17_FDE2.png",
+      "note": "Magazines"
+    },
+    {
+      "id": "mag_762x51_20_5",
+      "name": "SECA17 Magazine (FDE)",
+      "category": "attachments",
+      "icon": "icons/magazines/Icon_magazine_SECA17_FDE.png",
+      "note": "Magazines"
+    },
+    {
+      "id": "mag_762x54R_80",
+      "name": "PKP Pecheneg Drum Magazine",
+      "category": "attachments",
+      "icon": "icons/magazines/Icon_magazine_pkp.png",
+      "note": "Magazines"
+    },
+    {
+      "id": "mag_762x54R_10",
+      "name": "SVT-40 10-Round Magazine",
+      "category": "attachments",
+      "icon": "icons/magazines/Icon_WF_svt40_mag.png",
+      "note": "Magazines"
+    },
+    {
+      "id": "mag_9x19mm_25",
+      "name": "AUG Para 25-Round Magazine",
+      "category": "attachments",
+      "icon": "icons/magazines/Icon_SM_AUG_9mm_mag.png",
+      "note": "Magazines"
+    },
+    {
+      "id": "mag_9x19mm_25_2",
+      "name": "BX4 Storm 25-Round Magazine",
+      "category": "attachments",
+      "icon": "icons/magazines/Icon_magazine_bx4.png",
+      "note": "Magazines"
+    },
+    {
+      "id": "mag_9x19mm_50_evo",
+      "name": "Scorpion EVO3 Drum Magazine",
+      "category": "attachments",
+      "icon": "icons/magazines/Icon_magazine_evo3_drum.png",
+      "note": "Magazines"
+    },
+    {
+      "id": "mag_9x19mm_30_evo",
+      "name": "Scorpion EVO3 Standard Magazine",
+      "category": "attachments",
+      "icon": "icons/magazines/Icon_magazine_evo3.png",
+      "note": "Magazines"
+    },
+    {
+      "id": "mag_9x19mm_33",
+      "name": "Glock 18C Extended Magazine",
+      "category": "attachments",
+      "icon": "icons/magazines/Icon_gun_magazine_g18c33.png",
+      "note": "Magazines"
+    },
+    {
+      "id": "mag_9x19mm_17",
+      "name": "Glock 18C Standard Magazine",
+      "category": "attachments",
+      "icon": "icons/magazines/Icon_magazine_Glock18C.png",
+      "note": "Magazines"
+    },
+    {
+      "id": "mag_9x19mm_17_2",
+      "name": "Beretta M9A1 Magazine",
+      "category": "attachments",
+      "icon": "icons/magazines/Icon_magazine_m92.png",
+      "note": "Magazines"
+    },
+    {
+      "id": "mag_9x19mm_30_mp5",
+      "name": "MP5 30-Round Magazine",
+      "category": "attachments",
+      "icon": "icons/magazines/Icon_magazine_mp5.png",
+      "note": "Magazines"
+    },
+    {
+      "id": "mag_9x19mm_15",
+      "name": "MP9 15-Round Magazine",
+      "category": "attachments",
+      "icon": "icons/magazines/WF_MP9_Clip15.png",
+      "note": "Magazines"
+    },
+    {
+      "id": "mag_9x19mm_20",
+      "name": "MP9 20-Round Magazine",
+      "category": "attachments",
+      "icon": "icons/magazines/WF_MP9_Clip20.png",
+      "note": "Magazines"
+    },
+    {
+      "id": "mag_9x19mm_30_mp9",
+      "name": "MP9 30-Round Magazine",
+      "category": "attachments",
+      "icon": "icons/magazines/WF_MP9_Clip30.png",
+      "note": "Magazines"
+    },
+    {
+      "id": "mag_9x19mm_13",
+      "name": "SIG P250 Magazine",
+      "category": "attachments",
+      "icon": "icons/magazines/Icon_magazine_P250.png",
+      "note": "Magazines"
+    },
+    {
+      "id": "med-bandage-lv1",
+      "name": "Gauze",
+      "category": "medicine",
+      "icon": "icons/medical/icon_bandage.png",
+      "note": "Bandages"
+    },
+    {
+      "id": "med-bandage-lv2",
+      "name": "Bandage",
+      "category": "medicine",
+      "icon": "icons/medical/icon_Gauze.png",
+      "note": "Bandages"
+    },
+    {
+      "id": "med-bandage-lv3",
+      "name": "Military Bandage",
+      "category": "medicine",
+      "icon": "icons/medical/Icon_WarfareBandage_lv3.png",
+      "note": "Bandages"
+    },
+    {
+      "id": "med-limb-restorer-lv1",
+      "name": "Suturing Instrument R1",
+      "category": "medicine",
+      "icon": "icons/medical/Icon_Suturing_Instrument_R1.png",
+      "note": "Suturing Tools"
+    },
+    {
+      "id": "med-limb-restorer-lv2",
+      "name": "Suturing Instrument R2",
+      "category": "medicine",
+      "icon": "icons/medical/Icon_Suturing_Instrument_R2.png",
+      "note": "Suturing Tools"
+    },
+    {
+      "id": "med-limb-restorer-lv3",
+      "name": "Apex Suturing Instrument",
+      "category": "medicine",
+      "icon": "icons/medical/Icon_Apex_Suturing_Instrument.png",
+      "note": "Suturing Tools"
+    },
+    {
+      "id": "med-painkiller-lv1",
+      "name": "Painkiller",
+      "category": "medicine",
+      "icon": "icons/medical/Icon_WarfarePainkillerLv1.png",
+      "note": "Painkillers"
+    },
+    {
+      "id": "med-painkiller-lv2",
+      "name": "Painkiller",
+      "category": "medicine",
+      "icon": "icons/medical/Icon_WarfarePainkillerLv2.png",
+      "note": "Painkillers"
+    },
+    {
+      "id": "med-painkiller-lv3",
+      "name": "Painkiller",
+      "category": "medicine",
+      "icon": "icons/medical/Icon_WarfarePainkillerLv3.png",
+      "note": "Painkillers"
+    },
+    {
+      "id": "med-syringe-lv1",
+      "name": "Civilian Syringe",
+      "category": "medicine",
+      "icon": "icons/medical/icon_HPsyringe1.png",
+      "note": "Syringes"
+    },
+    {
+      "id": "med-syringe-lv2",
+      "name": "Medical Syringe",
+      "category": "medicine",
+      "icon": "icons/medical/icon_HPsyringe2.png",
+      "note": "Syringes"
+    },
+    {
+      "id": "med-syringe-lv3",
+      "name": "Military Syringe",
+      "category": "medicine",
+      "icon": "icons/medical/icon_syringepro1_png.png",
+      "note": "Syringes"
+    },
+    {
+      "id": "med-syringe-lv4",
+      "name": "Advanced Syringe",
+      "category": "medicine",
+      "icon": "icons/medical/icon_syringepro2_png.png",
+      "note": "Syringes"
+    },
+    {
+      "id": "med-stimul-adrenaline",
+      "name": "Adrenaline Injector",
+      "category": "medicine",
+      "icon": "icons/medical/icon_Adrenaline_injector.png",
+      "note": "Stims"
+    },
+    {
+      "id": "med-stimul-hc",
+      "name": "H.C. stimulant injector",
+      "category": "medicine",
+      "icon": "icons/medical/icon_H_C__stimulant_injector.png",
+      "note": "Stims"
+    },
+    {
+      "id": "med-stimul-kb22",
+      "name": "KB-22 stimulant injector",
+      "category": "medicine",
+      "icon": "icons/medical/icon_morphine.png",
+      "note": "Stims"
+    },
+    {
+      "id": "med-stimul-p4",
+      "name": "P4 stimulant injector",
+      "category": "medicine",
+      "icon": "icons/medical/icon_P4_stimulant_injector.png",
+      "note": "Stims"
+    },
+    {
+      "id": "med-stimul-morphine",
+      "name": "Morphine",
+      "category": "medicine",
+      "icon": "icons/medical/icon_morphine.png",
+      "note": "Stims"
+    },
+    {
+      "id": "misc_1batterie_2",
+      "name": "Size D battery",
+      "category": "misc",
+      "icon": "icons/misc/valuable_batteries_sizedbattery1.png",
+      "note": "Power"
+    },
+    {
+      "id": "misc_badge",
+      "name": "Sheriff's Badge",
+      "category": "misc",
+      "icon": "icons/misc/Icon_valuable_badge.png",
+      "note": "HighValue"
+    },
+    {
+      "id": "misc_baseball",
+      "name": "Old Baseball",
+      "category": "misc",
+      "icon": "icons/misc/Icon_valuable_baseball.png",
+      "note": "Household"
+    },
+    {
+      "id": "misc_b_1battery",
+      "name": "Size D battery",
+      "category": "misc",
+      "icon": "icons/misc/valuable_batteries_sizedbattery2.png",
+      "note": "Power"
+    },
+    {
+      "id": "misc_b_aladdinlamp",
+      "name": "Aladdin lamp",
+      "category": "misc",
+      "icon": "icons/misc/valuable_highvalue_aladdinlamp.png",
+      "note": "HighValue"
+    },
+    {
+      "id": "misc_b_antiquebook",
+      "name": "Antique book",
+      "category": "misc",
+      "icon": "icons/misc/Icon_ValuableItem_B_AntiqueBook.png",
+      "note": "Intel"
+    },
+    {
+      "id": "misc_b_antiqueteaset",
+      "name": "Antique Tea cup",
+      "category": "misc",
+      "icon": "icons/misc/valuable_highvalue_antiqueteacup.png",
+      "note": "HighValue"
+    },
+    {
+      "id": "misc_b_aspire",
+      "name": "Aspirin",
+      "category": "misc",
+      "icon": "icons/misc/Icon_ValuableItem_B_Aspire.png",
+      "note": "Medicine"
+    },
+    {
+      "id": "misc_b_asthmamedication",
+      "name": "Asthma medicine",
+      "category": "misc",
+      "icon": "icons/misc/Icon_ValuableItem_B_AsthmaMedication.png",
+      "note": "Medicine"
+    },
+    {
+      "id": "misc_b_bandaid",
+      "name": "Adhesive bandages",
+      "category": "misc",
+      "icon": "icons/misc/Icon_ValuableItem_B_BandAid.png",
+      "note": "Medicine"
+    },
+    {
+      "id": "misc_b_batter_large",
+      "name": "Storage Battery",
+      "category": "misc",
+      "icon": "icons/misc/valuable_batteries_storagebattery2.png",
+      "note": "Power"
+    },
+    {
+      "id": "misc_b_beardoil",
+      "name": "Beard Oil",
+      "category": "misc",
+      "icon": "icons/misc/Icon_valuable_beardoil.png",
+      "note": "Household"
+    },
+    {
+      "id": "misc_b_bottledglucose",
+      "name": "Bottled glucose",
+      "category": "misc",
+      "icon": "icons/misc/Icon_ValuableItem_B_BottledGlucose.png",
+      "note": "Medicine"
+    },
+    {
+      "id": "misc_b_bullstatue",
+      "name": "Bull statue",
+      "category": "misc",
+      "icon": "icons/misc/Icon_ValuableItem_B_BullStatue.png",
+      "note": "HighValue"
+    },
+    {
+      "id": "misc_barcleaner",
+      "name": "Household Cleaner",
+      "category": "misc",
+      "icon": "icons/misc/icon_houseclean.png",
+      "note": "Household"
+    },
+    {
+      "id": "misc_b_tape",
+      "name": "Tape",
+      "category": "misc",
+      "icon": "icons/misc/Icon_gun_m92.png",
+      "note": "Intel"
+    },
+    {
+      "id": "misc_b_cash",
+      "name": "Cash 25k",
+      "category": "misc",
+      "icon": "icons/misc/Icon_ValuableItem_B_cash.png",
+      "note": "HighValue"
+    },
+    {
+      "id": "misc_b_cash2",
+      "name": "Cash 50k",
+      "category": "misc",
+      "icon": "icons/misc/Icon_ValuableItem_B_cash.png",
+      "note": "HighValue"
+    },
+    {
+      "id": "misc_b_cash3",
+      "name": "Cash 75k",
+      "category": "misc",
+      "icon": "icons/misc/Icon_ValuableItem_B_cash.png",
+      "note": "HighValue"
+    },
+    {
+      "id": "misc_bentrifuge",
+      "name": "Centrifuge",
+      "category": "misc",
+      "icon": "icons/misc/Icon_ValuableItem_B_Centrifuge.png",
+      "note": "Medicine"
+    },
+    {
+      "id": "misc_b_ceramic_adhesive",
+      "name": "Ceramic adhesive",
+      "category": "misc",
+      "icon": "icons/misc/valuable_building_ceramicadhesive.png",
+      "note": "Building"
+    },
+    {
+      "id": "misc_b_civilradio",
+      "name": "Civil radio",
+      "category": "misc",
+      "icon": "icons/misc/valuable_electric_civilradio.png",
+      "note": "Electric"
+    },
+    {
+      "id": "misc_blimbingrope",
+      "name": "Climbing rope",
+      "category": "misc",
+      "icon": "icons/misc/Icon_ValuableItem_B_ClimbingRope.png",
+      "note": "Tools"
+    },
+    {
+      "id": "misc_bomputertextbook",
+      "name": "Computer manual",
+      "category": "misc",
+      "icon": "icons/misc/Icon_ValuableItem_B_ComputerTextbook.png",
+      "note": "Intel"
+    },
+    {
+      "id": "misc_bpu",
+      "name": "CPU",
+      "category": "misc",
+      "icon": "icons/misc/Icon_valuable_cpu.png",
+      "note": "Electric"
+    },
+    {
+      "id": "misc_brimsonqueenring",
+      "name": "Ruby ring",
+      "category": "misc",
+      "icon": "icons/misc/Icon_ValuableItem_B_CrimsonQueenRing.png",
+      "note": "HighValue"
+    },
+    {
+      "id": "misc_b_dataline",
+      "name": "Data Cord",
+      "category": "misc",
+      "icon": "icons/misc/Icon_valuable_datacord.png",
+      "note": "Electric"
+    },
+    {
+      "id": "misc_b_defibrillator",
+      "name": "Defibrillator",
+      "category": "misc",
+      "icon": "icons/misc/Icon_ValuableItem_B_defibrillator.png",
+      "note": "Medicine"
+    },
+    {
+      "id": "misc_b_deodorant",
+      "name": "Deodorant",
+      "category": "misc",
+      "icon": "icons/misc/Icon_valuable_deodorant.png",
+      "note": "Household"
+    },
+    {
+      "id": "misc_b_digitalsensor",
+      "name": "Digital sensor",
+      "category": "misc",
+      "icon": "icons/misc/Icon_ValuableItem_B_DigitalSensor.png",
+      "note": "Electric"
+    },
+    {
+      "id": "misc_b_disinfectingwipes",
+      "name": "Disinfectant wipes",
+      "category": "misc",
+      "icon": "icons/misc/Icon_ValuableItem_B_DisinfectingWipes.png",
+      "note": "Medicine"
+    },
+    {
+      "id": "misc_b_electricdrill",
+      "name": "Electric drill",
+      "category": "misc",
+      "icon": "icons/misc/Icon_valuable_electricdrill.png",
+      "note": "Tools"
+    },
+    {
+      "id": "misc_b_flashlight",
+      "name": "Flash light",
+      "category": "misc",
+      "icon": "icons/misc/valuable_electric_flashlight.png",
+      "note": "Electric"
+    },
+    {
+      "id": "misc_b_gamecartridge_a",
+      "name": "'Showdown' Cart",
+      "category": "misc",
+      "icon": "icons/misc/Icon_ValuableItem_B_GameCartridge_A.png",
+      "note": "HighValue"
+    },
+    {
+      "id": "misc_b_gamecartridge_b",
+      "name": "'Contractors' Cart",
+      "category": "misc",
+      "icon": "icons/misc/Icon_ValuableItem_B_GameCartridge_B.png",
+      "note": "HighValue"
+    },
+    {
+      "id": "misc_b_gamecartridge",
+      "name": "GrimLord' Cart",
+      "category": "misc",
+      "icon": "icons/misc/Icon_ValuableItem_B_GameCartridge_Cpng.png",
+      "note": "HighValue"
+    },
+    {
+      "id": "misc_b_gamecartridge_d",
+      "name": "'Exfilzone' Cart",
+      "category": "misc",
+      "icon": "icons/misc/Icon_ValuableItem_B_GameCartridge_D.png",
+      "note": "HighValue"
+    },
+    {
+      "id": "misc_b_gameconsole",
+      "name": "Game console",
+      "category": "misc",
+      "icon": "icons/misc/Icon_ValuableItem_B_GameConsole.png",
+      "note": "Electric"
+    },
+    {
+      "id": "misc_b_gaspipewrench",
+      "name": "Gas pipe pliers",
+      "category": "misc",
+      "icon": "icons/misc/Icon_ValuableItem_B_GasPipeWrench.png",
+      "note": "Tools"
+    },
+    {
+      "id": "misc_b_gastank",
+      "name": "Gas can",
+      "category": "misc",
+      "icon": "icons/misc/Icon_valuable_gascan.png",
+      "note": "Combustible"
+    },
+    {
+      "id": "misc_b_gastank_large",
+      "name": "Large gas can",
+      "category": "misc",
+      "icon": "icons/misc/valuable_combustible_largegascan.png",
+      "note": "Combustible"
+    },
+    {
+      "id": "misc_b_glue_large",
+      "name": "Instant glue",
+      "category": "misc",
+      "icon": "icons/misc/ValuableItem_B_glue_large.png",
+      "note": "Building"
+    },
+    {
+      "id": "misc_b_goldelephant",
+      "name": "Golden elephant",
+      "category": "misc",
+      "icon": "icons/misc/valuable_highvalue_goldelephant.png",
+      "note": "HighValue"
+    },
+    {
+      "id": "misc_b_goldenknife",
+      "name": "Golden prize",
+      "category": "misc",
+      "icon": "icons/misc/Icon_ValuableItem_B_GoldenKnife.png",
+      "note": "HighValue"
+    },
+    {
+      "id": "misc_b_goldenlionring",
+      "name": "Gold lion ring",
+      "category": "misc",
+      "icon": "icons/misc/Icon_ValuableItem_B_GoldenLionRing.png",
+      "note": "HighValue"
+    },
+    {
+      "id": "misc_b_goldenprize",
+      "name": "Golden prize",
+      "category": "misc",
+      "icon": "icons/misc/valuable_highvalue_goldprize.png",
+      "note": "HighValue"
+    },
+    {
+      "id": "misc_b_gunoil",
+      "name": "Gun Oil",
+      "category": "misc",
+      "icon": "icons/misc/Icon_valuable_gunoil.png",
+      "note": "Combustible"
+    },
+    {
+      "id": "misc_b_harddrive",
+      "name": "Hard drive",
+      "category": "misc",
+      "icon": "icons/misc/valuable_information_harddrive.png",
+      "note": "Intel"
+    },
+    {
+      "id": "misc_b_horrornovel",
+      "name": "Horror novel",
+      "category": "misc",
+      "icon": "icons/misc/Icon_ValuableItem_B_HorrorNovel.png",
+      "note": "Intel"
+    },
+    {
+      "id": "misc_b_insulatingtape",
+      "name": "Insulating Tape",
+      "category": "misc",
+      "icon": "icons/misc/Icon_valuable_ducttape.png",
+      "note": "Building"
+    },
+    {
+      "id": "misc_b_iodophor",
+      "name": "Iodine",
+      "category": "misc",
+      "icon": "icons/misc/Icon_ValuableItem_B_Iodophor.png",
+      "note": "Medicine"
+    },
+    {
+      "id": "misc_b_ionbattery",
+      "name": "Ion Battery",
+      "category": "misc",
+      "icon": "icons/misc/Icon_valuable_ionbattery.png",
+      "note": "Power"
+    },
+    {
+      "id": "misc_b_lightbulb",
+      "name": "Energy-saving lamp",
+      "category": "misc",
+      "icon": "icons/misc/Icon_ValuableItem_B_LightBulb.png",
+      "note": "Electric"
+    },
+    {
+      "id": "misc_b_lighter",
+      "name": "Lighter",
+      "category": "misc",
+      "icon": "icons/misc/Icon_valuable_lighter.png",
+      "note": "Combustible"
+    },
+    {
+      "id": "misc_b_lighterfluid",
+      "name": "Lighter fluid",
+      "category": "misc",
+      "icon": "icons/misc/Icon_valuable_lighterfluid.png",
+      "note": "Combustible"
+    },
+    {
+      "id": "misc_b_magazine",
+      "name": "Magazine",
+      "category": "misc",
+      "icon": "icons/misc/Icon_ValuableItem_B_Magazine.png",
+      "note": "Intel"
+    },
+    {
+      "id": "misc_b_marinestoragebattery",
+      "name": "Marine Battery",
+      "category": "misc",
+      "icon": "icons/misc/Icon_ValuableItem_B_MarineStorageBattery.png",
+      "note": "Power"
+    },
+    {
+      "id": "misc_b_match",
+      "name": "Matches",
+      "category": "misc",
+      "icon": "icons/misc/Icon_ValuableItem_B_match.png",
+      "note": "Combustible"
+    },
+    {
+      "id": "misc_b_medicalkit",
+      "name": "Portable medical kit",
+      "category": "misc",
+      "icon": "icons/misc/Icon_ValuableItem_B_MedicalKit.png",
+      "note": "Medicine"
+    },
+    {
+      "id": "misc_b_medicalscissors",
+      "name": "Medical scissors",
+      "category": "misc",
+      "icon": "icons/misc/Icon_ValuableItem_B_MedicalScissors.png",
+      "note": "Medicine"
+    },
+    {
+      "id": "misc_b_militaryharddrive",
+      "name": "Hard drive - classified",
+      "category": "misc",
+      "icon": "icons/misc/Icon_ValuableItem_B_MilitaryHardDrive.png",
+      "note": "HighValue"
+    },
+    {
+      "id": "misc_b_militaryusbdrive",
+      "name": "USB - classified",
+      "category": "misc",
+      "icon": "icons/misc/Icon_ValuableItem_B_MilitaryUSBdrive.png",
+      "note": "HighValue"
+    },
+    {
+      "id": "misc_b_moldboard",
+      "name": "Moldboard",
+      "category": "misc",
+      "icon": "icons/misc/Icon_valuable_moldboard.png",
+      "note": "Tools"
+    },
+    {
+      "id": "misc_b_nail",
+      "name": "Nails",
+      "category": "misc",
+      "icon": "icons/misc/Icon_valuable_nail.png",
+      "note": "Building"
+    },
+    {
+      "id": "misc_b_newphone",
+      "name": "New Phone",
+      "category": "misc",
+      "icon": "icons/misc/Icon_valuable_newphone.png",
+      "note": "Electric"
+    },
+    {
+      "id": "misc_b_nut",
+      "name": "Nuts",
+      "category": "misc",
+      "icon": "icons/misc/Icon_valuable_nuts.png",
+      "note": "Building"
+    },
+    {
+      "id": "misc_b_nut2",
+      "name": "Big Nut",
+      "category": "misc",
+      "icon": "icons/misc/valuable_building_bignut.png",
+      "note": "Building"
+    },
+    {
+      "id": "misc_b_oldphone",
+      "name": "Old Phone",
+      "category": "misc",
+      "icon": "icons/misc/Icon_valuable_newphoneIcon_valuable_newphone.png",
+      "note": "Electric"
+    },
+    {
+      "id": "misc_b_oliveoil",
+      "name": "Olive oil",
+      "category": "misc",
+      "icon": "icons/misc/Icon_ValuableItem_B_OliveOil.png",
+      "note": "Combustible"
+    },
+    {
+      "id": "misc_b_opticaldisc",
+      "name": "CD",
+      "category": "misc",
+      "icon": "icons/misc/Icon_ValuableItem_B_OpticalDisc.png",
+      "note": "Intel"
+    },
+    {
+      "id": "misc_b_pcfan",
+      "name": "CPU Fan",
+      "category": "misc",
+      "icon": "icons/misc/Icon_valuable_cpufan.png",
+      "note": "Electric"
+    },
+    {
+      "id": "misc_b_perfume",
+      "name": "Perfume",
+      "category": "misc",
+      "icon": "icons/misc/Icon_ValuableItem_B_Perfume.png",
+      "note": "HighValue"
+    },
+    {
+      "id": "misc_b_pesticide",
+      "name": "Pesticide",
+      "category": "misc",
+      "icon": "icons/misc/Icon_valuable_pesticide.png",
+      "note": "Household"
+    },
+    {
+      "id": "misc_b_piezometer",
+      "name": "Piezometer",
+      "category": "misc",
+      "icon": "icons/misc/Icon_valuable_piezometer.png",
+      "note": "Building"
+    },
+    {
+      "id": "misc_b_pipeline",
+      "name": "Valve",
+      "category": "misc",
+      "icon": "icons/misc/Icon_valuable_pipeline.png",
+      "note": "Building"
+    },
+    {
+      "id": "misc_b_plier",
+      "name": "Plier",
+      "category": "misc",
+      "icon": "icons/misc/Icon_valuable_plier.png",
+      "note": "Tools"
+    },
+    {
+      "id": "misc_b_plier_large",
+      "name": "Large plier",
+      "category": "misc",
+      "icon": "icons/misc/valuable_tools_largeplier.png",
+      "note": "Tools"
+    },
+    {
+      "id": "misc_b_powerbank",
+      "name": "Power Bank",
+      "category": "misc",
+      "icon": "icons/misc/Icon_valuable_powerbank.png",
+      "note": "Power"
+    },
+    {
+      "id": "misc_b_radioscanner",
+      "name": "Radio scanner",
+      "category": "misc",
+      "icon": "icons/misc/valuable_electric_radioscanner.png",
+      "note": "Electric"
+    },
+    {
+      "id": "misc_b_ram",
+      "name": "RAM",
+      "category": "misc",
+      "icon": "icons/misc/Icon_valuable_ram.png",
+      "note": "Electric"
+    },
+    {
+      "id": "misc_b_rat_poison",
+      "name": "Rat poison",
+      "category": "misc",
+      "icon": "icons/misc/valuable_household_ratpoison.png",
+      "note": "Household"
+    },
+    {
+      "id": "misc_b_recorder",
+      "name": "Recorder",
+      "category": "misc",
+      "icon": "icons/misc/Icon_ValuableItem_B_Recorder.png",
+      "note": "Intel"
+    },
+    {
+      "id": "misc_b_rustedcleaner",
+      "name": "Rust cleaner",
+      "category": "misc",
+      "icon": "icons/misc/valuable_household_rustcleaner.png",
+      "note": "Household"
+    },
+    {
+      "id": "misc_b_saltcan",
+      "name": "Salt can",
+      "category": "misc",
+      "icon": "icons/misc/Icon_ValuableItem_B_SaltCan.png",
+      "note": "Household"
+    },
+    {
+      "id": "misc_b_screw",
+      "name": "Bolts",
+      "category": "misc",
+      "icon": "icons/misc/Icon_valuable_bolts.png",
+      "note": "Building"
+    },
+    {
+      "id": "misc_b_shampoo",
+      "name": "Shampoo",
+      "category": "misc",
+      "icon": "icons/misc/Icon_valuable_shampoo.png",
+      "note": "Household"
+    },
+    {
+      "id": "misc_b_smallshovel",
+      "name": "Small Shovel",
+      "category": "misc",
+      "icon": "icons/misc/Icon_valuable_smallshovel.png",
+      "note": "Tools"
+    },
+    {
+      "id": "misc_b_smokelesspowder",
+      "name": "Smokeless powder",
+      "category": "misc",
+      "icon": "icons/misc/valuable_combustible_smokelesspowder.png",
+      "note": "Combustible"
+    },
+    {
+      "id": "misc_b_soap",
+      "name": "Soap",
+      "category": "misc",
+      "icon": "icons/misc/Icon_valuable_soap.png",
+      "note": "Household"
+    },
+    {
+      "id": "misc_b_socket",
+      "name": "Socket",
+      "category": "misc",
+      "icon": "icons/misc/valuable_electric_socket.png",
+      "note": "Electric"
+    },
+    {
+      "id": "misc_b_sparkplug",
+      "name": "Spark Plug",
+      "category": "misc",
+      "icon": "icons/misc/Icon_valuable_sparkplug.png",
+      "note": "Tools"
+    },
+    {
+      "id": "misc_b_spraycan",
+      "name": "Spray Can",
+      "category": "misc",
+      "icon": "icons/misc/Icon_valuable_spraycan.png",
+      "note": "Building"
+    },
+    {
+      "id": "misc_b_stonlion",
+      "name": "Stone lion",
+      "category": "misc",
+      "icon": "icons/misc/valuable_highvalue_stonelion.png",
+      "note": "HighValue"
+    },
+    {
+      "id": "misc_b_storagebattery",
+      "name": "Car Battery",
+      "category": "misc",
+      "icon": "icons/misc/Icon_valuable_storagebattery.png",
+      "note": "Power"
+    },
+    {
+      "id": "misc_b_superglue",
+      "name": "Super Glue",
+      "category": "misc",
+      "icon": "icons/misc/Icon_valuable_superglue.png",
+      "note": "Building"
+    },
+    {
+      "id": "misc_b_tapemeasure",
+      "name": "Measuring Tape",
+      "category": "misc",
+      "icon": "icons/misc/Icon_valuable_measuringtape.png",
+      "note": "Tools"
+    },
+    {
+      "id": "misc_b_tapeplayer",
+      "name": "Civil radio",
+      "category": "misc",
+      "icon": "icons/misc/Icon_ValuableItem_B_TapePlayer.png",
+      "note": "Electric"
+    },
+    {
+      "id": "misc_b_tape_holder",
+      "name": "Tape holder",
+      "category": "misc",
+      "icon": "icons/misc/valuable_tools_tapeholder.png",
+      "note": "Tools"
+    },
+    {
+      "id": "misc_b_tape_large",
+      "name": "Gas can",
+      "category": "misc",
+      "icon": "icons/misc/Icon_valuable_gascan.png",
+      "note": "Combustible"
+    },
+    {
+      "id": "misc_b_tire_sealant",
+      "name": "Tire sealant",
+      "category": "misc",
+      "icon": "icons/misc/valuable_tools_tiresealant.png",
+      "note": "Tools"
+    },
+    {
+      "id": "misc_b_toiletpaper",
+      "name": "Toilet Paper",
+      "category": "misc",
+      "icon": "icons/misc/Icon_valuable_toiletpaper.png",
+      "note": "Household"
+    },
+    {
+      "id": "misc_b_toothpaste",
+      "name": "Toothpaste",
+      "category": "misc",
+      "icon": "icons/misc/Icon_valuable_toothpaste.png",
+      "note": "Household"
+    },
+    {
+      "id": "misc_b_transformer",
+      "name": "Voltage transformer",
+      "category": "misc",
+      "icon": "icons/misc/Icon_ValuableItem_B_Transformer.png",
+      "note": "Electric"
+    },
+    {
+      "id": "misc_b_uvlight",
+      "name": "UV lamp",
+      "category": "misc",
+      "icon": "icons/misc/Icon_ValuableItem_B_UVlight.png",
+      "note": "Medicine"
+    },
+    {
+      "id": "misc_b_visionmodule",
+      "name": "Imaging module",
+      "category": "misc",
+      "icon": "icons/misc/Icon_ValuableItem_B_VisionModule.png",
+      "note": "Electric"
+    },
+    {
+      "id": "misc_b_wd40",
+      "name": "WD-40",
+      "category": "misc",
+      "icon": "icons/misc/Icon_valuable_wd40.png",
+      "note": "Combustible"
+    },
+    {
+      "id": "misc_b_wire",
+      "name": "Wire",
+      "category": "misc",
+      "icon": "icons/misc/Icon_valuable_wire.png",
+      "note": "Building"
+    },
+    {
+      "id": "misc_b_wirecutting",
+      "name": "Wire Cutter",
+      "category": "misc",
+      "icon": "icons/misc/Icon_valuable_wirecutter.png",
+      "note": "Tools"
+    },
+    {
+      "id": "misc_b_wrench",
+      "name": "Wrench",
+      "category": "misc",
+      "icon": "icons/misc/Icon_valuable_wrench.png",
+      "note": "Tools"
+    },
+    {
+      "id": "misc_camera",
+      "name": "Vintage Camera",
+      "category": "misc",
+      "icon": "icons/misc/Icon_valuable_camera.png",
+      "note": "HighValue"
+    },
+    {
+      "id": "misc_cloth",
+      "name": "Linen Fabrics",
+      "category": "misc",
+      "icon": "icons/misc/Icon_valuable_cloth.png",
+      "note": "Household"
+    },
+    {
+      "id": "misc_copperwire",
+      "name": "Copper Wire",
+      "category": "misc",
+      "icon": "icons/misc/Icon_valuable_copperwire.png",
+      "note": "Building"
+    },
+    {
+      "id": "misc_csdoll_gold",
+      "name": "Game Figurine (hidden)",
+      "category": "misc",
+      "icon": "icons/misc/Icon_valuable_csdollgold.png",
+      "note": "HighValue"
+    },
+    {
+      "id": "misc_csdoll_standard",
+      "name": "Game Figurine #1",
+      "category": "misc",
+      "icon": "icons/misc/Icon_valuable_csdollstandard.png",
+      "note": "HighValue"
+    },
+    {
+      "id": "misc_csdoll_standard_2",
+      "name": "Game Figurine #2",
+      "category": "misc",
+      "icon": "icons/misc/valuable_highvalue_contractors_ed-1.png",
+      "note": "HighValue"
+    },
+    {
+      "id": "misc_csdoll_standard_3",
+      "name": "Game Figurine #3",
+      "category": "misc",
+      "icon": "icons/misc/valuable_highvalue_csdollgold_3.png",
+      "note": "HighValue"
+    },
+    {
+      "id": "misc_csdoll_standard_4",
+      "name": "Game Figurine #4",
+      "category": "misc",
+      "icon": "icons/misc/valuable_highvalue_csdollgold_4.png",
+      "note": "HighValue"
+    },
+    {
+      "id": "misc_csdoll_standard_5",
+      "name": "Game Figurine #5",
+      "category": "misc",
+      "icon": "icons/misc/valuable_highvalue_csdollgold_5.png",
+      "note": "HighValue"
+    },
+    {
+      "id": "misc_csdoll_standard_6",
+      "name": "Game Figurine #6",
+      "category": "misc",
+      "icon": "icons/misc/valuable_highvalue_csdollgold_6.png",
+      "note": "HighValue"
+    },
+    {
+      "id": "misc_csdoll_standard_7",
+      "name": "Game Figurine #7",
+      "category": "misc",
+      "icon": "icons/misc/valuable_highvalue_csdollgold_7.png",
+      "note": "HighValue"
+    },
+    {
+      "id": "misc_ducktoy",
+      "name": "Toy Duck",
+      "category": "misc",
+      "icon": "icons/misc/Icon_valuable_ducktoy.png",
+      "note": "Household"
+    },
+    {
+      "id": "misc_facialcleaner",
+      "name": "Facial Cleanser",
+      "category": "misc",
+      "icon": "icons/misc/Icon_valuable_facialcleanser.png",
+      "note": "Household"
+    },
+    {
+      "id": "misc_floppydisk",
+      "name": "Floppy Disk",
+      "category": "misc",
+      "icon": "icons/misc/Icon_valuable_floppydisk.png",
+      "note": "Intel"
+    },
+    {
+      "id": "misc_fossil",
+      "name": "Fossil",
+      "category": "misc",
+      "icon": "icons/misc/Icon_valuable_fossil.png",
+      "note": "HighValue"
+    },
+    {
+      "id": "misc_gamedisk",
+      "name": "Game Disc",
+      "category": "misc",
+      "icon": "icons/misc/Icon_valuable_gamedisk.png",
+      "note": "HighValue"
+    },
+    {
+      "id": "misc_gamedisk_deluxedition",
+      "name": "Contractors Delux Edition",
+      "category": "misc",
+      "icon": "icons/misc/valuable_highvalue_showdown_ed2.png",
+      "note": "HighValue"
+    },
+    {
+      "id": "misc_gamedisk_showdown",
+      "name": "ShowDown",
+      "category": "misc",
+      "icon": "icons/misc/valuable_highvalue_showdown_ed.png",
+      "note": "HighValue"
+    },
+    {
+      "id": "misc_gamedisk_showdown_deluxedition",
+      "name": "ShowDown Delux Edition",
+      "category": "misc",
+      "icon": "icons/misc/valuable_highvalue_contractors_ed.png",
+      "note": "HighValue"
+    },
+    {
+      "id": "misc_goldcup",
+      "name": "Antique Gold Goblet",
+      "category": "misc",
+      "icon": "icons/misc/Icon_valuable_goldcup.png",
+      "note": "HighValue"
+    },
+    {
+      "id": "misc_goldingot",
+      "name": "Gold Ingot",
+      "category": "misc",
+      "icon": "icons/misc/Icon_valuable_goldingot.png",
+      "note": "HighValue"
+    },
+    {
+      "id": "misc_graphiccard",
+      "name": "Graphic Card",
+      "category": "misc",
+      "icon": "icons/misc/Graphics_Card.png",
+      "note": "Electric"
+    },
+    {
+      "id": "misc_gunpowder",
+      "name": "Gunpowder",
+      "category": "misc",
+      "icon": "icons/misc/Icon_valuable_gunpowder.png",
+      "note": "Combustible"
+    },
+    {
+      "id": "misc_hammer",
+      "name": "Hammer",
+      "category": "misc",
+      "icon": "icons/misc/Icon_valuable_hammer.png",
+      "note": "Tools"
+    },
+    {
+      "id": "misc_householdleaner",
+      "name": "Household Cleaner",
+      "category": "misc",
+      "icon": "icons/misc/icon_houseclean.png",
+      "note": "Household"
+    },
+    {
+      "id": "misc_mouse",
+      "name": "Mouse",
+      "category": "misc",
+      "icon": "icons/misc/Icon_valuable_mouse.png",
+      "note": "Electric"
+    },
+    {
+      "id": "misc_mug",
+      "name": "Mug",
+      "category": "misc",
+      "icon": "icons/misc/Icon_valuable_mug.png",
+      "note": "Household"
+    },
+    {
+      "id": "misc_notebook",
+      "name": "Notebook",
+      "category": "misc",
+      "icon": "icons/misc/Icon_valuable_notepad.png",
+      "note": "Intel"
+    },
+    {
+      "id": "misc_oilcan",
+      "name": "Oil can",
+      "category": "misc",
+      "icon": "icons/misc/Icon_valuable_oilcan.png",
+      "note": "Combustible"
+    },
+    {
+      "id": "misc_pocketwatch",
+      "name": "Pocketwatch",
+      "category": "misc",
+      "icon": "icons/misc/Icon_valuable_pocketwatch.png",
+      "note": "HighValue"
+    },
+    {
+      "id": "misc_radio",
+      "name": "Portable Radio",
+      "category": "misc",
+      "icon": "icons/misc/Icon_valuable_radio.png",
+      "note": "Electric"
+    },
+    {
+      "id": "misc_remote",
+      "name": "Remote Control",
+      "category": "misc",
+      "icon": "icons/misc/Icon_valuable_remotecontrol.png",
+      "note": "Electric"
+    },
+    {
+      "id": "misc_screwdriver",
+      "name": "Screwdriver",
+      "category": "misc",
+      "icon": "icons/misc/Icon_valuable_screwdriver.png",
+      "note": "Tools"
+    },
+    {
+      "id": "misc_silvercup",
+      "name": "Antique Silver Goblet",
+      "category": "misc",
+      "icon": "icons/misc/Icon_valuable_silvercup.png",
+      "note": "HighValue"
+    },
+    {
+      "id": "misc_sunglass",
+      "name": "Sunglasses",
+      "category": "misc",
+      "icon": "icons/misc/Icon_valuable_sunglass.png",
+      "note": "Household"
+    },
+    {
+      "id": "misc_toycar",
+      "name": "Toy Car",
+      "category": "misc",
+      "icon": "icons/misc/Icon_valuable_toycar.png",
+      "note": "HighValue"
+    },
+    {
+      "id": "misc_videotape",
+      "name": "Videotape",
+      "category": "misc",
+      "icon": "icons/misc/Icon_valuable_tape.png",
+      "note": "Intel"
+    },
+    {
+      "id": "misc_vrheadset",
+      "name": "VR Headset",
+      "category": "misc",
+      "icon": "icons/misc/Icon_valuable_vrheadset.png",
+      "note": "HighValue"
+    },
+    {
+      "id": "misc_wastechip",
+      "name": "Waste Chip",
+      "category": "misc",
+      "icon": "icons/misc/Icon_valuable_wastechip.png",
+      "note": "Electric"
+    },
+    {
+      "id": "misc_wooddoll",
+      "name": "Wood Doll",
+      "category": "misc",
+      "icon": "icons/misc/Icon_valuable_wooddoll.png",
+      "note": "HighValue"
+    },
+    {
+      "id": "misc_wrench",
+      "name": "Small Wrench",
+      "category": "misc",
+      "icon": "icons/misc/Icon_valuable_wrench.png",
+      "note": "Tools"
+    },
+    {
+      "id": "food_soda_drink_l",
+      "name": "Soda Drink L",
+      "category": "provisions",
+      "icon": "icons/food/Icon_food_09.png",
+      "note": "Drinks"
+    },
+    {
+      "id": "food_soda_drink",
+      "name": "Soda Drink",
+      "category": "provisions",
+      "icon": "icons/food/Icon_food_03.png",
+      "note": "Drinks"
+    },
+    {
+      "id": "food_energy_bar",
+      "name": "Energy bar",
+      "category": "provisions",
+      "icon": "icons/food/Icon_food_01.png",
+      "note": "Food"
+    },
+    {
+      "id": "food_chocolate",
+      "name": "Chocolate",
+      "category": "provisions",
+      "icon": "icons/food/Icon_food_10.png",
+      "note": "Food"
+    },
+    {
+      "id": "food_meat_can_l",
+      "name": "Meat can L",
+      "category": "provisions",
+      "icon": "icons/food/Icon_food_11.png",
+      "note": "Food"
+    },
+    {
+      "id": "food_meat_can",
+      "name": "Meat can",
+      "category": "provisions",
+      "icon": "icons/food/Icon_food_12.png",
+      "note": "Food"
+    },
+    {
+      "id": "food_pea_can",
+      "name": "Pea can",
+      "category": "provisions",
+      "icon": "icons/food/Icon_food_13.png",
+      "note": "Food"
+    },
+    {
+      "id": "food_sausage",
+      "name": "Sausage",
+      "category": "provisions",
+      "icon": "icons/food/Icon_food_14.png",
+      "note": "Food"
+    },
+    {
+      "id": "food_mre",
+      "name": "Compact Ration",
+      "category": "provisions",
+      "icon": "icons/food/Icon_food_02.png",
+      "note": "Food"
+    },
+    {
+      "id": "food_apple",
+      "name": "Apple",
+      "category": "provisions",
+      "icon": "icons/food/Icon_food_05.png",
+      "note": "Food"
+    },
+    {
+      "id": "food_ginger_bread",
+      "name": "Ginger Bread",
+      "category": "provisions",
+      "icon": "icons/food/Icon_FOOD_Gingerbread_02.png",
+      "note": "Food"
+    },
+    {
+      "id": "food_beer",
+      "name": "Beer",
+      "category": "provisions",
+      "icon": "icons/food/Icon_food_06.png",
+      "note": "Drinks"
+    },
+    {
+      "id": "food_coffee",
+      "name": "Coffee",
+      "category": "provisions",
+      "icon": "icons/food/Icon_food_07.png",
+      "note": "Drinks"
+    },
+    {
+      "id": "food_mineral_water",
+      "name": "Mineral Water",
+      "category": "provisions",
+      "icon": "icons/food/Icon_food_08.png",
+      "note": "Drinks"
+    },
+    {
+      "id": "food_water_bottle",
+      "name": "Water Bottle",
+      "category": "provisions",
+      "icon": "icons/food/Icon_food_04.png",
+      "note": "Drinks"
+    },
+    {
+      "id": "food_holiday_bottle",
+      "name": "Holiday Bottle",
+      "category": "provisions",
+      "icon": "icons/food/Icon_Holiday_Bottle.png",
+      "note": "Drinks"
+    },
+    {
+      "id": "taskitem_ark_floppydisk",
+      "name": "ARK Floppy Disk",
+      "category": "task-items",
+      "icon": "icons/task/valuable_task_ark_floppydisk.png",
+      "note": "Tommy"
+    },
+    {
+      "id": "taskitem_baseball",
+      "name": "Tommy's Hidden Camera",
+      "category": "task-items",
+      "icon": "icons/task/valuable_task_tommy_baseball.png",
+      "note": "Tommy"
+    },
+    {
+      "id": "taskitem_electricdrill_blue",
+      "name": "Electric drill",
+      "category": "task-items",
+      "icon": "icons/task/valuable_task_johnny_drill.png",
+      "note": "Johnny"
+    },
+    {
+      "id": "taskitem_familytape",
+      "name": "Family Videotape",
+      "category": "task-items",
+      "icon": "icons/task/valuable_task_johnny_familytape.png",
+      "note": "Johnny"
+    },
+    {
+      "id": "taskitem_task_gamedisk",
+      "name": "Game Disc",
+      "category": "task-items",
+      "icon": "icons/task/valuable_task_max_gamedisk.png",
+      "note": "Maximillian"
+    },
+    {
+      "id": "taskitem_goldcup",
+      "name": "Gold Cup -Task",
+      "category": "task-items",
+      "icon": "icons/task/valuable_task_max_goldcup.png",
+      "note": "Maximillian"
+    },
+    {
+      "id": "taskitem_goldeearth",
+      "name": "Maximilian's Golden Earth -Task",
+      "category": "task-items",
+      "icon": "icons/task/valuable_task_max_goldenearth.png",
+      "note": "Maximillian"
+    },
+    {
+      "id": "taskitem_goldingot",
+      "name": "Fake Gold Ingot",
+      "category": "task-items",
+      "icon": "icons/task/valuable_task_max_goldIngot.png",
+      "note": "Maximillian"
+    },
+    {
+      "id": "taskitem_gunpowder",
+      "name": "Gunpowder",
+      "category": "task-items",
+      "icon": "icons/task/valuable_task_igor_gunpowder.png",
+      "note": "Igor"
+    },
+    {
+      "id": "taskitem_sharkdvd1",
+      "name": "\"SHARK\"",
+      "category": "task-items",
+      "icon": "icons/task/valuable_task_Igor_sharkdvd_a.png",
+      "note": "Igor"
+    },
+    {
+      "id": "taskitem_sharkdvd2",
+      "name": "\"SHARK\" Sequel",
+      "category": "task-items",
+      "icon": "icons/task/valuable_task_Igor_sharkdvd_b.png",
+      "note": "Igor"
+    },
+    {
+      "id": "taskitem_subwaydvd1",
+      "name": "\"Subway Scream\"",
+      "category": "task-items",
+      "icon": "icons/task/valuable_task_Igor_subwaydvd_a.png",
+      "note": "Igor"
+    },
+    {
+      "id": "taskitem_subwaydvd2",
+      "name": "\"Subway Scream2\"",
+      "category": "task-items",
+      "icon": "icons/task/valuable_task_Igor_subwaydvd_b.png",
+      "note": "Igor"
+    },
+    {
+      "id": "taskitem_igor_notebook",
+      "name": "Igor's Notebook",
+      "category": "task-items",
+      "icon": "icons/task/valuable_task_igor_trash.png",
+      "note": "Igor"
+    },
+    {
+      "id": "taskitem_task_igor_sunglass",
+      "name": "Igor's Sunglass",
+      "category": "task-items",
+      "icon": "icons/task/valuable_task_igor_sunglass.png",
+      "note": "Igor"
+    },
+    {
+      "id": "taskitem_taskintelphone",
+      "name": "Ark Soldier's Phone",
+      "category": "task-items",
+      "icon": "icons/task/valuable_task_intelphone.png",
+      "note": "Tommy"
+    },
+    {
+      "id": "taskitem_safecase",
+      "name": "Johnny's Safebox",
+      "category": "task-items",
+      "icon": "icons/task/valuable_task_johnny_minibox.png",
+      "note": "Johnny"
+    },
+    {
+      "id": "taskitem_maggie_camera",
+      "name": "Maggie's Camera",
+      "category": "task-items",
+      "icon": "icons/task/valuable_task_maggie_camera.png",
+      "note": "Maggie"
+    },
+    {
+      "id": "taskitem_medherb",
+      "name": "Exotic Herbs",
+      "category": "task-items",
+      "icon": "icons/task/valuable_task_maggie_herbs.png",
+      "note": "Maggie"
+    },
+    {
+      "id": "taskitem_medicalbag",
+      "name": "Maggie's Medical Bag",
+      "category": "task-items",
+      "icon": "icons/task/valuable_task_maggie_medicalbag.png",
+      "note": "Maggie"
+    },
+    {
+      "id": "taskitem_task_missilelauncher",
+      "name": "Missile Launcher",
+      "category": "task-items",
+      "icon": "icons/task/valuable_task_max_missile.png",
+      "note": "Maximillian"
+    },
+    {
+      "id": "taskitem_task_medicalreport",
+      "name": "NTG Medical Report",
+      "category": "task-items",
+      "icon": "icons/task/valuable_task_ntg_medicalreport.png",
+      "note": "Maggie"
+    },
+    {
+      "id": "taskitem_taskitem_plate1",
+      "name": "Antique Tea Plate - Yin",
+      "category": "task-items",
+      "icon": "icons/task/valuable_task_max_plate1.png",
+      "note": "Maximillian"
+    },
+    {
+      "id": "taskitem_taskitem_plate2",
+      "name": "Antique Tea Plate - Yang",
+      "category": "task-items",
+      "icon": "icons/task/valuable_task_max_plate2.png",
+      "note": "Maximillian"
+    },
+    {
+      "id": "taskitem_taskitembase_policef1key",
+      "name": "Shooting Range Key",
+      "category": "task-items",
+      "icon": "icons/task/valuable_task_policef1key.png",
+      "note": "Johnny"
+    },
+    {
+      "id": "taskitem_radio",
+      "name": "Portable Radio",
+      "category": "task-items",
+      "icon": "icons/task/valuable_task_maggie_radio.png",
+      "note": "Maggie"
+    },
+    {
+      "id": "taskitem_task_vrheadset",
+      "name": "VR Headset",
+      "category": "task-items",
+      "icon": "icons/task/Icon_valuable_vrheadset.png",
+      "note": "Maximillian"
+    },
+    {
+      "id": "taskitem_wyethwine",
+      "name": "Wyeth's Dry Red Wine",
+      "category": "task-items",
+      "icon": "icons/task/Icon_food_Wyeth_Wine.png",
+      "note": "Igor"
+    },
+    {
+      "id": "taskitem_tracking_device",
+      "name": "MS2000 Tracker",
+      "category": "task-items",
+      "icon": "icons/misc/Icon_valuable_task_tracker.png",
+      "note": "Universal"
+    },
+    {
+      "id": "taskitem_photophone",
+      "name": "FotoVision+ Phone",
+      "category": "task-items",
+      "icon": "icons/misc/CSP_Phone.png",
+      "note": "Universal"
+    },
+    {
+      "id": "taskitem_placement_igor_memobeer",
+      "name": "Beer of Mourning",
+      "category": "task-items",
+      "icon": "icons/task/valuable_task_igor_memobeer.png",
+      "note": "Igor"
+    },
+    {
+      "id": "taskitem_placement_igor_foodcan",
+      "name": "Igor's Food can",
+      "category": "task-items",
+      "icon": "icons/task/valuable_task_igor_can.png",
+      "note": "Igor"
+    },
+    {
+      "id": "taskitem_placement_igor_supplycase",
+      "name": "Igor's Supply Case",
+      "category": "task-items",
+      "icon": "icons/task/valuable_task_igor_box.png",
+      "note": "Igor"
+    },
+    {
+      "id": "taskitem_placement_johnny_walkietalkie",
+      "name": "Walkie-Talkie",
+      "category": "task-items",
+      "icon": "icons/task/valuable_task_johnny_talkie.png",
+      "note": "Johnny"
+    },
+    {
+      "id": "taskitem_placement_maggie_medicine",
+      "name": "Maggie's Medicine (X-Nax)",
+      "category": "task-items",
+      "icon": "icons/task/valuable_task_maggie_medical.png",
+      "note": "Maggie"
+    },
+    {
+      "id": "taskitem_placement_maggie_poison",
+      "name": "Maggie's Poison",
+      "category": "task-items",
+      "icon": "icons/task/valuable_task_maggie_toxin.png",
+      "note": "Maggie"
+    },
+    {
+      "id": "taskitem_placement_maggie_usb",
+      "name": "Maggie's USB",
+      "category": "task-items",
+      "icon": "icons/task/valuable_task_maggie_usb.png",
+      "note": "Maggie"
+    },
+    {
+      "id": "taskitem_placement_max_cash",
+      "name": "Max's Cash",
+      "category": "task-items",
+      "icon": "icons/task/valuable_task_max_money.png",
+      "note": "Maximillian"
+    },
+    {
+      "id": "taskitem_placement_max_oldphone",
+      "name": "Max‘s Phone",
+      "category": "task-items",
+      "icon": "icons/task/valuable_task_max_phone.png",
+      "note": "Maximillian"
+    },
+    {
+      "id": "taskitem_placement_max_ring",
+      "name": "Max's Diamond ring",
+      "category": "task-items",
+      "icon": "icons/task/valuable_task_max_diamondring.png",
+      "note": "Maximillian"
+    },
+    {
+      "id": "taskitem_placement_signalenhancer",
+      "name": "Signal Enhancer",
+      "category": "task-items",
+      "icon": "icons/task/valuable_task_maggie_line.png",
+      "note": "Maggie"
+    },
+    {
+      "id": "taskitem_placement_tommy_surveillancecam",
+      "name": "Tommy's Surveillance Cam",
+      "category": "task-items",
+      "icon": "icons/task/valuable_task_tommy_camera.png",
+      "note": "Tommy"
+    },
+    {
+      "id": "taskitem_placement_tommy_telescope",
+      "name": "ARK's Telescope",
+      "category": "task-items",
+      "icon": "icons/task/valuable_task_ark_telescope.png",
+      "note": "Tommy"
+    },
+    {
+      "id": "weapon-ak74",
+      "name": "AK-74 Mod.T",
+      "category": "weapons",
+      "icon": "icons/weapons/Icon_gun_ak74.png",
+      "note": "5.45x39mm"
+    },
+    {
+      "id": "weapon-ak74m",
+      "name": "AK-74M",
+      "category": "weapons",
+      "icon": "icons/weapons/Icon_gun_ak74m.png",
+      "note": "5.45x39mm"
+    },
+    {
+      "id": "weapon-ak74n-factory",
+      "name": "AK-74N (Factory)",
+      "category": "weapons",
+      "icon": "icons/weapons/Icon_gun_ak74n.png",
+      "note": "5.45x39mm"
+    },
+    {
+      "id": "weapon-ak74n-mod1",
+      "name": "AK-74N MOD1",
+      "category": "weapons",
+      "icon": "icons/weapons/Icon_gun_ak74nmod1.png",
+      "note": "5.45x39mm"
+    },
+    {
+      "id": "weapon-aks74u",
+      "name": "AKS-74U",
+      "category": "weapons",
+      "icon": "icons/weapons/Icon_gun_aks74u2.png",
+      "note": "5.45x39mm"
+    },
+    {
+      "id": "weapon-aks74u-zt",
+      "name": "AKS-74U ZT",
+      "category": "weapons",
+      "icon": "icons/weapons/Icon_gun_aks74u.png",
+      "note": "5.45x39mm"
+    },
+    {
+      "id": "weapon-akm",
+      "name": "AKM",
+      "category": "weapons",
+      "icon": "icons/weapons/Icon_gun_akm.png",
+      "note": "7.62x39mm"
+    },
+    {
+      "id": "weapon-akmn",
+      "name": "AKMN",
+      "category": "weapons",
+      "icon": "icons/weapons/SM_AKMN_Body_Merge.png",
+      "note": "7.62x39mm"
+    },
+    {
+      "id": "weapon-akmn-g",
+      "name": "AKMN-G",
+      "category": "weapons",
+      "icon": "icons/weapons/SM_AKMN_Dong_full_Merge.png",
+      "note": "7.62x39mm"
+    },
+    {
+      "id": "weapon-akmn-glp",
+      "name": "AKMN-GLP",
+      "category": "weapons",
+      "icon": "icons/weapons/SM_AKMN_Dong_ufp_MERGE.png",
+      "note": "7.62x39mm"
+    },
+    {
+      "id": "weapon-akmn-xm",
+      "name": "MX-AKM",
+      "category": "weapons",
+      "icon": "icons/weapons/SM_AKMN_xrs47_Merge.png",
+      "note": "7.62x39mm"
+    },
+    {
+      "id": "weapon-ar15-pistol",
+      "name": "AR-15 Pistol",
+      "category": "weapons",
+      "icon": "icons/weapons/Icon_gun_ar15-pistol.png",
+      "note": "5.56x45mm"
+    },
+    {
+      "id": "weapon-m4a1-agent",
+      "name": "M4A1 Agent",
+      "category": "weapons",
+      "icon": "icons/weapons/Icon_gun_m4a1-agent.png",
+      "note": "5.56x45mm"
+    },
+    {
+      "id": "weapon-m4a1-cqbr",
+      "name": "M4A1 CQBR",
+      "category": "weapons",
+      "icon": "icons/weapons/Icon_gun_m4a1-cqbr.png",
+      "note": "5.56x45mm"
+    },
+    {
+      "id": "weapon-m4a1-dd",
+      "name": "M4A1 DD",
+      "category": "weapons",
+      "icon": "icons/weapons/Icon_gun_M4A1_DD.png",
+      "note": "5.56x45mm"
+    },
+    {
+      "id": "weapon-m4a1-factory",
+      "name": "M4A1 Factory",
+      "category": "weapons",
+      "icon": "icons/weapons/Icon_gun_m4a1.png",
+      "note": "5.56x45mm"
+    },
+    {
+      "id": "weapon-m4a1-hunter",
+      "name": "AR15 Hunter",
+      "category": "weapons",
+      "icon": "icons/weapons/Icon_gun_ar15h.png",
+      "note": "5.56x45mm"
+    },
+    {
+      "id": "weapon-hk416",
+      "name": "RC416",
+      "category": "weapons",
+      "icon": "icons/weapons/Icon_gun_hk416.png",
+      "note": "5.56x45mm"
+    },
+    {
+      "id": "weapon-m16a2",
+      "name": "M16A2",
+      "category": "weapons",
+      "icon": "icons/weapons/Icon_gun_m16a2.png",
+      "note": "5.56x45mm"
+    },
+    {
+      "id": "weapon-m16a2-lv2",
+      "name": "M16A2 LV2",
+      "category": "weapons",
+      "icon": "icons/weapons/Icon_gun_m16a2gen2.png",
+      "note": "5.56x45mm"
+    },
+    {
+      "id": "weapon-glock18c",
+      "name": "Glock 18C",
+      "category": "weapons",
+      "icon": "icons/weapons/Icon_gun_Glock18C.png",
+      "note": "9x19mm"
+    },
+    {
+      "id": "weapon-m1911",
+      "name": "M1911",
+      "category": "weapons",
+      "icon": "icons/weapons/Icon_gun_m1911.png",
+      "note": ".45 ACP"
+    },
+    {
+      "id": "weapon-m92",
+      "name": "M92 (Beretta)",
+      "category": "weapons",
+      "icon": "icons/weapons/Icon_gun_m92.png",
+      "note": "9x19mm"
+    },
+    {
+      "id": "weapon-p250",
+      "name": "P250",
+      "category": "weapons",
+      "icon": "icons/weapons/Icon_gun_p250.png",
+      "note": "9x19mm"
+    },
+    {
+      "id": "weapon-aug-a1",
+      "name": "AUG A1",
+      "category": "weapons",
+      "icon": "icons/weapons/Icon_SM_MERGED_WF_AUG_A1_2.png",
+      "note": "5.56x45mm"
+    },
+    {
+      "id": "weapon-aug-a3-cqb",
+      "name": "AUG A3 CQB",
+      "category": "weapons",
+      "icon": "icons/weapons/Icon_SM_MERGED_WF_AUG_A3_CQB_2.png",
+      "note": "5.56x45mm"
+    },
+    {
+      "id": "weapon-aug-a3-ris",
+      "name": "AUG A3 RIS",
+      "category": "weapons",
+      "icon": "icons/weapons/Icon_SM_MERGED_WF_AUG_A3_RIS_2.png",
+      "note": "5.56x45mm"
+    },
+    {
+      "id": "weapon-aug-a3-stg77",
+      "name": "AUG A3 STG77",
+      "category": "weapons",
+      "icon": "icons/weapons/Icon_SM_MERGED_WF_AUG_A3_STG77_2.png",
+      "note": "5.56x45mm"
+    },
+    {
+      "id": "weapon-aug-para",
+      "name": "AUG Para",
+      "category": "weapons",
+      "icon": "icons/weapons/Icon_SM_MERGED_WF_AUG_para_2.png",
+      "note": "9x19mm"
+    },
+    {
+      "id": "weapon-scar17-ssr",
+      "name": "SECA-17 SSR",
+      "category": "weapons",
+      "icon": "icons/weapons/Icon_gun_SECA17SSR.png",
+      "note": "7.62x51mm"
+    },
+    {
+      "id": "weapon-scar17-black",
+      "name": "SECA-17 Black",
+      "category": "weapons",
+      "icon": "icons/weapons/Icon_gun_SECA17_BK.png",
+      "note": "7.62x51mm"
+    },
+    {
+      "id": "weapon-scar17-fde",
+      "name": "SECA-17 FDE",
+      "category": "weapons",
+      "icon": "icons/weapons/Icon_gun_SECA17_FDE.png",
+      "note": "7.62x51mm"
+    },
+    {
+      "id": "weapon-scar16",
+      "name": "SECA-16 FDE",
+      "category": "weapons",
+      "icon": "icons/weapons/Icon_gun_seca16.png",
+      "note": "5.56x45mm"
+    },
+    {
+      "id": "weapon-m590",
+      "name": "Mossberg 590",
+      "category": "weapons",
+      "icon": "icons/weapons/Icon_gun_m590.png",
+      "note": "12 Gauge"
+    },
+    {
+      "id": "weapon-m1897",
+      "name": "Winchester M1897",
+      "category": "weapons",
+      "icon": "icons/weapons/Icon_gun_m1897.png",
+      "note": "12 Gauge"
+    },
+    {
+      "id": "weapon-sjogren-inertia",
+      "name": "Sjögren Inertia",
+      "category": "weapons",
+      "icon": "icons/weapons/Icon_gun_sjogren.png",
+      "note": "12 Gauge"
+    },
+    {
+      "id": "weapon-flame12",
+      "name": "Flame-12",
+      "category": "weapons",
+      "icon": "icons/weapons/Icon_gun_flame12.png",
+      "note": "12 Gauge"
+    },
+    {
+      "id": "weapon-mosin-nagant",
+      "name": "Mosin Nagant",
+      "category": "weapons",
+      "icon": "icons/weapons/Icon_gun_mosin.png",
+      "note": "7.62x54mmR"
+    },
+    {
+      "id": "weapon-mosin-91-30",
+      "name": "Mosin 91/30",
+      "category": "weapons",
+      "icon": "icons/weapons/Icon_gun_mosin9130.png",
+      "note": "7.62x54mmR"
+    },
+    {
+      "id": "weapon-mosin-m38",
+      "name": "Mosin M38",
+      "category": "weapons",
+      "icon": "icons/weapons/Icon_WF_Mosin_M38.png",
+      "note": "7.62x54mmR"
+    },
+    {
+      "id": "weapon-mosin-obrez",
+      "name": "Mosin Obrez",
+      "category": "weapons",
+      "icon": "icons/weapons/Icon_WF_Mosin_OBREZ.png",
+      "note": "7.62x54mmR"
+    },
+    {
+      "id": "weapon-m40a5",
+      "name": "M40A5",
+      "category": "weapons",
+      "icon": "icons/weapons/Icon_gun_m40a5.png",
+      "note": "7.62x51mm"
+    },
+    {
+      "id": "weapon-sks",
+      "name": "SKS",
+      "category": "weapons",
+      "icon": "icons/weapons/Icon_gun_sks.png",
+      "note": "7.62x39mm"
+    },
+    {
+      "id": "weapon-svt-40",
+      "name": "SVT-40",
+      "category": "weapons",
+      "icon": "icons/weapons/Icon_WF_svt40.png",
+      "note": "7.62x54mmR"
+    },
+    {
+      "id": "weapon-pkp-pecheneg",
+      "name": "PKP Pecheneg",
+      "category": "weapons",
+      "icon": "icons/weapons/Icon_gun_pkp.png",
+      "note": "7.62x54mmR"
+    },
+    {
+      "id": "weapon-mp5a3",
+      "name": "MP5A3",
+      "category": "weapons",
+      "icon": "icons/weapons/Icon_gun_mp5.png",
+      "note": "9x19mm"
+    },
+    {
+      "id": "weapon-scorpion-evo3",
+      "name": "CZ Scorpion EVO3",
+      "category": "weapons",
+      "icon": "icons/weapons/Icon_gun_evo3.png",
+      "note": "9x19mm"
+    },
+    {
+      "id": "weapon-ump45",
+      "name": "UMP45",
+      "category": "weapons",
+      "icon": "icons/weapons/WF_UMP45.png",
+      "note": ".45 ACP"
+    },
+    {
+      "id": "weapon-mp9",
+      "name": "MP9",
+      "category": "weapons",
+      "icon": "icons/weapons/Icon_SM_MERGED_WF_MP5A27.png",
+      "note": "9x19mm"
+    },
+    {
+      "id": "weapon-mp9-n",
+      "name": "MP9-N",
+      "category": "weapons",
+      "icon": "icons/weapons/Icon_SM_MERGED_WF_MP5A25.png",
+      "note": "9x19mm"
+    },
+    {
+      "id": "weapon-mp9-t",
+      "name": "MP9-T",
+      "category": "weapons",
+      "icon": "icons/weapons/Icon_SM_MERGED_WF_MP5A26.png",
+      "note": "9x19mm"
+    },
+    {
+      "id": "weapon-m3a1-grease-gun",
+      "name": "M3A1 Grease Gun",
+      "category": "weapons",
+      "icon": "icons/weapons/Icon_gun_M3A1.png",
+      "note": ".45 ACP"
+    },
+    {
+      "id": "weapon-thompson-m1928",
+      "name": "Thompson M1928",
+      "category": "weapons",
+      "icon": "icons/weapons/Icon_gun_m1928.png",
+      "note": ".45 ACP"
+    },
+    {
+      "id": "weapon-bx4",
+      "name": "BX4",
+      "category": "weapons",
+      "icon": "icons/weapons/Icon_gun_bx4.png",
+      "note": "9x19mm"
+    },
+    {
+      "id": "weapon-malyuk-545",
+      "name": "Malyuk 5.45",
+      "category": "weapons",
+      "icon": "icons/weapons/Icon_gun_malyuk545.png",
+      "note": "5.45x39mm"
+    },
+    {
+      "id": "weapon-malyuk-762",
+      "name": "Malyuk 7.62",
+      "category": "weapons",
+      "icon": "icons/weapons/Icon_gun_malyuk762.png",
+      "note": "7.62x39mm"
+    },
+    {
+      "id": "weapon-ar308",
+      "name": "AR-308",
+      "category": "weapons",
+      "icon": "icons/weapons/Icon_gun_AR308.png",
+      "note": "7.62x51mm"
+    },
+    {
+      "id": "weapon-ar308-lt",
+      "name": "AR-308 LT",
+      "category": "weapons",
+      "icon": "icons/weapons/Icon_gun_AR308_LT.png",
+      "note": "7.62x51mm"
+    },
+    {
+      "id": "weapon-fn-fal",
+      "name": "FN FAL",
+      "category": "weapons",
+      "icon": "icons/weapons/Icon_gun_fal.png",
+      "note": "7.62x51mm"
+    },
+    {
+      "id": "weapon-xm5",
+      "name": "XM5",
+      "category": "weapons",
+      "icon": "icons/weapons/Icon_gun_xm5.png",
+      "note": "6.8x51mm"
+    },
+    {
+      "id": "weapon-g3a3",
+      "name": "G3A3",
+      "category": "weapons",
+      "icon": "icons/weapons/Icon_SM_MERGED_WF_G3A3.png",
+      "note": "7.62x51mm"
+    },
+    {
+      "id": "weapon-hk51",
+      "name": "HK51",
+      "category": "weapons",
+      "icon": "icons/weapons/Icon_SM_MERGED_WF_G3series_hk51.png",
+      "note": "7.62x51mm"
+    },
+    {
+      "id": "weapon-hk51k",
+      "name": "HK51K",
+      "category": "weapons",
+      "icon": "icons/weapons/Icon_SM_MERGED_WF_G3series_hk51k.png",
+      "note": "7.62x51mm"
+    },
+    {
+      "id": "weapon-hk51-ace",
+      "name": "HK51 ACE",
+      "category": "weapons",
+      "icon": "icons/weapons/Icon_SM_MERGED_WF_G3series_hk51_ace.png",
+      "note": "7.62x51mm"
+    },
+    {
+      "id": "weapon-hk91-wood",
+      "name": "HK91 Wood",
+      "category": "weapons",
+      "icon": "icons/weapons/Icon_SM_MERGED_WF_G3series_HK91_wood.png",
+      "note": "7.62x51mm"
+    },
+    {
+      "id": "weapon-psg1",
+      "name": "PSG-1",
+      "category": "weapons",
+      "icon": "icons/weapons/Icon_SM_MERGED_WF_G3series_PSG.png",
+      "note": "7.62x51mm"
+    },
+    {
+      "id": "weapon-g3sg1-ak4",
+      "name": "G3SG1 AK4",
+      "category": "weapons",
+      "icon": "icons/weapons/Icon_SM_MERGED_WF_G3SG1_ak4.png",
+      "note": "7.62x51mm"
+    },
+    {
+      "id": "weapon-g3sg1-prs",
+      "name": "G3SG1 PRS",
+      "category": "weapons",
+      "icon": "icons/weapons/Icon_SM_MERGED_WF_G3SG1_Prs.png",
+      "note": "7.62x51mm"
+    },
+    {
+      "id": "weapon-g3sg1-spuhr",
+      "name": "G3SG1 Spuhr",
+      "category": "weapons",
+      "icon": "icons/weapons/Icon_SM_MERGED_WF_G3SG1_spuhr.png",
+      "note": "7.62x51mm"
+    }
   ]
 }

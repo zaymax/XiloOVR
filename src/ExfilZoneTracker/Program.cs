@@ -99,9 +99,10 @@ internal static class Program
             // The free hand points at the panel; the watch hand carries it.
             var pointerRole = config.IsLeftHand ? ETrackedControllerRole.RightHand : ETrackedControllerRole.LeftHand;
             var pointerDevice = overlay.System.GetTrackedDeviceIndexForControllerRole(pointerRole);
-            var interactClicked = input.PollInteractClick(leftHand: !config.IsLeftHand);
+            var incrementClicked = input.PollInteractClick(leftHand: !config.IsLeftHand);
+            var decrementClicked = input.PollDecrementClick(leftHand: !config.IsLeftHand);
 
-            ui.Update(deltaMs, wrist.Present, pointerDevice, interactClicked);
+            ui.Update(deltaMs, wrist.Present, pointerDevice, incrementClicked, decrementClicked);
 
             Thread.Sleep(ui.PanelShown ? 20 : 100);
         }

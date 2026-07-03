@@ -29,6 +29,20 @@
           "inputs": {
             "click": { "output": "/actions/main/in/interact" }
           }
+        },
+        {
+          "path": "/user/hand/left/input/a",
+          "mode": "button",
+          "inputs": {
+            "click": { "output": "/actions/main/in/decrement" }
+          }
+        },
+        {
+          "path": "/user/hand/right/input/a",
+          "mode": "button",
+          "inputs": {
+            "click": { "output": "/actions/main/in/decrement" }
+          }
         }
       ]
     }

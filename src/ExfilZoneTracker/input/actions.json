@@ -9,6 +9,11 @@
       "name": "/actions/main/in/interact",
       "type": "boolean",
       "requirement": "suggested"
+    },
+    {
+      "name": "/actions/main/in/decrement",
+      "type": "boolean",
+      "requirement": "suggested"
     }
   ],
   "action_sets": [
@@ -35,8 +40,9 @@
     {
       "language_tag": "en_US",
       "/actions/main": "ExfilZone Wrist Tracker",
-      "/actions/main/in/toggle_panel": "Show / hide wrist panel (hold)",
-      "/actions/main/in/interact": "Check / uncheck pointed item"
+      "/actions/main/in/toggle_panel": "Show / hide wrist panel",
+      "/actions/main/in/interact": "Pointed item: +1 collected",
+      "/actions/main/in/decrement": "Pointed item: -1 collected"
     }
   ]
 }

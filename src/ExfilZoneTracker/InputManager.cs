@@ -21,6 +21,7 @@ public sealed class InputManager
     private ulong _actionSet = OpenVR.k_ulInvalidActionSetHandle;
     private ulong _toggleAction;
     private ulong _interactAction;
+    private ulong _decrementAction;
     private ulong _leftHandSource;
     private ulong _rightHandSource;
     private VRActiveActionSet_t[]? _activeSets;
@@ -58,6 +59,7 @@ public sealed class InputManager
         if (!TryGetHandle(input.GetActionSetHandle("/actions/main", ref _actionSet), "action set") ||
             !TryGetHandle(input.GetActionHandle("/actions/main/in/toggle_panel", ref _toggleAction), "toggle action") ||
             !TryGetHandle(input.GetActionHandle("/actions/main/in/interact", ref _interactAction), "interact action") ||
+            !TryGetHandle(input.GetActionHandle("/actions/main/in/decrement", ref _decrementAction), "decrement action") ||
             !TryGetHandle(input.GetInputSourceHandle("/user/hand/left", ref _leftHandSource), "left hand source") ||
             !TryGetHandle(input.GetInputSourceHandle("/user/hand/right", ref _rightHandSource), "right hand source"))
         {
@@ -115,6 +117,15 @@ public sealed class InputManager
         if (!Available)
             return false;
         ReadDigital(_interactAction, leftHand ? _leftHandSource : _rightHandSource, out var pressed, out var changed);
+        return pressed && changed;
+    }
+
+    /// <summary>True on the rising edge of decrement on the given hand.</summary>
+    public bool PollDecrementClick(bool leftHand)
+    {
+        if (!Available)
+            return false;
+        ReadDigital(_decrementAction, leftHand ? _leftHandSource : _rightHandSource, out var pressed, out var changed);
         return pressed && changed;
     }
 

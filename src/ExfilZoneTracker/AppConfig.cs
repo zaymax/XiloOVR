@@ -12,7 +12,7 @@ namespace ExfilZoneTracker;
 /// </summary>
 public sealed class AppConfig
 {
-    public string Hand { get; set; } = "right";
+    public string Hand { get; set; } = "left";
 
     /// <summary>Physical width of the panel in meters; height follows the pixel aspect ratio.</summary>
     public float WidthMeters { get; set; } = 0.22f;
@@ -23,13 +23,13 @@ public sealed class AppConfig
     public Vec3 RotationDegrees { get; set; } = new() { X = -90f, Y = 0f, Z = 0f };
 
     public int PanelPixelWidth { get; set; } = 600;
-    public int PanelPixelHeight { get; set; } = 480;
+    public int PanelPixelHeight { get; set; } = 520;
 
     /// <summary>Whether the panel is visible right after launch.</summary>
     public bool StartVisible { get; set; } = true;
 
-    /// <summary>How long the toggle button must be held to show/hide the panel.</summary>
-    public int ToggleHoldMs { get; set; } = 600;
+    /// <summary>How long the toggle button must be held to show/hide the panel. 0 = plain click.</summary>
+    public int ToggleHoldMs { get; set; } = 0;
 
     /// <summary>Laser clicks farther than this from the panel are ignored.</summary>
     public float MaxLaserDistanceMeters { get; set; } = 2.0f;
