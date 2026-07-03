@@ -1,7 +1,7 @@
 #nullable enable
 using System.Drawing;
 
-namespace ExfilZoneTracker;
+namespace XiloOVR;
 
 /// <summary>
 /// Caches item icon bitmaps loaded from data/icons. Bitmaps are copied out of their

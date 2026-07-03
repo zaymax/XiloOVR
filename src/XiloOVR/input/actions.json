@@ -39,7 +39,7 @@
   "localization": [
     {
       "language_tag": "en_US",
-      "/actions/main": "ExfilZone Wrist Tracker",
+      "/actions/main": "XiloOVR",
       "/actions/main/in/toggle_panel": "Show / hide wrist panel",
       "/actions/main/in/interact": "Pointed item: +1 collected",
       "/actions/main/in/decrement": "Pointed item: -1 collected"

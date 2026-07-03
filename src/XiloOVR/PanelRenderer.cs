@@ -5,7 +5,7 @@ using System.Drawing.Imaging;
 using System.Drawing.Text;
 using System.Runtime.InteropServices;
 
-namespace ExfilZoneTracker;
+namespace XiloOVR;
 
 /// <summary>
 /// Renders the checklist panel — a grid of item icons with collected/needed counters —
@@ -85,7 +85,7 @@ public static class PanelRenderer
 
             // Header: title left, done/total progress right.
             var (done, total) = checklist.Progress;
-            g.DrawString("ExfilZone Tracker", titleFont, Brushes.White, Margin, 16);
+            g.DrawString("XiloOVR", titleFont, Brushes.White, Margin, 16);
             g.DrawString($"{done}/{total}", titleFont, accentBrush, new RectangleF(0, 16, width - Margin, 34), rightAlign);
             using var dividerPen = new Pen(Color.FromArgb(120, 90, 200, 250), 1);
             g.DrawLine(dividerPen, Margin, HeaderHeight - 4, width - Margin, HeaderHeight - 4);

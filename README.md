@@ -1,4 +1,4 @@
-# ExfilZone Wrist Tracker
+# XiloOVR
 
 A standalone SteamVR **wrist overlay** for tracking loot and quest items in
 *Contractors Showdown: ExfilZone* — a small panel attached to your controller,
@@ -57,24 +57,24 @@ The code cross-compiles from macOS/Linux, but only runs on Windows.
 
 ## Get it on the Windows VR machine
 
-**Easiest: download a prebuilt build.** Grab `ExfilZoneTracker-win-x64.zip`
-from [Releases](https://github.com/zaymax/VROverlayTracker/releases) (every
+**Easiest: download a prebuilt build.** Grab `XiloOVR-win-x64.zip`
+from [Releases](https://github.com/zaymax/XiloOVR/releases) (every
 push to `main` also produces a downloadable artifact under
-[Actions](https://github.com/zaymax/VROverlayTracker/actions)), unzip it
-anywhere and run `ExfilZoneTracker.exe`. Self-contained — no .NET required.
+[Actions](https://github.com/zaymax/XiloOVR/actions)), unzip it
+anywhere and run `XiloOVR.exe`. Self-contained — no .NET required.
 
 **Or build from source** (needs the .NET 8 SDK):
 
 ```powershell
-git clone https://github.com/zaymax/VROverlayTracker.git
-cd VROverlayTracker
-dotnet run --project src/ExfilZoneTracker -c Release
+git clone https://github.com/zaymax/XiloOVR.git
+cd XiloOVR
+dotnet run --project src/XiloOVR -c Release
 ```
 
 Standalone single-file exe:
 
 ```powershell
-dotnet publish src/ExfilZoneTracker -c Release -r win-x64 --self-contained -p:PublishSingleFile=true -o publish
+dotnet publish src/XiloOVR -c Release -r win-x64 --self-contained -p:PublishSingleFile=true -o publish
 ```
 
 Command line: `--hand left` / `--hand right` overrides the configured hand for
@@ -92,7 +92,7 @@ the other, **free hand** is the pointer.
 | −1 collected | **grip** (Touch/Vive) or **A** (Index) on the free hand | |
 
 Rebind anytime in **SteamVR → Settings → Controllers → Manage Controller
-Bindings → ExfilZone Wrist Tracker** (the app registers itself with SteamVR on
+Bindings → XiloOVR** (the app registers itself with SteamVR on
 launch; binding load success/failure is logged to the console). There is no
 visible laser beam yet — aim with the free controller and watch for the cell
 highlight.
@@ -186,7 +186,7 @@ of the grid.
 ## Project layout
 
 ```
-src/ExfilZoneTracker/
+src/XiloOVR/
   Program.cs           entry point, main loop, config hot-reload, clean shutdown
   OverlayManager.cs    OpenVR init, overlay lifecycle, SteamVR event pump
   WristAttachment.cs   controller discovery + offset matrix (wrist attach)

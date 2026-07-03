@@ -48,6 +48,6 @@
     }
   },
   "controller_type": "vive_controller",
-  "description": "Default bindings for ExfilZone Wrist Tracker",
-  "name": "ExfilZone Wrist Tracker defaults (Vive wands)"
+  "description": "Default bindings for XiloOVR",
+  "name": "XiloOVR defaults (Vive wands)"
 }

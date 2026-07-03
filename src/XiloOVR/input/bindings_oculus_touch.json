@@ -41,6 +41,6 @@
     }
   },
   "controller_type": "oculus_touch",
-  "description": "Default bindings for ExfilZone Wrist Tracker",
-  "name": "ExfilZone Wrist Tracker defaults (Touch)"
+  "description": "Default bindings for XiloOVR",
+  "name": "XiloOVR defaults (Touch)"
 }

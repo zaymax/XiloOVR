@@ -2,7 +2,7 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
-namespace ExfilZoneTracker;
+namespace XiloOVR;
 
 public sealed class ChecklistEntry
 {

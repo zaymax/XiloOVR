@@ -2,7 +2,7 @@
 using System.Diagnostics;
 using Valve.VR;
 
-namespace ExfilZoneTracker;
+namespace XiloOVR;
 
 /// <summary>
 /// Keeps the overlay glued to the configured controller. Once

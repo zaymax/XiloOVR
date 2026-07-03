@@ -2,7 +2,7 @@
 using System.Runtime.InteropServices;
 using Valve.VR;
 
-namespace ExfilZoneTracker;
+namespace XiloOVR;
 
 /// <summary>Thrown when the SteamVR connection cannot be established; the message is user-facing.</summary>
 public sealed class VRInitException : Exception
@@ -13,7 +13,7 @@ public sealed class VRInitException : Exception
 /// <summary>Owns the OpenVR connection and the overlay handle.</summary>
 public sealed class OverlayManager : IDisposable
 {
-    public const string OverlayKey = "exfilzone-tracker.wrist";
+    public const string OverlayKey = "xiloovr.wrist";
 
     private bool _vrInitialized;
     private CVRSystem? _system;
@@ -36,7 +36,7 @@ public sealed class OverlayManager : IDisposable
             ?? throw new VRInitException("SteamVR is running, but the overlay interface (IVROverlay) is unavailable.");
 
         var handle = OpenVR.k_ulOverlayHandleInvalid;
-        var error = vrOverlay.CreateOverlay(OverlayKey, "ExfilZone Wrist Tracker", ref handle);
+        var error = vrOverlay.CreateOverlay(OverlayKey, "XiloOVR", ref handle);
         if (error != EVROverlayError.None)
             throw new VRInitException($"CreateOverlay failed: {vrOverlay.GetOverlayErrorNameFromEnum(error)}");
         Handle = handle;

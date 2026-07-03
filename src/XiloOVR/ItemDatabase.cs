@@ -1,7 +1,7 @@
 #nullable enable
 using System.Text.Json;
 
-namespace ExfilZoneTracker;
+namespace XiloOVR;
 
 public sealed class GameItem
 {

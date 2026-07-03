@@ -48,6 +48,6 @@
     }
   },
   "controller_type": "knuckles",
-  "description": "Default bindings for ExfilZone Wrist Tracker",
-  "name": "ExfilZone Wrist Tracker defaults (Index)"
+  "description": "Default bindings for XiloOVR",
+  "name": "XiloOVR defaults (Index)"
 }

@@ -2,7 +2,7 @@
 using System.Diagnostics;
 using Valve.VR;
 
-namespace ExfilZoneTracker;
+namespace XiloOVR;
 
 internal static class Program
 {
@@ -11,7 +11,7 @@ internal static class Program
 
     private static int Main(string[] args)
     {
-        Console.WriteLine("ExfilZone Wrist Tracker - SteamVR overlay");
+        Console.WriteLine("XiloOVR - SteamVR overlay");
 
         if (!OperatingSystem.IsWindows())
         {
@@ -31,7 +31,7 @@ internal static class Program
             return 2;
         }
 
-        // One-off override without touching the file: ExfilZoneTracker.exe --hand left
+        // One-off override without touching the file: XiloOVR.exe --hand left
         for (var i = 0; i < args.Length - 1; i++)
         {
             if (args[i] == "--hand")

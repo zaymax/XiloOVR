@@ -2,7 +2,7 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
-namespace ExfilZoneTracker;
+namespace XiloOVR;
 
 /// <summary>
 /// User settings, stored as config.json next to the executable and hot-reloaded while

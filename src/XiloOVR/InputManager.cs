@@ -3,7 +3,7 @@ using System.Diagnostics;
 using System.Runtime.InteropServices;
 using Valve.VR;
 
-namespace ExfilZoneTracker;
+namespace XiloOVR;
 
 /// <summary>
 /// SteamVR Input integration: registers the app and its action manifest so the tracker
@@ -14,7 +14,7 @@ namespace ExfilZoneTracker;
 /// </summary>
 public sealed class InputManager
 {
-    public const string AppKey = "zaymax.exfilzone-wrist-tracker";
+    public const string AppKey = "zaymax.xiloovr";
 
     private readonly Stopwatch _clock = Stopwatch.StartNew();
 

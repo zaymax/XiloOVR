@@ -1,7 +1,7 @@
 #nullable enable
 using Valve.VR;
 
-namespace ExfilZoneTracker;
+namespace XiloOVR;
 
 /// <summary>
 /// The in-VR checklist panel: visibility with a short fade, laser-pointer hover via
