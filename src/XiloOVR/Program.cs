@@ -12,7 +12,8 @@ internal static class Program
 
     private static int Main(string[] args)
     {
-        Console.WriteLine("XiloOVR - SteamVR overlay");
+        SetupLogging();
+        Console.WriteLine($"XiloOVR v{Version()} - SteamVR overlay, started {DateTime.Now:yyyy-MM-dd HH:mm:ss}");
 
         if (!OperatingSystem.IsWindows())
         {
@@ -29,6 +30,8 @@ internal static class Program
         catch (Exception ex)
         {
             Console.Error.WriteLine($"Failed to load config '{configPath}': {ex.Message}");
+            System.Windows.Forms.MessageBox.Show($"Failed to load config.json:\n{ex.Message}", "XiloOVR",
+                System.Windows.Forms.MessageBoxButtons.OK, System.Windows.Forms.MessageBoxIcon.Error);
             return 2;
         }
 
@@ -45,6 +48,17 @@ internal static class Program
             _running = false;
         };
 
+        // Windowless app: refuse to run twice (two overlays with one key would fight).
+        using var instanceLock = new Mutex(true, @"Local\XiloOVR-single-instance", out var isFirstInstance);
+        if (!isFirstInstance)
+        {
+            System.Windows.Forms.MessageBox.Show("XiloOVR is already running - look for the XO icon in the system tray.",
+                "XiloOVR", System.Windows.Forms.MessageBoxButtons.OK, System.Windows.Forms.MessageBoxIcon.Information);
+            return 3;
+        }
+
+        using var tray = new TrayIcon($"XiloOVR v{Version()}", () => _running = false);
+
         using var overlay = new OverlayManager();
         try
         {
@@ -53,6 +67,8 @@ internal static class Program
         catch (VRInitException ex)
         {
             Console.Error.WriteLine(ex.Message);
+            System.Windows.Forms.MessageBox.Show(ex.Message, "XiloOVR",
+                System.Windows.Forms.MessageBoxButtons.OK, System.Windows.Forms.MessageBoxIcon.Error);
             return 1;
         }
 
@@ -158,6 +174,65 @@ internal static class Program
         if (DateTime.UtcNow.Ticks < Volatile.Read(ref _suppressConfigReloadUntilTicks))
             return;
         _configChanged = true;
+    }
+
+    private static string Version()
+    {
+        var version = typeof(Program).Assembly.GetName().Version;
+        return $"{version?.Major}.{version?.Minor}.{version?.Build}";
+    }
+
+    /// <summary>
+    /// The app builds as WinExe (no console), so all Console output is mirrored into a
+    /// per-session log file next to the exe - reachable from the tray menu.
+    /// </summary>
+    private static void SetupLogging()
+    {
+        try
+        {
+            var writer = new StreamWriter(Path.Combine(AppContext.BaseDirectory, "xiloovr.log"), append: false)
+            {
+                AutoFlush = true,
+            };
+            Console.SetOut(new TeeWriter(Console.Out, writer));
+            Console.SetError(new TeeWriter(Console.Error, writer));
+        }
+        catch
+        {
+            // read-only folder: keep whatever output channel exists
+        }
+    }
+
+    private sealed class TeeWriter : TextWriter
+    {
+        private readonly TextWriter _original;
+        private readonly TextWriter _log;
+
+        public TeeWriter(TextWriter original, TextWriter log)
+        {
+            _original = original;
+            _log = log;
+        }
+
+        public override System.Text.Encoding Encoding => _log.Encoding;
+
+        public override void Write(char value)
+        {
+            _original.Write(value);
+            _log.Write(value);
+        }
+
+        public override void Write(string? value)
+        {
+            _original.Write(value);
+            _log.Write(value);
+        }
+
+        public override void WriteLine(string? value)
+        {
+            _original.WriteLine(value);
+            _log.WriteLine($"[{DateTime.Now:HH:mm:ss}] {value}");
+        }
     }
 
     private static void ReloadConfig(string path, AppConfig config, OverlayManager overlay, WristAttachment wrist, ChecklistUI ui)

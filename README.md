@@ -15,7 +15,7 @@ The app is a pure `IVROverlay` client on top of the SteamVR compositor:
 ## Features
 
 - [x] **Overlay initialization** — connects to the SteamVR runtime, readable
-  error (not a crash) when SteamVR is unavailable
+  error dialog (not a crash) when SteamVR is unavailable
 - [x] **Wrist attachment** — panel glued to the left/right controller with a
   configurable position/rotation offset; survives controller reconnects and
   scene-app switches (self-healing re-assert)
@@ -39,6 +39,9 @@ The app is a pure `IVROverlay` client on top of the SteamVR compositor:
   panel offsets/size with live preview, Twitch channel via the VR keyboard,
   chat feed length and connection status; changes apply instantly and persist
   to `config.json`
+- [x] **Background app** — no console window, no desktop windows: an **XO**
+  tray icon (open data folder / log / quit), errors as dialogs, all
+  diagnostics in `xiloovr.log` next to the exe
 - [ ] Next: Twitch login + sending chat replies from VR (v0.5), follow/sub
   alerts on the panel (v0.5), YouTube chat merged into the same feed (v0.6),
   in-VR item picker with search, laser beam visual, autostart with SteamVR
@@ -69,7 +72,9 @@ The code cross-compiles from macOS/Linux, but only runs on Windows.
 from [Releases](https://github.com/zaymax/XiloOVR/releases) (every
 push to `main` also produces a downloadable artifact under
 [Actions](https://github.com/zaymax/XiloOVR/actions)), unzip it
-anywhere and run `XiloOVR.exe`. Self-contained — no .NET required.
+anywhere and run `XiloOVR.exe`. Self-contained — no .NET required. The app
+runs in the background: no window, just the **XO** icon in the system tray
+(right-click for data folder, log and quit).
 
 **Or build from source** (needs the .NET 8 SDK):
 
@@ -101,7 +106,7 @@ the other, **free hand** is the pointer.
 
 Rebind anytime in **SteamVR → Settings → Controllers → Manage Controller
 Bindings → XiloOVR** (the app registers itself with SteamVR on
-launch; binding load success/failure is logged to the console). There is no
+launch; binding load success/failure is logged to `xiloovr.log`). There is no
 visible laser beam yet — aim with the free controller and watch for the cell
 highlight.
 
@@ -206,7 +211,8 @@ drops, and switches channels on the fly when you edit the config.
 ## What you should see (verification checklist)
 
 1. Start SteamVR, turn both controllers on, run the tracker.
-2. Console: `Connected to SteamVR` → `SteamVR Input ready` → `Panel attached`.
+2. The XO icon appears in the tray; `xiloovr.log` (tray → Open log) records
+   `Connected to SteamVR` → `SteamVR Input ready` → `Panel attached`.
 3. In the headset: a panel with a grid of item icons and counters on your left
    forearm, following the controller like a watch.
 4. Point at a cell with the free hand — it highlights; trigger bumps the
@@ -217,7 +223,7 @@ drops, and switches channels on the fly when you edit the config.
    the panel updates within a second, no restart.
 7. Turn the watch-hand controller off → panel hides; on → reappears. Restart
    the tracker → counters are preserved.
-8. Set `TwitchChannel` in config while the app runs — console prints
+8. Set `TwitchChannel` in config while the app runs — the log records
    `Twitch chat: joined #yourchannel`, the feed appears at the panel bottom,
    and messages typed in your chat show up within a second.
 9. Open the SteamVR dashboard → **XiloOVR** tab: hand/offset/width buttons
@@ -265,9 +271,9 @@ tools/import_assistant_data.py   regenerates the database + icons
   game is not running under SteamVR.
 - **“SteamVR is not running…”** — start SteamVR first, then the tracker.
 - **Panel not visible** — is the watch-hand controller on and tracked? The
-  panel hides while it is missing; watch the console. Also rotate your wrist
+  panel hides while it is missing; check `xiloovr.log`. Also rotate your wrist
   as if checking a watch, and check `StartVisible` in config.
-- **Buttons do nothing** — console should say `SteamVR Input ready` and
+- **Buttons do nothing** — the log should say `SteamVR Input ready` and
   `SteamVR loaded controller bindings`. If it reports a binding load failure,
   bind the three actions manually in SteamVR's binding UI.
 - **Cell shows an item name instead of an icon** — the `itemId` is not in the

@@ -1,17 +1,21 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <OutputType>Exe</OutputType>
+    <OutputType>WinExe</OutputType>
     <TargetFramework>net8.0-windows</TargetFramework>
     <!-- openvr_api.dll is 64-bit only -->
     <PlatformTarget>x64</PlatformTarget>
+    <!-- tray icon + error dialogs; the app itself stays windowless -->
+    <UseWindowsForms>true</UseWindowsForms>
+    <!-- allows building this Windows-only project from macOS/Linux -->
+    <EnableWindowsTargeting>true</EnableWindowsTargeting>
     <RootNamespace>XiloOVR</RootNamespace>
     <AssemblyName>XiloOVR</AssemblyName>
     <ImplicitUsings>enable</ImplicitUsings>
     <!-- vendored OpenVR/openvr_api.cs predates nullable reference types; app files opt in via #nullable enable -->
     <Nullable>disable</Nullable>
     <InvariantGlobalization>true</InvariantGlobalization>
-    <Version>0.4.0</Version>
+    <Version>0.4.1</Version>
   </PropertyGroup>
 
   <ItemGroup>
