@@ -28,6 +28,9 @@ public sealed class TwitchChatClient : IDisposable
     private TcpClient? _connection;
     private Thread? _thread;
 
+    /// <summary>Human-readable connection state for the settings panel.</summary>
+    public string StatusLine { get; private set; } = "off";
+
     public void Start(string channel)
     {
         _channel = Normalize(channel);
@@ -68,10 +71,12 @@ public sealed class TwitchChatClient : IDisposable
             var channel = _channel;
             if (channel.Length == 0)
             {
+                StatusLine = "off";
                 Thread.Sleep(500); // chat disabled; wait for a config change
                 continue;
             }
 
+            StatusLine = $"connecting to #{channel} ...";
             try
             {
                 using var connection = new TcpClient();
@@ -100,6 +105,7 @@ public sealed class TwitchChatClient : IDisposable
                     {
                         writer.WriteLine($"JOIN #{channel}");
                         Console.WriteLine($"Twitch chat: joined #{channel}");
+                        StatusLine = $"joined #{channel}";
                         _incoming.Enqueue(new ChatMessage("sys", "XiloOVR", $"joined #{channel}", null));
                         attempt = 0;
                         continue;
@@ -115,7 +121,10 @@ public sealed class TwitchChatClient : IDisposable
             catch (Exception ex)
             {
                 if (_running && channel == _channel)
+                {
                     Console.Error.WriteLine($"Twitch chat: connection lost ({ex.Message})");
+                    StatusLine = $"disconnected from #{channel}, retrying ...";
+                }
             }
             finally
             {

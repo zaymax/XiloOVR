@@ -252,7 +252,7 @@ public static class PanelRenderer
     }
 
     /// <summary>GDI+ stores Format32bppArgb as BGRA in memory; OpenVR raw overlays expect RGBA.</summary>
-    private static byte[] ToRgba(Bitmap bitmap)
+    internal static byte[] ToRgba(Bitmap bitmap)
     {
         var bounds = new Rectangle(0, 0, bitmap.Width, bitmap.Height);
         var data = bitmap.LockBits(bounds, ImageLockMode.ReadOnly, PixelFormat.Format32bppArgb);

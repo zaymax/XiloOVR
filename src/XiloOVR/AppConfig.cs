@@ -98,4 +98,17 @@ public static class ConfigLoader
             Console.Error.WriteLine($"warning: unknown hand '{config.Hand}' in config, using 'right'");
         return config;
     }
+
+    /// <summary>Persists the current settings (used by the dashboard settings tab).</summary>
+    public static void Save(AppConfig config, string path)
+    {
+        try
+        {
+            File.WriteAllText(path, JsonSerializer.Serialize(config, JsonOptions));
+        }
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine($"warning: could not save config: {ex.Message}");
+        }
+    }
 }

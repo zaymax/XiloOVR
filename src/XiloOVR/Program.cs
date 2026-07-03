@@ -8,6 +8,7 @@ internal static class Program
 {
     private static volatile bool _running = true;
     private static volatile bool _configChanged;
+    private static long _suppressConfigReloadUntilTicks;
 
     private static int Main(string[] args)
     {
@@ -66,9 +67,23 @@ internal static class Program
         using var chat = new TwitchChatClient();
         chat.Start(config.TwitchChannel);
         if (!config.IsChatEnabled)
-            Console.WriteLine("Twitch chat disabled (set \"TwitchChannel\" in config.json to enable).");
+            Console.WriteLine("Twitch chat disabled (set the channel in the dashboard settings tab or config.json).");
 
         var ui = new ChecklistUI(overlay, config, checklist, chat);
+
+        // The dashboard settings tab edits the same AppConfig instance and calls back here.
+        void ApplyAndSave()
+        {
+            OpenVR.Overlay.SetOverlayWidthInMeters(overlay.Handle, config.WidthMeters);
+            wrist.Reconfigure();
+            ui.MarkDirty();
+            chat.SetChannel(config.TwitchChannel);
+            // Our own write must not bounce back through the file watcher (it would blink the panel).
+            Volatile.Write(ref _suppressConfigReloadUntilTicks, DateTime.UtcNow.AddSeconds(1.5).Ticks);
+            ConfigLoader.Save(config, configPath);
+        }
+
+        using var settings = new SettingsUI(config, chat, ApplyAndSave);
 
         using var configWatcher = WatchConfig(configPath);
 
@@ -86,6 +101,7 @@ internal static class Program
                 _configChanged = false;
                 ReloadConfig(configPath, config, overlay, wrist, ui);
                 chat.SetChannel(config.TwitchChannel);
+                settings.MarkDirty();
             }
 
             var now = clock.Elapsed.TotalMilliseconds;
@@ -110,6 +126,7 @@ internal static class Program
             var decrementClicked = input.PollDecrementClick(leftHand: !config.IsLeftHand);
 
             ui.Update(deltaMs, wrist.Present, pointerDevice, incrementClicked, decrementClicked);
+            settings.Update();
 
             Thread.Sleep(ui.PanelShown ? 20 : 100);
         }
@@ -129,10 +146,18 @@ internal static class Program
             NotifyFilter = NotifyFilters.LastWrite | NotifyFilters.FileName | NotifyFilters.Size,
             EnableRaisingEvents = true,
         };
-        watcher.Changed += (_, _) => _configChanged = true;
-        watcher.Created += (_, _) => _configChanged = true;
-        watcher.Renamed += (_, _) => _configChanged = true;
+        watcher.Changed += (_, _) => OnConfigFileChanged();
+        watcher.Created += (_, _) => OnConfigFileChanged();
+        watcher.Renamed += (_, _) => OnConfigFileChanged();
         return watcher;
+    }
+
+    private static void OnConfigFileChanged()
+    {
+        // Saves made by the settings tab are already applied; reloading them would blink the panel.
+        if (DateTime.UtcNow.Ticks < Volatile.Read(ref _suppressConfigReloadUntilTicks))
+            return;
+        _configChanged = true;
     }
 
     private static void ReloadConfig(string path, AppConfig config, OverlayManager overlay, WristAttachment wrist, ChecklistUI ui)

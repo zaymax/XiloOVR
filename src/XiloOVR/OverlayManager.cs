@@ -47,11 +47,15 @@ public sealed class OverlayManager : IDisposable
 
     /// <summary>Uploads an RGBA8 buffer as the overlay texture (SetOverlayRaw copies it synchronously).</summary>
     public void UploadTexture(byte[] rgba, int width, int height)
+        => UploadTextureTo(Handle, rgba, width, height);
+
+    /// <summary>Uploads an RGBA8 buffer to any overlay handle (SetOverlayRaw copies it synchronously).</summary>
+    public static void UploadTextureTo(ulong handle, byte[] rgba, int width, int height)
     {
         var pinned = GCHandle.Alloc(rgba, GCHandleType.Pinned);
         try
         {
-            var error = OpenVR.Overlay.SetOverlayRaw(Handle, pinned.AddrOfPinnedObject(), (uint)width, (uint)height, 4);
+            var error = OpenVR.Overlay.SetOverlayRaw(handle, pinned.AddrOfPinnedObject(), (uint)width, (uint)height, 4);
             if (error != EVROverlayError.None)
                 Console.Error.WriteLine($"warning: SetOverlayRaw failed: {error}");
         }

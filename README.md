@@ -35,8 +35,13 @@ The app is a pure `IVROverlay` client on top of the SteamVR compositor:
   bottom of the panel (read-only, anonymous IRC — no OAuth, no tokens);
   usernames keep their Twitch colors, each line carries a source badge so
   YouTube can merge into the same feed later
-- [ ] Next: YouTube chat merged into the same feed (LIV-style), in-VR item
-  picker with search, laser beam visual, autostart with SteamVR
+- [x] **Dashboard settings** — a XiloOVR tab in the SteamVR dashboard: hand,
+  panel offsets/size with live preview, Twitch channel via the VR keyboard,
+  chat feed length and connection status; changes apply instantly and persist
+  to `config.json`
+- [ ] Next: Twitch login + sending chat replies from VR (v0.5), follow/sub
+  alerts on the panel (v0.5), YouTube chat merged into the same feed (v0.6),
+  in-VR item picker with search, laser beam visual, autostart with SteamVR
 
 Out of scope by design: memory reading, DLL injection, traffic parsing, OCR.
 
@@ -99,6 +104,15 @@ Bindings → XiloOVR** (the app registers itself with SteamVR on
 launch; binding load success/failure is logged to the console). There is no
 visible laser beam yet — aim with the free controller and watch for the cell
 highlight.
+
+## Settings in VR
+
+Open the SteamVR dashboard (menu button) and pick the **XiloOVR** tab: hand,
+panel position/rotation/width with ± buttons (the wrist panel moves live as
+you click), show-on-start, Twitch channel via SteamVR's VR keyboard, chat
+feed length and connection status. Every change applies immediately and is
+written to `config.json`, so the file below stays the single source of truth.
+The tab also lists features planned for the next versions.
 
 ## Configuration
 
@@ -206,7 +220,9 @@ drops, and switches channels on the fly when you edit the config.
 8. Set `TwitchChannel` in config while the app runs — console prints
    `Twitch chat: joined #yourchannel`, the feed appears at the panel bottom,
    and messages typed in your chat show up within a second.
-9. Quit SteamVR → the tracker prints `SteamVR is shutting down` and exits.
+9. Open the SteamVR dashboard → **XiloOVR** tab: hand/offset/width buttons
+   move the wrist panel live; `Edit` opens the VR keyboard for the channel.
+10. Quit SteamVR → the tracker prints `SteamVR is shutting down` and exits.
 
 ## Project layout
 
@@ -220,6 +236,7 @@ src/XiloOVR/
   IconCache.cs         item icon bitmaps, reloaded when data changes
   InputManager.cs      SteamVR Input: app/action manifests, toggle/+1/−1
   TwitchChatClient.cs  anonymous read-only Twitch IRC client (background thread)
+  SettingsUI.cs        SteamVR dashboard settings tab (laser buttons + VR keyboard)
   ChecklistData.cs     active checklist model, persistence, file watchers
   ItemDatabase.cs      game-item reference loading
   AppConfig.cs         config model + load/create
