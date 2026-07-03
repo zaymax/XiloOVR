@@ -34,6 +34,15 @@ public sealed class AppConfig
     /// <summary>Laser clicks farther than this from the panel are ignored.</summary>
     public float MaxLaserDistanceMeters { get; set; } = 2.0f;
 
+    /// <summary>Twitch channel whose chat is shown at the bottom of the panel; empty disables the feed.</summary>
+    public string TwitchChannel { get; set; } = "";
+
+    /// <summary>How many chat lines are visible.</summary>
+    public int ChatMessagesShown { get; set; } = 6;
+
+    [JsonIgnore]
+    public bool IsChatEnabled => !string.IsNullOrWhiteSpace(TwitchChannel);
+
     [JsonIgnore]
     public string HandNormalized => Hand.Trim().ToLowerInvariant() == "left" ? "left" : "right";
 
@@ -52,6 +61,8 @@ public sealed class AppConfig
         StartVisible = other.StartVisible;
         ToggleHoldMs = other.ToggleHoldMs;
         MaxLaserDistanceMeters = other.MaxLaserDistanceMeters;
+        TwitchChannel = other.TwitchChannel;
+        ChatMessagesShown = other.ChatMessagesShown;
     }
 }
 

@@ -20,20 +20,37 @@ public static class PanelRenderer
     private const int FooterHeight = 34;
     private const int Columns = 4;
     private const int CellGap = 8;
+    private const int ChatLineHeight = 22;
+    private const int ChatPadding = 12;
 
     private static readonly Color Background = Color.FromArgb(235, 16, 20, 28);
     private static readonly Color CellFill = Color.FromArgb(255, 26, 32, 44);
     private static readonly Color Accent = Color.FromArgb(255, 90, 200, 250);
     private static readonly Color HoverFill = Color.FromArgb(70, 90, 200, 250);
     private static readonly Color DoneGreen = Color.FromArgb(255, 110, 220, 130);
+    private static readonly Color TwitchPurple = Color.FromArgb(255, 145, 70, 255);
+
+    // Fallback username colors for chatters who never set one (deterministic by name).
+    private static readonly Color[] NamePalette =
+    {
+        Color.FromArgb(255, 255, 105, 97),
+        Color.FromArgb(255, 255, 180, 80),
+        Color.FromArgb(255, 120, 220, 120),
+        Color.FromArgb(255, 100, 200, 250),
+        Color.FromArgb(255, 200, 140, 255),
+        Color.FromArgb(255, 250, 150, 200),
+    };
 
     public static int CellSize(AppConfig config) =>
         (config.PanelPixelWidth - 2 * Margin - (Columns - 1) * CellGap) / Columns;
 
+    public static int ChatSectionHeight(AppConfig config) =>
+        config.IsChatEnabled ? Math.Clamp(config.ChatMessagesShown, 1, 20) * ChatLineHeight + ChatPadding : 0;
+
     public static int VisibleCellCapacity(AppConfig config)
     {
         var stride = CellSize(config) + CellGap;
-        var rows = (config.PanelPixelHeight - HeaderHeight - FooterHeight + CellGap) / stride;
+        var rows = (config.PanelPixelHeight - HeaderHeight - FooterHeight - ChatSectionHeight(config) + CellGap) / stride;
         return Math.Max(0, rows) * Columns;
     }
 
@@ -56,7 +73,7 @@ public static class PanelRenderer
         return index < Math.Min(entryCount, VisibleCellCapacity(config)) ? index : -1;
     }
 
-    public static byte[] RenderChecklist(AppConfig config, ChecklistData checklist, int hoverIndex, out int width, out int height)
+    public static byte[] RenderChecklist(AppConfig config, ChecklistData checklist, IReadOnlyList<ChatMessage> chat, int hoverIndex, out int width, out int height)
     {
         width = config.PanelPixelWidth;
         height = config.PanelPixelHeight;
@@ -150,6 +167,9 @@ public static class PanelRenderer
                     new RectangleF(x, y + cell - 26, cell - 6, 22), rightAlign);
             }
 
+            if (config.IsChatEnabled)
+                DrawChatSection(g, config, chat, width, height, smallFont, dividerPen);
+
             var footerText = entries.Count > capacity
                 ? $"+{entries.Count - capacity} more, edit checklist.json"
                 : "free hand: trigger +1, grip/A -1";
@@ -157,6 +177,78 @@ public static class PanelRenderer
         }
 
         return ToRgba(bitmap);
+    }
+
+    private static void DrawChatSection(Graphics g, AppConfig config, IReadOnlyList<ChatMessage> chat,
+        int width, int height, Font smallFont, Pen dividerPen)
+    {
+        var sectionTop = height - FooterHeight - ChatSectionHeight(config);
+        g.DrawLine(dividerPen, Margin, sectionTop, width - Margin, sectionTop);
+
+        using var chatFont = new Font("Segoe UI", 17, FontStyle.Regular, GraphicsUnit.Pixel);
+        using var authorFont = new Font("Segoe UI", 17, FontStyle.Bold, GraphicsUnit.Pixel);
+        using var badgeFont = new Font("Segoe UI", 12, FontStyle.Bold, GraphicsUnit.Pixel);
+        using var singleLine = new StringFormat
+        {
+            FormatFlags = StringFormatFlags.NoWrap,
+            Trimming = StringTrimming.EllipsisCharacter,
+        };
+
+        if (chat.Count == 0)
+        {
+            g.DrawString($"connecting to twitch.tv/{config.TwitchChannel.Trim().TrimStart('#').ToLowerInvariant()} ...",
+                chatFont, Brushes.Gray, Margin, sectionTop + ChatPadding / 2f);
+            return;
+        }
+
+        var shown = Math.Min(chat.Count, Math.Clamp(config.ChatMessagesShown, 1, 20));
+        // Newest at the bottom, like a regular chat; partially filled feed stays bottom-aligned.
+        var y = (float)(height - FooterHeight - shown * ChatLineHeight - ChatPadding / 2);
+        for (var i = chat.Count - shown; i < chat.Count; i++)
+        {
+            var message = chat[i];
+            var x = (float)Margin;
+
+            var badgeColor = message.Source switch
+            {
+                "tw" => TwitchPurple,
+                "yt" => Color.FromArgb(255, 230, 60, 60),
+                _ => Color.DimGray,
+            };
+            using (var badgeBrush = new SolidBrush(badgeColor))
+                g.FillRectangle(badgeBrush, x, y + 3, 16, 16);
+            g.DrawString(message.Source == "tw" ? "T" : message.Source == "yt" ? "Y" : "•",
+                badgeFont, Brushes.White, x + 3.5f, y + 4);
+            x += 22;
+
+            var authorText = message.Author + ":";
+            using (var authorBrush = new SolidBrush(AuthorColor(message)))
+                g.DrawString(authorText, authorFont, authorBrush, x, y);
+            x += g.MeasureString(authorText, authorFont).Width + 2;
+
+            g.DrawString(message.Text, chatFont, Brushes.LightGray,
+                new RectangleF(x, y, width - Margin - x, ChatLineHeight), singleLine);
+            y += ChatLineHeight;
+        }
+    }
+
+    private static Color AuthorColor(ChatMessage message)
+    {
+        if (!string.IsNullOrEmpty(message.ColorHex))
+        {
+            try
+            {
+                return ColorTranslator.FromHtml(message.ColorHex);
+            }
+            catch
+            {
+                // fall through to the palette
+            }
+        }
+        var hash = 0;
+        foreach (var c in message.Author)
+            hash = hash * 31 + c;
+        return NamePalette[Math.Abs(hash % NamePalette.Length)];
     }
 
     /// <summary>GDI+ stores Format32bppArgb as BGRA in memory; OpenVR raw overlays expect RGBA.</summary>

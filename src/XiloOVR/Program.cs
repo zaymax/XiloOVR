@@ -62,7 +62,13 @@ internal static class Program
         var wrist = new WristAttachment(overlay, config);
         var input = new InputManager();
         input.Initialize();
-        var ui = new ChecklistUI(overlay, config, checklist);
+
+        using var chat = new TwitchChatClient();
+        chat.Start(config.TwitchChannel);
+        if (!config.IsChatEnabled)
+            Console.WriteLine("Twitch chat disabled (set \"TwitchChannel\" in config.json to enable).");
+
+        var ui = new ChecklistUI(overlay, config, checklist, chat);
 
         using var configWatcher = WatchConfig(configPath);
 
@@ -79,6 +85,7 @@ internal static class Program
             {
                 _configChanged = false;
                 ReloadConfig(configPath, config, overlay, wrist, ui);
+                chat.SetChannel(config.TwitchChannel);
             }
 
             var now = clock.Elapsed.TotalMilliseconds;

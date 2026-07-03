@@ -31,9 +31,12 @@ The app is a pure `IVROverlay` client on top of the SteamVR compositor:
 - [x] **Live editing** — `config.json`, `checklist.json` and
   `data/items_database.json` are watched and hot-reloaded; edit them on the
   desktop and the wrist panel updates without restarting
-- [ ] Next: merged Twitch/YouTube stream-chat feed on the panel (LIV-style,
-  one list with a source tag per message), in-VR item picker with search,
-  laser beam visual, autostart with SteamVR
+- [x] **Twitch chat feed** — last messages of your channel's chat at the
+  bottom of the panel (read-only, anonymous IRC — no OAuth, no tokens);
+  usernames keep their Twitch colors, each line carries a source badge so
+  YouTube can merge into the same feed later
+- [ ] Next: YouTube chat merged into the same feed (LIV-style), in-VR item
+  picker with search, laser beam visual, autostart with SteamVR
 
 Out of scope by design: memory reading, DLL injection, traffic parsing, OCR.
 
@@ -112,7 +115,9 @@ on save — tune the offsets live while wearing the headset:
   "PanelPixelHeight": 520,
   "StartVisible": true,
   "ToggleHoldMs": 0,
-  "MaxLaserDistanceMeters": 2
+  "MaxLaserDistanceMeters": 2,
+  "TwitchChannel": "",
+  "ChatMessagesShown": 6
 }
 ```
 
@@ -126,6 +131,8 @@ on save — tune the offsets live while wearing the headset:
 | `StartVisible` | show the panel right after launch |
 | `ToggleHoldMs` | 0 = toggle on click; > 0 = button must be held that long |
 | `MaxLaserDistanceMeters` | laser clicks farther than this are ignored |
+| `TwitchChannel` | your channel name (e.g. `"zaymax"`); empty = no chat section |
+| `ChatMessagesShown` | chat lines at the bottom of the panel (1–20) |
 
 Controller-local axes (OpenVR convention): **+X** to the right, **+Y** up out
 of the button face, **−Z** along the pointing direction. So `Z: 0.13` moves the
@@ -167,6 +174,21 @@ v0.1 format (`"found": true/false`) migrates automatically. Cells that don't
 fit the panel show up as “+N more”; raise `PanelPixelHeight` to fit more rows
 of the grid.
 
+## Stream chat
+
+Set `"TwitchChannel": "yourchannel"` in `config.json` (hot-reloads, so you can
+do it mid-session) and the bottom of the panel becomes a live chat feed:
+newest messages at the bottom, usernames in their Twitch colors, a purple `T`
+badge per message (the badge marks the platform — YouTube will join the same
+feed later). Reading is anonymous over Twitch IRC: no login, no OAuth token,
+nothing to configure besides the channel name.
+
+The chat section takes `ChatMessagesShown × 22 + 12` pixels from the grid
+area; with the default 520-pixel panel and 6 chat lines about two icon rows
+remain. Raise `PanelPixelHeight` to ~660–700 if you want three icon rows plus
+chat. The client reconnects automatically with backoff if the connection
+drops, and switches channels on the fly when you edit the config.
+
 ## What you should see (verification checklist)
 
 1. Start SteamVR, turn both controllers on, run the tracker.
@@ -181,7 +203,10 @@ of the grid.
    the panel updates within a second, no restart.
 7. Turn the watch-hand controller off → panel hides; on → reappears. Restart
    the tracker → counters are preserved.
-8. Quit SteamVR → the tracker prints `SteamVR is shutting down` and exits.
+8. Set `TwitchChannel` in config while the app runs — console prints
+   `Twitch chat: joined #yourchannel`, the feed appears at the panel bottom,
+   and messages typed in your chat show up within a second.
+9. Quit SteamVR → the tracker prints `SteamVR is shutting down` and exits.
 
 ## Project layout
 
@@ -194,6 +219,7 @@ src/XiloOVR/
   PanelRenderer.cs     GDI+ icon-grid rendering + pixel layout for hit-testing
   IconCache.cs         item icon bitmaps, reloaded when data changes
   InputManager.cs      SteamVR Input: app/action manifests, toggle/+1/−1
+  TwitchChatClient.cs  anonymous read-only Twitch IRC client (background thread)
   ChecklistData.cs     active checklist model, persistence, file watchers
   ItemDatabase.cs      game-item reference loading
   AppConfig.cs         config model + load/create

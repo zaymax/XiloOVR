@@ -13,9 +13,13 @@ public sealed class ChecklistUI
     private const float FadeDurationMs = 200f;
     private const int WatchdogIntervalMs = 5000;
 
+    private const int ChatBufferLimit = 60;
+
     private readonly OverlayManager _overlay;
     private readonly AppConfig _config;
     private readonly ChecklistData _checklist;
+    private readonly TwitchChatClient _chatClient;
+    private readonly List<ChatMessage> _chat = new();
     private readonly TrackedDevicePose_t[] _poses = new TrackedDevicePose_t[OpenVR.k_unMaxTrackedDeviceCount];
     private readonly System.Diagnostics.Stopwatch _watchdog = System.Diagnostics.Stopwatch.StartNew();
 
@@ -25,11 +29,12 @@ public sealed class ChecklistUI
     private int _hoverIndex = -1;
     private bool _dirty = true;
 
-    public ChecklistUI(OverlayManager overlay, AppConfig config, ChecklistData checklist)
+    public ChecklistUI(OverlayManager overlay, AppConfig config, ChecklistData checklist, TwitchChatClient chatClient)
     {
         _overlay = overlay;
         _config = config;
         _checklist = checklist;
+        _chatClient = chatClient;
         _userVisible = config.StartVisible;
     }
 
@@ -48,6 +53,13 @@ public sealed class ChecklistUI
         if (_checklist.ConsumeFileChanges())
         {
             IconCache.Clear(); // icons may have changed together with the database
+            _dirty = true;
+        }
+
+        if (_chatClient.TryDrain(_chat))
+        {
+            if (_chat.Count > ChatBufferLimit)
+                _chat.RemoveRange(0, _chat.Count - ChatBufferLimit);
             _dirty = true;
         }
 
@@ -90,7 +102,7 @@ public sealed class ChecklistUI
 
         if (_dirty)
         {
-            var pixels = PanelRenderer.RenderChecklist(_config, _checklist, _hoverIndex, out var width, out var height);
+            var pixels = PanelRenderer.RenderChecklist(_config, _checklist, _chat, _hoverIndex, out var width, out var height);
             _overlay.UploadTexture(pixels, width, height);
             _dirty = false;
         }
