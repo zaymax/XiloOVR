@@ -21,10 +21,14 @@ The app is a pure `IVROverlay` client on top of the SteamVR compositor:
   scene-app switches (self-healing re-assert)
 - [x] **Show/hide toggle** — click a controller button (X on Touch by
   default); rebindable in SteamVR's controller-bindings UI; short fade in/out
-- [x] **Icon-grid checklist** — item icons with `collected/needed` counters;
-  point at a cell with the free hand: **trigger +1**, **grip −1** (custom
-  laser hit-testing via `ComputeOverlayIntersection`); completed items get
-  dimmed with a green check; state persists to `checklist.json`
+- [x] **Icon-grid checklist** — item icons with `collected/needed` counters
+  and a **visible laser beam** from the free hand: **trigger +1**, **grip −1**
+  (custom hit-testing via `ComputeOverlayIntersection`); completed items get
+  dimmed with a green check; long lists scroll with ▲▼ footer arrows; state
+  persists to `checklist.json`
+- [x] **In-VR item picker** — the **+** cell opens a database search on the
+  VR keyboard: trigger adds an item (or raises its needed count ×2, ×3…),
+  grip lowers it and removes the item at zero
 - [x] **Real item database** — 600+ items with icons, imported from the
   community project
   [exfil-zone-assistant](https://github.com/zelengeo/exfil-zone-assistant) (MIT)
@@ -42,9 +46,11 @@ The app is a pure `IVROverlay` client on top of the SteamVR compositor:
 - [x] **Background app** — no console window, no desktop windows: an **XO**
   tray icon (open data folder / log / quit), errors as dialogs, all
   diagnostics in `xiloovr.log` next to the exe
-- [ ] Next: Twitch login + sending chat replies from VR (v0.5), follow/sub
-  alerts on the panel (v0.5), YouTube chat merged into the same feed (v0.6),
-  in-VR item picker with search, laser beam visual, autostart with SteamVR
+- [x] **Theming** — one accent color across panel, settings, laser and tray
+  (`AccentColorHex` in config or the dashboard tab), green by default
+- [ ] Next: Twitch login + sending chat replies from VR (v0.6), follow/sub
+  alerts on the panel (v0.6), YouTube chat merged into the same feed (v0.7),
+  autostart with SteamVR
 
 Out of scope by design: memory reading, DLL injection, traffic parsing, OCR.
 
@@ -101,8 +107,10 @@ the other, **free hand** is the pointer.
 | Action | Default binding | Notes |
 | --- | --- | --- |
 | Show / hide panel | **X click** (Touch, left hand), **B** (Index), **menu** (Vive) | set `ToggleHoldMs` > 0 to require a long-press |
-| +1 collected | **trigger** on the free hand while pointing at an item cell | hovered cell is highlighted |
+| +1 collected | **trigger** on the free hand while pointing at an item cell | the laser beam shows where you point |
 | −1 collected | **grip** (Touch/Vive) or **A** (Index) on the free hand | |
+| Add items | trigger the **+** cell → type a search on the VR keyboard | in the picker: trigger adds / raises needed, grip lowers / removes; `←` returns |
+| Scroll | trigger the **▲ ▼** buttons in the footer | appear when the list overflows |
 
 Rebind anytime in **SteamVR → Settings → Controllers → Manage Controller
 Bindings → XiloOVR** (the app registers itself with SteamVR on
@@ -136,7 +144,8 @@ on save — tune the offsets live while wearing the headset:
   "ToggleHoldMs": 0,
   "MaxLaserDistanceMeters": 2,
   "TwitchChannel": "",
-  "ChatMessagesShown": 6
+  "ChatMessagesShown": 6,
+  "AccentColorHex": "#34D399"
 }
 ```
 
@@ -152,6 +161,7 @@ on save — tune the offsets live while wearing the headset:
 | `MaxLaserDistanceMeters` | laser clicks farther than this are ignored |
 | `TwitchChannel` | your channel name (e.g. `"zaymax"`); empty = no chat section |
 | `ChatMessagesShown` | chat lines at the bottom of the panel (1–20) |
+| `AccentColorHex` | accent color of the panel, settings, laser and tray (HTML hex) |
 
 Controller-local axes (OpenVR convention): **+X** to the right, **+Y** up out
 of the button face, **−Z** along the pointing direction. So `Z: 0.13` moves the
@@ -215,20 +225,24 @@ drops, and switches channels on the fly when you edit the config.
    `Connected to SteamVR` → `SteamVR Input ready` → `Panel attached`.
 3. In the headset: a panel with a grid of item icons and counters on your left
    forearm, following the controller like a watch.
-4. Point at a cell with the free hand — it highlights; trigger bumps the
-   counter (`1/3`), grip drops it; a full counter dims the icon under a green
-   check and the header progress updates; `checklist.json` changes on disk.
-5. Click X (left Touch controller) — the panel fades out; click again — back.
-6. Edit `config.json` / `checklist.json` / the item database on the desktop —
+4. A thin beam shoots from the free controller; the cell under it highlights.
+   Trigger bumps the counter (`1/3`), grip drops it; a full counter dims the
+   icon under a green check; `checklist.json` changes on disk.
+5. Trigger the **+** cell — the VR keyboard opens; type e.g. `key`, confirm —
+   the grid shows matching items; trigger adds one (×1 badge appears), `←`
+   returns to the checklist; overflowing lists scroll with the ▲▼ arrows.
+6. Click X (left Touch controller) — the panel fades out; click again — back.
+7. Edit `config.json` / `checklist.json` / the item database on the desktop —
    the panel updates within a second, no restart.
-7. Turn the watch-hand controller off → panel hides; on → reappears. Restart
+8. Turn the watch-hand controller off → panel hides; on → reappears. Restart
    the tracker → counters are preserved.
-8. Set `TwitchChannel` in config while the app runs — the log records
+9. Set `TwitchChannel` in config while the app runs — the log records
    `Twitch chat: joined #yourchannel`, the feed appears at the panel bottom,
    and messages typed in your chat show up within a second.
-9. Open the SteamVR dashboard → **XiloOVR** tab: hand/offset/width buttons
-   move the wrist panel live; `Edit` opens the VR keyboard for the channel.
-10. Quit SteamVR → the tracker prints `SteamVR is shutting down` and exits.
+10. Open the SteamVR dashboard → **XiloOVR** tab: hand/offset/width buttons
+    move the wrist panel live; `Edit` opens the VR keyboard for the channel
+    and the accent color.
+11. Quit SteamVR → the tracker prints `SteamVR is shutting down` and exits.
 
 ## Project layout
 
@@ -237,8 +251,10 @@ src/XiloOVR/
   Program.cs           entry point, main loop, config hot-reload, clean shutdown
   OverlayManager.cs    OpenVR init, overlay lifecycle, SteamVR event pump
   WristAttachment.cs   controller discovery + offset matrix (wrist attach)
-  ChecklistUI.cs       visibility/fade, laser hover + clicks, texture updates
+  ChecklistUI.cs       visibility/fade, laser hover + clicks, item picker, scrolling
   PanelRenderer.cs     GDI+ icon-grid rendering + pixel layout for hit-testing
+  LaserBeam.cs         visible beam overlays attached to the pointer controller
+  Theme.cs             accent color parsing (AccentColorHex)
   IconCache.cs         item icon bitmaps, reloaded when data changes
   InputManager.cs      SteamVR Input: app/action manifests, toggle/+1/−1
   TwitchChatClient.cs  anonymous read-only Twitch IRC client (background thread)

@@ -79,6 +79,44 @@ public sealed class ChecklistData : IDisposable
         return string.IsNullOrEmpty(icon) ? null : Path.Combine(_dataDirectory, icon);
     }
 
+    public string? IconPathFor(GameItem item) =>
+        string.IsNullOrEmpty(item.Icon) ? null : Path.Combine(_dataDirectory, item.Icon);
+
+    public IReadOnlyList<GameItem> SearchDatabase(string query, int max) => _database.Search(query, max);
+
+    /// <summary>How many of this item the checklist currently wants (0 = not listed).</summary>
+    public int NeededOf(string itemId) =>
+        _entries.FirstOrDefault(e => string.Equals(e.ItemId, itemId, StringComparison.OrdinalIgnoreCase))?.Needed ?? 0;
+
+    /// <summary>Picker action: add the item, or bump how many of it are needed.</summary>
+    public void AddOrIncrementNeeded(string itemId)
+    {
+        var entry = _entries.FirstOrDefault(e => string.Equals(e.ItemId, itemId, StringComparison.OrdinalIgnoreCase));
+        if (entry == null)
+            _entries.Add(new ChecklistEntry { ItemId = itemId, Needed = 1 });
+        else
+            entry.Needed = Math.Min(entry.Needed + 1, 99);
+        Save();
+    }
+
+    /// <summary>Picker action: lower the needed count, removing the item at zero.</summary>
+    public void DecrementNeededOrRemove(string itemId)
+    {
+        var entry = _entries.FirstOrDefault(e => string.Equals(e.ItemId, itemId, StringComparison.OrdinalIgnoreCase));
+        if (entry == null)
+            return;
+        entry.Needed--;
+        if (entry.Needed < 1)
+        {
+            _entries.Remove(entry);
+        }
+        else if (entry.Collected > entry.Needed)
+        {
+            entry.Collected = entry.Needed;
+        }
+        Save();
+    }
+
     public void Increment(int index) => Adjust(index, +1);
 
     public void Decrement(int index) => Adjust(index, -1);

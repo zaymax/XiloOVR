@@ -57,7 +57,7 @@ internal static class Program
             return 3;
         }
 
-        using var tray = new TrayIcon($"XiloOVR v{Version()}", () => _running = false);
+        using var tray = new TrayIcon($"XiloOVR v{Version()}", Theme.Accent(config), () => _running = false);
 
         using var overlay = new OverlayManager();
         try
@@ -85,7 +85,8 @@ internal static class Program
         if (!config.IsChatEnabled)
             Console.WriteLine("Twitch chat disabled (set the channel in the dashboard settings tab or config.json).");
 
-        var ui = new ChecklistUI(overlay, config, checklist, chat);
+        using var laser = new LaserBeam();
+        var ui = new ChecklistUI(overlay, config, checklist, chat, laser);
 
         // The dashboard settings tab edits the same AppConfig instance and calls back here.
         void ApplyAndSave()

@@ -28,6 +28,29 @@ public sealed class ItemDatabase
 
     public GameItem? Find(string id) => _byId.TryGetValue(id, out var item) ? item : null;
 
+    /// <summary>Name/category search for the in-VR picker: prefix matches rank first.</summary>
+    public IReadOnlyList<GameItem> Search(string query, int max)
+    {
+        query = query.Trim();
+        if (query.Length == 0)
+            return _byId.Values.OrderBy(i => i.Name, StringComparer.OrdinalIgnoreCase).Take(max).ToList();
+
+        var starts = new List<GameItem>();
+        var contains = new List<GameItem>();
+        foreach (var item in _byId.Values)
+        {
+            if (item.Name.StartsWith(query, StringComparison.OrdinalIgnoreCase))
+                starts.Add(item);
+            else if (item.Name.Contains(query, StringComparison.OrdinalIgnoreCase) ||
+                     item.Category.Contains(query, StringComparison.OrdinalIgnoreCase))
+                contains.Add(item);
+        }
+        starts.Sort((a, b) => string.Compare(a.Name, b.Name, StringComparison.OrdinalIgnoreCase));
+        contains.Sort((a, b) => string.Compare(a.Name, b.Name, StringComparison.OrdinalIgnoreCase));
+        starts.AddRange(contains);
+        return starts.Count > max ? starts.GetRange(0, max) : starts;
+    }
+
     public static ItemDatabase Load(string path)
     {
         var byId = new Dictionary<string, GameItem>(StringComparer.OrdinalIgnoreCase);

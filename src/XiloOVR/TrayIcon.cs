@@ -15,14 +15,14 @@ public sealed class TrayIcon : IDisposable
     private readonly Thread _thread;
     private NotifyIcon? _icon;
 
-    public TrayIcon(string title, Action onQuit)
+    public TrayIcon(string title, Color accent, Action onQuit)
     {
-        _thread = new Thread(() => Run(title, onQuit)) { IsBackground = true, Name = "tray" };
+        _thread = new Thread(() => Run(title, accent, onQuit)) { IsBackground = true, Name = "tray" };
         _thread.SetApartmentState(ApartmentState.STA);
         _thread.Start();
     }
 
-    private void Run(string title, Action onQuit)
+    private void Run(string title, Color accent, Action onQuit)
     {
         Icon trayIcon;
         using (var bitmap = new Bitmap(32, 32))
@@ -30,10 +30,10 @@ public sealed class TrayIcon : IDisposable
             using (var g = Graphics.FromImage(bitmap))
             {
                 g.Clear(Color.FromArgb(255, 16, 20, 28));
-                using var pen = new Pen(Color.FromArgb(255, 90, 200, 250), 3);
+                using var pen = new Pen(accent, 3);
                 g.DrawRectangle(pen, 1, 1, 29, 29);
                 using var font = new Font("Segoe UI", 13, FontStyle.Bold, GraphicsUnit.Pixel);
-                using var brush = new SolidBrush(Color.FromArgb(255, 90, 200, 250));
+                using var brush = new SolidBrush(accent);
                 g.DrawString("XO", font, brush, 4, 9);
             }
             trayIcon = Icon.FromHandle(bitmap.GetHicon());

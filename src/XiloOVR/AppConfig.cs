@@ -40,6 +40,9 @@ public sealed class AppConfig
     /// <summary>How many chat lines are visible.</summary>
     public int ChatMessagesShown { get; set; } = 6;
 
+    /// <summary>Accent color of every XiloOVR surface (panel, settings, laser), HTML hex.</summary>
+    public string AccentColorHex { get; set; } = "#34D399";
+
     [JsonIgnore]
     public bool IsChatEnabled => !string.IsNullOrWhiteSpace(TwitchChannel);
 
@@ -63,6 +66,7 @@ public sealed class AppConfig
         MaxLaserDistanceMeters = other.MaxLaserDistanceMeters;
         TwitchChannel = other.TwitchChannel;
         ChatMessagesShown = other.ChatMessagesShown;
+        AccentColorHex = other.AccentColorHex;
     }
 }
 
