@@ -27,6 +27,9 @@ public sealed class PanelView
     public bool CanScrollDown;
     public string FooterText = "";
     public IReadOnlyList<ChatMessage> Chat = Array.Empty<ChatMessage>();
+
+    /// <summary>Active follow/sub/raid alert; drawn as a banner over the header while set.</summary>
+    public ChatMessage? Alert;
 }
 
 /// <summary>
@@ -40,6 +43,7 @@ public static class PanelRenderer
     public const int Columns = 4;
     public const int HitUp = 9000;
     public const int HitDown = 9001;
+    public const int HitChat = 9002;
 
     private const int Margin = 16;
     private const int HeaderHeight = 60;
@@ -84,13 +88,22 @@ public static class PanelRenderer
     private static Rectangle DownArrowRect(AppConfig config) =>
         new(config.PanelPixelWidth - Margin - ArrowWidth, config.PanelPixelHeight - FooterHeight + 3, ArrowWidth, FooterHeight - 6);
 
-    /// <summary>Maps a panel pixel to a cell index, the scroll arrows, or -1.</summary>
+    /// <summary>Maps a panel pixel to a cell index, the scroll arrows, the chat feed, or -1.</summary>
     public static int HitTest(AppConfig config, int cellCount, int x, int y)
     {
         if (UpArrowRect(config).Contains(x, y))
             return HitUp;
         if (DownArrowRect(config).Contains(x, y))
             return HitDown;
+
+        // Clicking the chat feed opens the reply keyboard (when logged in to Twitch).
+        var chatHeight = ChatSectionHeight(config);
+        if (chatHeight > 0)
+        {
+            var chatTop = config.PanelPixelHeight - FooterHeight - chatHeight;
+            if (y >= chatTop && y < config.PanelPixelHeight - FooterHeight && x >= Margin && x <= config.PanelPixelWidth - Margin)
+                return HitChat;
+        }
 
         var cell = CellSize(config);
         var stride = cell + CellGap;
@@ -140,9 +153,28 @@ public static class PanelRenderer
             using var center = new StringFormat { Alignment = StringAlignment.Center, LineAlignment = StringAlignment.Center };
             using var dividerPen = new Pen(Theme.WithAlpha(accent, 120), 1);
 
-            // Header
-            g.DrawString("XiloOVR", titleFont, Brushes.White, Margin, 16);
-            g.DrawString(view.HeaderRight, titleFont, accentBrush, new RectangleF(0, 16, width - Margin, 34), rightAlign);
+            // Header; an active alert takes the whole strip over for a few seconds.
+            if (view.Alert != null)
+            {
+                var banner = new Rectangle(Margin / 2, 6, width - Margin, HeaderHeight - 14);
+                g.FillRectangle(accentBrush, banner);
+                using var alertFont = new Font("Segoe UI", 20, FontStyle.Bold, GraphicsUnit.Pixel);
+                using var darkBrush = new SolidBrush(Color.FromArgb(255, 12, 16, 22));
+                using var bannerFormat = new StringFormat
+                {
+                    Alignment = StringAlignment.Center,
+                    LineAlignment = StringAlignment.Center,
+                    FormatFlags = StringFormatFlags.NoWrap,
+                    Trimming = StringTrimming.EllipsisCharacter,
+                };
+                g.DrawString($"★ {view.Alert.Author} {view.Alert.Text}", alertFont, darkBrush,
+                    new RectangleF(banner.X + 6, banner.Y, banner.Width - 12, banner.Height), bannerFormat);
+            }
+            else
+            {
+                g.DrawString("XiloOVR", titleFont, Brushes.White, Margin, 16);
+                g.DrawString(view.HeaderRight, titleFont, accentBrush, new RectangleF(0, 16, width - Margin, 34), rightAlign);
+            }
             g.DrawLine(dividerPen, Margin, HeaderHeight - 4, width - Margin, HeaderHeight - 4);
 
             // Cells
@@ -243,7 +275,10 @@ public static class PanelRenderer
 
         if (chat.Count == 0)
         {
-            g.DrawString($"connecting to twitch.tv/{config.TwitchChannel.Trim().TrimStart('#').ToLowerInvariant()} ...",
+            var target = !string.IsNullOrWhiteSpace(config.TwitchChannel)
+                ? $"twitch.tv/{config.TwitchChannel.Trim().TrimStart('#').ToLowerInvariant()}"
+                : "youtube live chat";
+            g.DrawString($"connecting to {target} ...",
                 chatFont, Brushes.Gray, Margin, sectionTop + ChatPadding / 2f);
             return;
         }
@@ -256,7 +291,13 @@ public static class PanelRenderer
             var message = chat[i];
             var x = (float)Margin;
 
-            var badgeColor = message.Source switch
+            if (message.IsAlert)
+            {
+                using var alertFill = new SolidBrush(Theme.WithAlpha(accent, 45));
+                g.FillRectangle(alertFill, Margin - 4, y, width - 2 * Margin + 8, ChatLineHeight);
+            }
+
+            var badgeColor = message.IsAlert ? accent : message.Source switch
             {
                 "tw" => TwitchPurple,
                 "yt" => Color.FromArgb(255, 230, 60, 60),
@@ -264,8 +305,8 @@ public static class PanelRenderer
             };
             using (var badgeBrush = new SolidBrush(badgeColor))
                 g.FillRectangle(badgeBrush, x, y + 3, 16, 16);
-            g.DrawString(message.Source == "tw" ? "T" : message.Source == "yt" ? "Y" : "•",
-                badgeFont, Brushes.White, x + 3.5f, y + 4);
+            g.DrawString(message.IsAlert ? "★" : message.Source == "tw" ? "T" : message.Source == "yt" ? "Y" : "•",
+                badgeFont, Brushes.White, x + (message.IsAlert ? 2f : 3.5f), y + 4);
             x += 22;
 
             var authorText = message.Author + ":";
@@ -273,7 +314,7 @@ public static class PanelRenderer
                 g.DrawString(authorText, authorFont, authorBrush, x, y);
             x += g.MeasureString(authorText, authorFont).Width + 2;
 
-            g.DrawString(message.Text, chatFont, Brushes.LightGray,
+            g.DrawString(message.Text, chatFont, message.IsAlert ? Brushes.White : Brushes.LightGray,
                 new RectangleF(x, y, width - Margin - x, ChatLineHeight), singleLine);
             y += ChatLineHeight;
         }
