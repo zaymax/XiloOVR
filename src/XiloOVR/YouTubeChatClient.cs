@@ -24,6 +24,7 @@ public sealed partial class YouTubeChatClient : IChatSource, IDisposable
 
     private volatile bool _running = true;
     private volatile string _channel = "";
+    private string? _announcedVideoId;
     private Thread? _thread;
 
     /// <summary>Human-readable connection state for the settings panel.</summary>
@@ -90,8 +91,15 @@ public sealed partial class YouTubeChatClient : IChatSource, IDisposable
 
                 Console.WriteLine($"YouTube chat: joined live chat of video {videoId}");
                 StatusLine = $"joined live chat ({videoId})";
-                _incoming.Enqueue(new ChatMessage("sys", "XiloOVR", $"joined YouTube live chat", null));
+                if (videoId != _announcedVideoId) // a reconnect to the same stream stays quiet
+                {
+                    _announcedVideoId = videoId;
+                    _incoming.Enqueue(new ChatMessage("sys", "XiloOVR", "joined YouTube live chat", null));
+                }
                 PollChat(http, session, channel);
+                // The just-ended stream can keep resolving for a while; don't hammer
+                // YouTube re-opening a dead chat in a tight loop.
+                Sleep(ResolveRetryMs, channel);
             }
             catch (Exception ex)
             {
@@ -225,12 +233,10 @@ public sealed partial class YouTubeChatClient : IChatSource, IDisposable
     /// <summary>Turns the channel setting (@handle, URL, or video id) into a live video id.</summary>
     private static string? ResolveVideoId(HttpClient http, string channel)
     {
-        // A bare video id (11 url-safe chars) or a watch/youtu.be URL points at the video directly.
+        // A watch/youtu.be/live URL points at the video directly.
         var direct = VideoIdRegex().Match(channel);
         if (direct.Success)
             return direct.Groups[1].Value;
-        if (VideoIdOnlyRegex().IsMatch(channel))
-            return channel;
 
         // Everything else is a channel reference; its /live page redirects to the current stream.
         var channelPath = channel switch
@@ -240,14 +246,25 @@ public sealed partial class YouTubeChatClient : IChatSource, IDisposable
             _ when channel.StartsWith('@') => "/" + channel,
             _ => "/@" + channel,
         };
-        var html = http.GetStringAsync($"https://www.youtube.com{channelPath}/live").GetAwaiter().GetResult();
+        // The user may paste a channel URL that already ends in /live (or another tab).
+        channelPath = ChannelTabSuffixRegex().Replace(channelPath, "");
 
-        var canonical = CanonicalWatchRegex().Match(html);
-        if (canonical.Success)
-            return canonical.Groups[1].Value;
-
-        // No canonical watch link means the channel exists but is not live right now.
-        return null;
+        try
+        {
+            var html = http.GetStringAsync($"https://www.youtube.com{channelPath}/live").GetAwaiter().GetResult();
+            var canonical = CanonicalWatchRegex().Match(html);
+            if (canonical.Success)
+                return canonical.Groups[1].Value;
+            // Page loaded but no canonical watch link: the channel exists, just not live.
+            return null;
+        }
+        catch (HttpRequestException) when (VideoIdOnlyRegex().IsMatch(channel))
+        {
+            // Not a resolvable channel name, but it has the shape of a bare video id
+            // (11 url-safe chars — ambiguous with short channel names, so the channel
+            // interpretation got the first try).
+            return channel;
+        }
     }
 
     /// <summary>Loads the live_chat page and pulls out the API key, client version and continuation.</summary>
@@ -374,6 +391,9 @@ public sealed partial class YouTubeChatClient : IChatSource, IDisposable
 
     [GeneratedRegex(@"^[A-Za-z0-9_-]{11}$")]
     private static partial Regex VideoIdOnlyRegex();
+
+    [GeneratedRegex(@"/(live|streams|videos|shorts|featured|community|about)$", RegexOptions.IgnoreCase)]
+    private static partial Regex ChannelTabSuffixRegex();
 
     [GeneratedRegex("""<link rel="canonical" href="https://www\.youtube\.com/watch\?v=([A-Za-z0-9_-]{11})""")]
     private static partial Regex CanonicalWatchRegex();

@@ -178,8 +178,9 @@ public sealed class SettingsUI : IDisposable
     private void OnKeyboardDone()
     {
         _keyboardOpen = false;
-        var buffer = new StringBuilder(256);
-        OpenVR.Overlay.GetKeyboardText(buffer, 256);
+        // The buffer size is in UTF-8 bytes, not chars; leave generous headroom.
+        var buffer = new StringBuilder(1024);
+        OpenVR.Overlay.GetKeyboardText(buffer, 1024);
         var text = buffer.ToString().Trim();
         switch (_keyboardTarget)
         {
@@ -193,7 +194,10 @@ public sealed class SettingsUI : IDisposable
                 _config.TwitchUsername = text;
                 break;
             case KeyboardTarget.Token:
-                _config.TwitchOAuthToken = text;
+                // The keyboard opens empty (the token is a secret we don't round-trip),
+                // so an empty confirm means "cancel", not "erase the stored token".
+                if (text.Length > 0)
+                    _config.TwitchOAuthToken = text;
                 break;
             case KeyboardTarget.ClientId:
                 _config.TwitchClientId = text;
@@ -350,7 +354,7 @@ public sealed class SettingsUI : IDisposable
                 string.IsNullOrWhiteSpace(_config.TwitchUsername) ? "(anonymous)" : _config.TwitchUsername,
                 KeyboardTarget.Username, "Twitch account name (empty = read-only)", _config.TwitchUsername);
             EditRow(rightX, ref y2, "OAuth token", Mask(_config.TwitchOAuthToken),
-                KeyboardTarget.Token, "OAuth token with chat:read + chat:edit (see README)", "");
+                KeyboardTarget.Token, "OAuth token, chat:read + chat:edit (empty keeps the current one)", "");
             EditRow(rightX, ref y2, "Client id (follows)", Mask(_config.TwitchClientId),
                 KeyboardTarget.ClientId, "Twitch app client id, only for follow alerts", _config.TwitchClientId);
             TwoStateRow(rightX, y2, colWidth, "Alerts (follow/sub/raid)", "On", "Off", _config.AlertsEnabled,

@@ -37,10 +37,9 @@ public sealed class TwitchFollowPoller : IChatSource, IDisposable
 
     public void Configure(AppConfig config)
     {
-        var channel = config.TwitchChannel.Trim().TrimStart('#').ToLowerInvariant();
-        var clientId = config.TwitchClientId.Trim();
-        var token = NormalizeToken(config.TwitchOAuthToken);
-        if (channel == _channel && clientId == _clientId && token == _token)
+        if (config.TwitchChannelNormalized == _channel
+            && config.TwitchClientId.Trim() == _clientId
+            && config.TwitchTokenNormalized == _token)
             return;
         Apply(config);
         _credentialsRejected = false;
@@ -48,15 +47,9 @@ public sealed class TwitchFollowPoller : IChatSource, IDisposable
 
     private void Apply(AppConfig config)
     {
-        _channel = config.TwitchChannel.Trim().TrimStart('#').ToLowerInvariant();
+        _channel = config.TwitchChannelNormalized;
         _clientId = config.TwitchClientId.Trim();
-        _token = NormalizeToken(config.TwitchOAuthToken);
-    }
-
-    private static string NormalizeToken(string token)
-    {
-        token = token.Trim();
-        return token.StartsWith("oauth:", StringComparison.OrdinalIgnoreCase) ? token["oauth:".Length..] : token;
+        _token = config.TwitchTokenNormalized;
     }
 
     public bool TryDrain(List<ChatMessage> into)
@@ -75,7 +68,12 @@ public sealed class TwitchFollowPoller : IChatSource, IDisposable
         using var http = new HttpClient { Timeout = TimeSpan.FromSeconds(15) };
         string? broadcasterId = null;
         var configuredFor = "";
-        HashSet<string>? known = null;
+        // New follower = followed_at newer than this watermark. A plain id-set diff
+        // over the newest-20 page would mis-fire when an unfollow shifts an old
+        // follower back into the window, and would grow without bound.
+        DateTimeOffset watermark = default;
+        var atWatermark = new HashSet<string>(); // ids sharing the watermark second, for tie-breaks
+        var baselined = false;
 
         while (_running)
         {
@@ -103,16 +101,16 @@ public sealed class TwitchFollowPoller : IChatSource, IDisposable
             {
                 configuredFor = key;
                 broadcasterId = null;
-                known = null;
-            }
-
-            try
-            {
+                baselined = false;
+                atWatermark.Clear();
                 http.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
                 if (http.DefaultRequestHeaders.Contains("Client-Id"))
                     http.DefaultRequestHeaders.Remove("Client-Id");
                 http.DefaultRequestHeaders.Add("Client-Id", clientId);
+            }
 
+            try
+            {
                 broadcasterId ??= LookUpUserId(http, channel);
                 if (broadcasterId == null)
                 {
@@ -122,14 +120,33 @@ public sealed class TwitchFollowPoller : IChatSource, IDisposable
                 }
 
                 var followers = FetchLatestFollowers(http, broadcasterId);
-                if (known == null)
+                if (!baselined)
                 {
-                    known = new HashSet<string>(followers.Select(f => f.Id)); // baseline, no alerts
+                    baselined = true; // baseline poll: record where "new" starts, no retro-alerts
+                    watermark = followers.Count > 0 ? followers.Max(f => f.FollowedAt) : DateTimeOffset.MinValue;
+                    atWatermark = new HashSet<string>(
+                        followers.Where(f => f.FollowedAt == watermark).Select(f => f.Id));
                 }
                 else
                 {
-                    foreach (var follower in followers.Where(f => known.Add(f.Id)))
+                    var fresh = followers
+                        .Where(f => f.FollowedAt > watermark
+                                    || (f.FollowedAt == watermark && !atWatermark.Contains(f.Id)))
+                        .OrderBy(f => f.FollowedAt)
+                        .ToList();
+                    foreach (var follower in fresh)
                         _incoming.Enqueue(new ChatMessage("tw", follower.Name, "just followed!", null, IsAlert: true));
+                    if (fresh.Count > 0)
+                    {
+                        var newest = fresh[^1].FollowedAt;
+                        if (newest > watermark)
+                        {
+                            watermark = newest;
+                            atWatermark.Clear();
+                        }
+                        foreach (var follower in fresh.Where(f => f.FollowedAt == watermark))
+                            atWatermark.Add(follower.Id);
+                    }
                 }
                 StatusLine = "follow alerts on";
             }
@@ -172,16 +189,21 @@ public sealed class TwitchFollowPoller : IChatSource, IDisposable
         return data.GetArrayLength() > 0 ? data[0].GetProperty("id").GetString() : null;
     }
 
-    private static List<(string Id, string Name)> FetchLatestFollowers(HttpClient http, string broadcasterId)
+    private static List<(string Id, string Name, DateTimeOffset FollowedAt)> FetchLatestFollowers(HttpClient http, string broadcasterId)
     {
         using var doc = GetJson(http, $"https://api.twitch.tv/helix/channels/followers?broadcaster_id={broadcasterId}&first=20");
-        var result = new List<(string, string)>();
+        var result = new List<(string, string, DateTimeOffset)>();
         foreach (var entry in doc.RootElement.GetProperty("data").EnumerateArray())
         {
             var id = entry.GetProperty("user_id").GetString();
             var name = entry.TryGetProperty("user_name", out var display) ? display.GetString() : null;
-            if (!string.IsNullOrEmpty(id))
-                result.Add((id, string.IsNullOrEmpty(name) ? id : name!));
+            if (string.IsNullOrEmpty(id))
+                continue;
+            var followedAt = entry.TryGetProperty("followed_at", out var at)
+                             && DateTimeOffset.TryParse(at.GetString(), null, System.Globalization.DateTimeStyles.RoundtripKind, out var parsed)
+                ? parsed
+                : DateTimeOffset.MinValue;
+            result.Add((id, string.IsNullOrEmpty(name) ? id : name!, followedAt));
         }
         return result;
     }

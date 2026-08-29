@@ -68,6 +68,24 @@ public sealed class AppConfig
     public bool HasTwitchLogin =>
         !string.IsNullOrWhiteSpace(TwitchUsername) && !string.IsNullOrWhiteSpace(TwitchOAuthToken);
 
+    /// <summary>Channel as IRC wants it: no '#', lowercase. The single normalization point.</summary>
+    [JsonIgnore]
+    public string TwitchChannelNormalized => TwitchChannel.Trim().TrimStart('#').ToLowerInvariant();
+
+    [JsonIgnore]
+    public string TwitchUsernameNormalized => TwitchUsername.Trim().ToLowerInvariant();
+
+    /// <summary>Token without the optional "oauth:" prefix (IRC adds it back, Helix must not see it).</summary>
+    [JsonIgnore]
+    public string TwitchTokenNormalized
+    {
+        get
+        {
+            var token = TwitchOAuthToken.Trim();
+            return token.StartsWith("oauth:", StringComparison.OrdinalIgnoreCase) ? token["oauth:".Length..] : token;
+        }
+    }
+
     [JsonIgnore]
     public string HandNormalized => Hand.Trim().ToLowerInvariant() == "left" ? "left" : "right";
 

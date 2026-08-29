@@ -11,8 +11,15 @@ namespace XiloOVR;
 /// </summary>
 public static class AutostartManager
 {
+    private static bool? _lastApplied;
+
     public static void Apply(bool enabled)
     {
+        // Called on every settings click / config reload; re-registering the manifest
+        // with SteamVR each time would be pointless cross-process work.
+        if (_lastApplied == enabled)
+            return;
+
         var applications = OpenVR.Applications;
         if (applications == null)
         {
@@ -35,14 +42,20 @@ public static class AutostartManager
 
         var current = applications.GetApplicationAutoLaunch(InputManager.AppKey);
         if (current == enabled)
+        {
+            _lastApplied = enabled;
             return;
+        }
 
         var error = applications.SetApplicationAutoLaunch(InputManager.AppKey, enabled);
         if (error != EVRApplicationError.None)
+        {
             Console.Error.WriteLine($"warning: SetApplicationAutoLaunch failed ({error})");
-        else
-            Console.WriteLine(enabled
-                ? "Autostart enabled: SteamVR will launch XiloOVR on startup."
-                : "Autostart disabled.");
+            return;
+        }
+        _lastApplied = enabled;
+        Console.WriteLine(enabled
+            ? "Autostart enabled: SteamVR will launch XiloOVR on startup."
+            : "Autostart disabled.");
     }
 }

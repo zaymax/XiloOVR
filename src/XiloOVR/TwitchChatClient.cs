@@ -51,6 +51,9 @@ public sealed class TwitchChatClient : IChatSource, IDisposable
     /// <summary>True when logged in with a real account and joined, i.e. sending will work.</summary>
     public bool CanSend => _loggedIn && _joined;
 
+    /// <summary>True when the server rejected the configured credentials (cleared on a config change).</summary>
+    public bool LoginFailed => _authFailed;
+
     public void Start(AppConfig config)
     {
         ApplyCredentials(config);
@@ -61,10 +64,9 @@ public sealed class TwitchChatClient : IChatSource, IDisposable
     /// <summary>Applies a config change; reconnects when the channel or login differs.</summary>
     public void Configure(AppConfig config)
     {
-        var channel = Normalize(config.TwitchChannel);
-        var username = config.TwitchUsername.Trim().ToLowerInvariant();
-        var token = NormalizeToken(config.TwitchOAuthToken);
-        if (channel == _channel && username == _username && token == _token)
+        if (config.TwitchChannelNormalized == _channel
+            && config.TwitchUsernameNormalized == _username
+            && config.TwitchTokenNormalized == _token)
             return;
         ApplyCredentials(config);
         _authFailed = false; // fresh credentials deserve a fresh attempt
@@ -73,9 +75,9 @@ public sealed class TwitchChatClient : IChatSource, IDisposable
 
     private void ApplyCredentials(AppConfig config)
     {
-        _channel = Normalize(config.TwitchChannel);
-        _username = config.TwitchUsername.Trim().ToLowerInvariant();
-        _token = NormalizeToken(config.TwitchOAuthToken);
+        _channel = config.TwitchChannelNormalized;
+        _username = config.TwitchUsernameNormalized;
+        _token = config.TwitchTokenNormalized;
     }
 
     /// <summary>Sends a chat message to the joined channel; returns false when not logged in.</summary>
@@ -118,13 +120,30 @@ public sealed class TwitchChatClient : IChatSource, IDisposable
         return any;
     }
 
-    private static string Normalize(string channel) =>
-        channel.Trim().TrimStart('#').ToLowerInvariant();
-
-    private static string NormalizeToken(string token)
+    /// <summary>
+    /// The IRC command of a raw line: the first token after the optional @tags and
+    /// :prefix. Substring checks on the whole line are spoofable by chat text; the
+    /// command position is not.
+    /// </summary>
+    private static string CommandOf(string line)
     {
-        token = token.Trim();
-        return token.StartsWith("oauth:", StringComparison.OrdinalIgnoreCase) ? token["oauth:".Length..] : token;
+        var rest = line;
+        if (rest.StartsWith('@'))
+        {
+            var space = rest.IndexOf(' ');
+            if (space < 0)
+                return "";
+            rest = rest[(space + 1)..];
+        }
+        if (rest.StartsWith(':'))
+        {
+            var space = rest.IndexOf(' ');
+            if (space < 0)
+                return "";
+            rest = rest[(space + 1)..];
+        }
+        var end = rest.IndexOf(' ');
+        return end < 0 ? rest : rest[..end];
     }
 
     private void RunLoop()
@@ -144,6 +163,7 @@ public sealed class TwitchChatClient : IChatSource, IDisposable
             }
 
             var useLogin = username.Length > 0 && token.Length > 0 && !_authFailed;
+            var authRejected = false;
             StatusLine = $"connecting to #{channel} ...";
             try
             {
@@ -153,6 +173,9 @@ public sealed class TwitchChatClient : IChatSource, IDisposable
                     _connection = connection;
                 }
                 connection.Connect(Host, Port);
+                // A stalled connection must fail a send quickly: SendMessage runs on the
+                // render thread and the default send timeout is infinite.
+                connection.SendTimeout = 5000;
                 using var tls = new SslStream(connection.GetStream());
                 tls.AuthenticateAsClient(Host);
                 using var reader = new StreamReader(tls, Encoding.UTF8);
@@ -160,17 +183,18 @@ public sealed class TwitchChatClient : IChatSource, IDisposable
                 lock (_gate)
                 {
                     _writer = writer;
-                }
-
-                writer.WriteLine("CAP REQ :twitch.tv/tags twitch.tv/commands"); // display-name/color + USERNOTICE
-                if (useLogin)
-                {
-                    writer.WriteLine($"PASS oauth:{token}");
-                    writer.WriteLine($"NICK {username}");
-                }
-                else
-                {
-                    writer.WriteLine($"NICK justinfan{Random.Shared.Next(10000, 99999)}"); // anonymous read-only login
+                    // All writes go through _gate: SendMessage writes from the render
+                    // thread while this thread answers PINGs on the same stream.
+                    writer.WriteLine("CAP REQ :twitch.tv/tags twitch.tv/commands"); // display-name/color + USERNOTICE
+                    if (useLogin)
+                    {
+                        writer.WriteLine($"PASS oauth:{token}");
+                        writer.WriteLine($"NICK {username}");
+                    }
+                    else
+                    {
+                        writer.WriteLine($"NICK justinfan{Random.Shared.Next(10000, 99999)}"); // anonymous read-only login
+                    }
                 }
 
                 string? line;
@@ -179,13 +203,21 @@ public sealed class TwitchChatClient : IChatSource, IDisposable
                 {
                     if (line.StartsWith("PING", StringComparison.Ordinal))
                     {
-                        writer.WriteLine("PONG :tmi.twitch.tv");
+                        lock (_gate)
+                        {
+                            writer.WriteLine("PONG :tmi.twitch.tv");
+                        }
                         continue;
                     }
-                    if (line.Contains(" 001 ", StringComparison.Ordinal)) // welcome → safe to join
+
+                    var command = CommandOf(line);
+                    if (command == "001") // welcome → safe to join
                     {
                         _loggedIn = useLogin;
-                        writer.WriteLine($"JOIN #{channel}");
+                        lock (_gate)
+                        {
+                            writer.WriteLine($"JOIN #{channel}");
+                        }
                         var who = useLogin ? $" as {username}" : " (read-only)";
                         Console.WriteLine($"Twitch chat: joined #{channel}{who}");
                         StatusLine = $"joined #{channel}{who}";
@@ -194,19 +226,20 @@ public sealed class TwitchChatClient : IChatSource, IDisposable
                         attempt = 0;
                         continue;
                     }
-                    if (IsLoginFailure(line))
+                    if (command == "NOTICE" && IsLoginFailure(line))
                     {
                         // Bad token: remember it so the retry loop does not hammer the login
                         // endpoint; fall back to anonymous reading until credentials change.
                         _authFailed = true;
+                        authRejected = true;
                         Console.Error.WriteLine("Twitch chat: login failed, check TwitchUsername/TwitchOAuthToken. Falling back to read-only.");
                         _incoming.Enqueue(new ChatMessage("sys", "XiloOVR", "Twitch login failed - reading anonymously", null));
                         break;
                     }
-                    if (line.Contains(" RECONNECT", StringComparison.Ordinal) && !line.Contains("PRIVMSG", StringComparison.Ordinal))
+                    if (command == "RECONNECT")
                         break; // server-initiated reconnect
 
-                    var message = ParseLine(line);
+                    var message = ParseLine(line, command);
                     if (message != null)
                         _incoming.Enqueue(message);
                 }
@@ -237,25 +270,31 @@ public sealed class TwitchChatClient : IChatSource, IDisposable
                 attempt = 0; // settings changed, reconnect right away
                 continue;
             }
-            if (_authFailed)
+            if (authRejected)
             {
-                StatusLine = $"login failed, retrying #{channel} read-only ...";
-                continue; // reconnect immediately, this time anonymously
+                // The server just rejected the login: rejoin read-only immediately, once.
+                // Later drops go through the normal backoff like any other reconnect.
+                StatusLine = $"login failed, joining #{channel} read-only ...";
+                attempt = 0;
+                continue;
             }
             attempt = Math.Min(attempt + 1, 6);
             Thread.Sleep(TimeSpan.FromSeconds(5 * attempt)); // 5 s .. 30 s backoff
         }
     }
 
+    /// <summary>Only called for NOTICE lines, so chat text cannot spoof these phrases.</summary>
     private static bool IsLoginFailure(string line) =>
-        line.Contains(" NOTICE ", StringComparison.Ordinal)
-        && (line.Contains("Login authentication failed", StringComparison.OrdinalIgnoreCase)
-            || line.Contains("Improperly formatted auth", StringComparison.OrdinalIgnoreCase)
-            || line.Contains("Login unsuccessful", StringComparison.OrdinalIgnoreCase));
+        line.Contains("Login authentication failed", StringComparison.OrdinalIgnoreCase)
+        || line.Contains("Improperly formatted auth", StringComparison.OrdinalIgnoreCase)
+        || line.Contains("Login unsuccessful", StringComparison.OrdinalIgnoreCase);
 
     /// <summary>Parses an IRCv3-tagged PRIVMSG or USERNOTICE line into a chat message, or null.</summary>
-    private static ChatMessage? ParseLine(string line)
+    private static ChatMessage? ParseLine(string line, string command)
     {
+        if (command is not ("PRIVMSG" or "USERNOTICE"))
+            return null;
+
         Dictionary<string, string>? tags = null;
         var rest = line;
 
@@ -271,11 +310,7 @@ public sealed class TwitchChatClient : IChatSource, IDisposable
         if (!rest.StartsWith(':'))
             return null;
 
-        if (rest.Contains(" PRIVMSG ", StringComparison.Ordinal))
-            return ParsePrivMsg(rest, tags);
-        if (rest.Contains(" USERNOTICE ", StringComparison.Ordinal))
-            return ParseUserNotice(tags);
-        return null;
+        return command == "PRIVMSG" ? ParsePrivMsg(rest, tags) : ParseUserNotice(tags);
     }
 
     private static Dictionary<string, string> ParseTags(string raw)

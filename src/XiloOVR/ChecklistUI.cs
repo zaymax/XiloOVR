@@ -162,10 +162,10 @@ public sealed class ChecklistUI
 
         foreach (var message in _drainBuffer)
         {
-            if (message.IsAlert)
+            // AlertsEnabled only controls the banner takeover; the event line always
+            // stays in the feed (a Super Chat is still a message).
+            if (message.IsAlert && _config.AlertsEnabled)
             {
-                if (!_config.AlertsEnabled)
-                    continue; // alerts switched off: no banner, no feed line
                 _alertBanner = message;
                 _alertBannerUntilMs = _clock.Elapsed.TotalMilliseconds + AlertBannerMs;
             }
@@ -265,12 +265,17 @@ public sealed class ChecklistUI
     {
         if (_twitch.CanSend)
         {
-            OpenKeyboard(KeyboardPurpose.Reply, $"Send to #{_config.TwitchChannel.Trim().TrimStart('#').ToLowerInvariant()}", "");
+            OpenKeyboard(KeyboardPurpose.Reply, $"Send to #{_config.TwitchChannelNormalized}", "");
             return;
         }
-        _footerFlash = _config.HasTwitchLogin
-            ? "connecting to Twitch, try again in a moment"
-            : "to reply, set Twitch account + token in the dashboard settings";
+        // Say what is actually missing instead of a generic "try again".
+        _footerFlash = string.IsNullOrWhiteSpace(_config.TwitchChannel)
+            ? "to reply, set a Twitch channel in the dashboard settings"
+            : _twitch.LoginFailed
+                ? "Twitch login failed - check the account and token in settings"
+                : _config.HasTwitchLogin
+                    ? "connecting to Twitch, try again in a moment"
+                    : "to reply, set Twitch account + token in the dashboard settings";
         _footerFlashUntilMs = _clock.Elapsed.TotalMilliseconds + FooterFlashMs;
         _dirty = true;
     }
@@ -303,8 +308,10 @@ public sealed class ChecklistUI
             {
                 case EVREventType.VREvent_KeyboardDone:
                     _keyboardOpen = false;
-                    var buffer = new StringBuilder(256);
-                    vrOverlay.GetKeyboardText(buffer, 256);
+                    // The buffer size is in UTF-8 bytes, not chars: 200 chars of
+                    // Cyrillic/CJK need up to ~800 bytes.
+                    var buffer = new StringBuilder(1024);
+                    vrOverlay.GetKeyboardText(buffer, 1024);
                     var text = buffer.ToString().Trim();
                     if (_keyboardPurpose == KeyboardPurpose.Reply)
                     {

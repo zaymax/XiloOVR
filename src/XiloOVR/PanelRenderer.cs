@@ -276,7 +276,7 @@ public static class PanelRenderer
         if (chat.Count == 0)
         {
             var target = !string.IsNullOrWhiteSpace(config.TwitchChannel)
-                ? $"twitch.tv/{config.TwitchChannel.Trim().TrimStart('#').ToLowerInvariant()}"
+                ? $"twitch.tv/{config.TwitchChannelNormalized}"
                 : "youtube live chat";
             g.DrawString($"connecting to {target} ...",
                 chatFont, Brushes.Gray, Margin, sectionTop + ChatPadding / 2f);
