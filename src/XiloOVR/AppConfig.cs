@@ -37,6 +37,24 @@ public sealed class AppConfig
     /// <summary>Twitch channel whose chat is shown at the bottom of the panel; empty disables the feed.</summary>
     public string TwitchChannel { get; set; } = "";
 
+    /// <summary>Twitch account name for sending messages; empty = anonymous read-only chat.</summary>
+    public string TwitchUsername { get; set; } = "";
+
+    /// <summary>OAuth token for TwitchUsername (chat:read + chat:edit scopes), with or without the "oauth:" prefix.</summary>
+    public string TwitchOAuthToken { get; set; } = "";
+
+    /// <summary>Twitch application client id; only needed for follow alerts (Helix API polling).</summary>
+    public string TwitchClientId { get; set; } = "";
+
+    /// <summary>Follow / sub / raid banners on the panel.</summary>
+    public bool AlertsEnabled { get; set; } = true;
+
+    /// <summary>YouTube channel handle (@name), channel/watch URL, or video id whose live chat merges into the feed.</summary>
+    public string YouTubeChannel { get; set; } = "";
+
+    /// <summary>Registers XiloOVR to launch automatically together with SteamVR.</summary>
+    public bool AutostartWithSteamVR { get; set; }
+
     /// <summary>How many chat lines are visible.</summary>
     public int ChatMessagesShown { get; set; } = 6;
 
@@ -44,7 +62,29 @@ public sealed class AppConfig
     public string AccentColorHex { get; set; } = "#34D399";
 
     [JsonIgnore]
-    public bool IsChatEnabled => !string.IsNullOrWhiteSpace(TwitchChannel);
+    public bool IsChatEnabled => !string.IsNullOrWhiteSpace(TwitchChannel) || !string.IsNullOrWhiteSpace(YouTubeChannel);
+
+    [JsonIgnore]
+    public bool HasTwitchLogin =>
+        !string.IsNullOrWhiteSpace(TwitchUsername) && !string.IsNullOrWhiteSpace(TwitchOAuthToken);
+
+    /// <summary>Channel as IRC wants it: no '#', lowercase. The single normalization point.</summary>
+    [JsonIgnore]
+    public string TwitchChannelNormalized => TwitchChannel.Trim().TrimStart('#').ToLowerInvariant();
+
+    [JsonIgnore]
+    public string TwitchUsernameNormalized => TwitchUsername.Trim().ToLowerInvariant();
+
+    /// <summary>Token without the optional "oauth:" prefix (IRC adds it back, Helix must not see it).</summary>
+    [JsonIgnore]
+    public string TwitchTokenNormalized
+    {
+        get
+        {
+            var token = TwitchOAuthToken.Trim();
+            return token.StartsWith("oauth:", StringComparison.OrdinalIgnoreCase) ? token["oauth:".Length..] : token;
+        }
+    }
 
     [JsonIgnore]
     public string HandNormalized => Hand.Trim().ToLowerInvariant() == "left" ? "left" : "right";
@@ -65,6 +105,12 @@ public sealed class AppConfig
         ToggleHoldMs = other.ToggleHoldMs;
         MaxLaserDistanceMeters = other.MaxLaserDistanceMeters;
         TwitchChannel = other.TwitchChannel;
+        TwitchUsername = other.TwitchUsername;
+        TwitchOAuthToken = other.TwitchOAuthToken;
+        TwitchClientId = other.TwitchClientId;
+        AlertsEnabled = other.AlertsEnabled;
+        YouTubeChannel = other.YouTubeChannel;
+        AutostartWithSteamVR = other.AutostartWithSteamVR;
         ChatMessagesShown = other.ChatMessagesShown;
         AccentColorHex = other.AccentColorHex;
     }

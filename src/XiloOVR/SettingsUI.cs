@@ -18,7 +18,7 @@ namespace XiloOVR;
 public sealed class SettingsUI : IDisposable
 {
     private const int PanelWidth = 1024;
-    private const int PanelHeight = 640;
+    private const int PanelHeight = 720;
     private const int Margin = 24;
     private const int RowHeight = 46;
     private const int ButtonSize = 36;
@@ -32,6 +32,8 @@ public sealed class SettingsUI : IDisposable
 
     private readonly AppConfig _config;
     private readonly TwitchChatClient _chat;
+    private readonly YouTubeChatClient _youtube;
+    private readonly TwitchFollowPoller _follows;
     private readonly Action _applyAndSave;
     private readonly List<(Rectangle Bounds, Action OnClick)> _widgets = new();
     private readonly System.Diagnostics.Stopwatch _refresh = System.Diagnostics.Stopwatch.StartNew();
@@ -40,6 +42,10 @@ public sealed class SettingsUI : IDisposable
     {
         Channel,
         AccentColor,
+        Username,
+        Token,
+        ClientId,
+        YouTubeChannel,
     }
 
     private ulong _handle = OpenVR.k_ulOverlayHandleInvalid;
@@ -49,10 +55,13 @@ public sealed class SettingsUI : IDisposable
     private bool _keyboardOpen;
     private KeyboardTarget _keyboardTarget;
 
-    public SettingsUI(AppConfig config, TwitchChatClient chat, Action applyAndSave)
+    public SettingsUI(AppConfig config, TwitchChatClient chat, YouTubeChatClient youtube,
+        TwitchFollowPoller follows, Action applyAndSave)
     {
         _config = config;
         _chat = chat;
+        _youtube = youtube;
+        _follows = follows;
         _applyAndSave = applyAndSave;
 
         var vrOverlay = OpenVR.Overlay;
@@ -160,7 +169,7 @@ public sealed class SettingsUI : IDisposable
             _handle,
             (int)EGamepadTextInputMode.k_EGamepadTextInputModeNormal,
             (int)EGamepadTextInputLineMode.k_EGamepadTextInputLineModeSingleLine,
-            0, description, 64, existing, 0);
+            0, description, 200, existing, 0);
         _keyboardOpen = error == EVROverlayError.None;
         if (!_keyboardOpen)
             Console.Error.WriteLine($"warning: could not open the VR keyboard: {error}");
@@ -169,8 +178,9 @@ public sealed class SettingsUI : IDisposable
     private void OnKeyboardDone()
     {
         _keyboardOpen = false;
-        var buffer = new StringBuilder(128);
-        OpenVR.Overlay.GetKeyboardText(buffer, 128);
+        // The buffer size is in UTF-8 bytes, not chars; leave generous headroom.
+        var buffer = new StringBuilder(1024);
+        OpenVR.Overlay.GetKeyboardText(buffer, 1024);
         var text = buffer.ToString().Trim();
         switch (_keyboardTarget)
         {
@@ -179,6 +189,21 @@ public sealed class SettingsUI : IDisposable
                 break;
             case KeyboardTarget.AccentColor:
                 _config.AccentColorHex = text.StartsWith('#') || text.Length == 0 ? text : "#" + text;
+                break;
+            case KeyboardTarget.Username:
+                _config.TwitchUsername = text;
+                break;
+            case KeyboardTarget.Token:
+                // The keyboard opens empty (the token is a secret we don't round-trip),
+                // so an empty confirm means "cancel", not "erase the stored token".
+                if (text.Length > 0)
+                    _config.TwitchOAuthToken = text;
+                break;
+            case KeyboardTarget.ClientId:
+                _config.TwitchClientId = text;
+                break;
+            case KeyboardTarget.YouTubeChannel:
+                _config.YouTubeChannel = text;
                 break;
         }
         _applyAndSave();
@@ -292,43 +317,60 @@ public sealed class SettingsUI : IDisposable
             y1 += RowHeight;
             TwoStateRow(leftX, y1, colWidth, "Show on start", "On", "Off", _config.StartVisible,
                 () => _config.StartVisible = true, () => _config.StartVisible = false);
+            y1 += RowHeight;
+            TwoStateRow(leftX, y1, colWidth, "Autostart with SteamVR", "On", "Off", _config.AutostartWithSteamVR,
+                () => _config.AutostartWithSteamVR = true, () => _config.AutostartWithSteamVR = false);
+            y1 += RowHeight;
+            g.DrawString("Accent color", labelFont, Brushes.LightGray, leftX, y1 + 10);
+            g.DrawString(_config.AccentColorHex, labelFont, accentBrush,
+                new RectangleF(leftX, y1 + 10, colWidth - 110, 26), rightAlign);
+            Button(new Rectangle(leftX + colWidth - 92, y1 + 4, 92, ButtonSize), "Edit",
+                () => OpenKeyboard(KeyboardTarget.AccentColor, "Accent color, HTML hex (e.g. #34D399)", _config.AccentColorHex));
 
-            // Right column: chat + roadmap.
+            // A value row: caption left, (possibly masked) value right, Edit button.
+            void EditRow(int x, ref int y, string caption, string value, KeyboardTarget target, string prompt, string existing)
+            {
+                g.DrawString(caption, labelFont, Brushes.LightGray, x, y + 10);
+                g.DrawString(value, labelFont, Brushes.White,
+                    new RectangleF(x, y + 10, colWidth - 110, 26), rightAlign);
+                Button(new Rectangle(x + colWidth - 92, y + 4, 92, ButtonSize), "Edit",
+                    () => OpenKeyboard(target, prompt, existing));
+                y += RowHeight;
+            }
+
+            // Right column: Twitch + YouTube.
             var rightX = 540;
             var y2 = 76;
-            g.DrawString("Twitch chat (read-only, no login needed)", sectionFont, accentBrush, rightX, y2);
+            g.DrawString("Twitch", sectionFont, accentBrush, rightX, y2);
             y2 += 34;
-            g.DrawString("Channel", labelFont, Brushes.LightGray, rightX, y2 + 10);
-            g.DrawString(_config.IsChatEnabled ? "#" + _config.TwitchChannel : "(off)", labelFont, Brushes.White,
-                new RectangleF(rightX, y2 + 10, colWidth - 110, 26), rightAlign);
-            Button(new Rectangle(rightX + colWidth - 92, y2 + 4, 92, ButtonSize), "Edit",
-                () => OpenKeyboard(KeyboardTarget.Channel, "Twitch channel name (empty = chat off)", _config.TwitchChannel));
-            y2 += RowHeight;
+            EditRow(rightX, ref y2, "Channel",
+                string.IsNullOrWhiteSpace(_config.TwitchChannel) ? "(off)" : "#" + _config.TwitchChannel,
+                KeyboardTarget.Channel, "Twitch channel name (empty = chat off)", _config.TwitchChannel);
             StepperRow(rightX, y2, colWidth, "Chat lines", _config.ChatMessagesShown.ToString(),
                 () => _config.ChatMessagesShown = (int)Step(_config.ChatMessagesShown, -1, 1, 20),
                 () => _config.ChatMessagesShown = (int)Step(_config.ChatMessagesShown, +1, 1, 20));
             y2 += RowHeight;
-            g.DrawString("Accent color", labelFont, Brushes.LightGray, rightX, y2 + 10);
-            g.DrawString(_config.AccentColorHex, labelFont, accentBrush,
-                new RectangleF(rightX, y2 + 10, colWidth - 110, 26), rightAlign);
-            Button(new Rectangle(rightX + colWidth - 92, y2 + 4, 92, ButtonSize), "Edit",
-                () => OpenKeyboard(KeyboardTarget.AccentColor, "Accent color, HTML hex (e.g. #34D399)", _config.AccentColorHex));
+            EditRow(rightX, ref y2, "Account (to send)",
+                string.IsNullOrWhiteSpace(_config.TwitchUsername) ? "(anonymous)" : _config.TwitchUsername,
+                KeyboardTarget.Username, "Twitch account name (empty = read-only)", _config.TwitchUsername);
+            EditRow(rightX, ref y2, "OAuth token", Mask(_config.TwitchOAuthToken),
+                KeyboardTarget.Token, "OAuth token, chat:read + chat:edit (empty keeps the current one)", "");
+            EditRow(rightX, ref y2, "Client id (follows)", Mask(_config.TwitchClientId),
+                KeyboardTarget.ClientId, "Twitch app client id, only for follow alerts", _config.TwitchClientId);
+            TwoStateRow(rightX, y2, colWidth, "Alerts (follow/sub/raid)", "On", "Off", _config.AlertsEnabled,
+                () => _config.AlertsEnabled = true, () => _config.AlertsEnabled = false);
             y2 += RowHeight;
-            g.DrawString($"Status: {_chat.StatusLine}", labelFont, Brushes.Gray, rightX, y2 + 8);
-            y2 += RowHeight + 8;
+            g.DrawString($"Status: {_chat.StatusLine}", smallFont, Brushes.Gray, rightX, y2 + 2);
+            g.DrawString(_follows.StatusLine == "off" ? "" : $"Follows: {_follows.StatusLine}",
+                smallFont, Brushes.Gray, rightX, y2 + 22);
+            y2 += 50;
 
-            g.DrawString("Coming in next versions", sectionFont, accentBrush, rightX, y2);
+            g.DrawString("YouTube chat", sectionFont, accentBrush, rightX, y2);
             y2 += 34;
-            foreach (var planned in new[]
-                     {
-                         "Twitch login + send chat replies from VR   (v0.6)",
-                         "Follow / sub / raid alerts on the panel   (v0.6)",
-                         "YouTube chat merged into the same feed   (v0.7)",
-                     })
-            {
-                g.DrawString("•  " + planned, labelFont, Brushes.DimGray, rightX, y2);
-                y2 += 30;
-            }
+            EditRow(rightX, ref y2, "Channel / video",
+                string.IsNullOrWhiteSpace(_config.YouTubeChannel) ? "(off)" : _config.YouTubeChannel,
+                KeyboardTarget.YouTubeChannel, "YouTube @handle, URL, or video id (empty = off)", _config.YouTubeChannel);
+            g.DrawString($"Status: {_youtube.StatusLine}", smallFont, Brushes.Gray, rightX, y2 + 2);
 
             g.DrawString("Changes apply instantly and save to config.json next to the exe; editing the file by hand still works.",
                 smallFont, Brushes.Gray, Margin, PanelHeight - 30);
@@ -339,6 +381,15 @@ public sealed class SettingsUI : IDisposable
 
     private static float Step(float value, float delta, float min, float max) =>
         Math.Clamp((float)Math.Round(value + delta, 3), min, max);
+
+    /// <summary>Secrets stay recognizable in the UI but never fully readable.</summary>
+    private static string Mask(string secret)
+    {
+        secret = secret.Trim();
+        if (secret.Length == 0)
+            return "(not set)";
+        return secret.Length <= 4 ? "••••" : "•••" + secret[^4..];
+    }
 
     private void UploadThumbnail()
     {

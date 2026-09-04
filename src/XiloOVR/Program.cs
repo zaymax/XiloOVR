@@ -79,14 +79,20 @@ internal static class Program
         var wrist = new WristAttachment(overlay, config);
         var input = new InputManager();
         input.Initialize();
+        AutostartManager.Apply(config.AutostartWithSteamVR);
 
         using var chat = new TwitchChatClient();
-        chat.Start(config.TwitchChannel);
+        chat.Start(config);
+        using var youtube = new YouTubeChatClient();
+        youtube.Start(config.YouTubeChannel);
+        using var follows = new TwitchFollowPoller();
+        follows.Start(config);
         if (!config.IsChatEnabled)
-            Console.WriteLine("Twitch chat disabled (set the channel in the dashboard settings tab or config.json).");
+            Console.WriteLine("Chat disabled (set a Twitch or YouTube channel in the dashboard settings tab or config.json).");
 
         using var laser = new LaserBeam();
-        var ui = new ChecklistUI(overlay, config, checklist, chat, laser);
+        var chatSources = new IChatSource[] { chat, youtube, follows };
+        var ui = new ChecklistUI(overlay, config, checklist, chat, chatSources, laser);
 
         // The dashboard settings tab edits the same AppConfig instance and calls back here.
         void ApplyAndSave()
@@ -94,13 +100,16 @@ internal static class Program
             OpenVR.Overlay.SetOverlayWidthInMeters(overlay.Handle, config.WidthMeters);
             wrist.Reconfigure();
             ui.MarkDirty();
-            chat.SetChannel(config.TwitchChannel);
+            chat.Configure(config);
+            youtube.SetChannel(config.YouTubeChannel);
+            follows.Configure(config);
+            AutostartManager.Apply(config.AutostartWithSteamVR);
             // Our own write must not bounce back through the file watcher (it would blink the panel).
             Volatile.Write(ref _suppressConfigReloadUntilTicks, DateTime.UtcNow.AddSeconds(1.5).Ticks);
             ConfigLoader.Save(config, configPath);
         }
 
-        using var settings = new SettingsUI(config, chat, ApplyAndSave);
+        using var settings = new SettingsUI(config, chat, youtube, follows, ApplyAndSave);
 
         using var configWatcher = WatchConfig(configPath);
 
@@ -117,7 +126,10 @@ internal static class Program
             {
                 _configChanged = false;
                 ReloadConfig(configPath, config, overlay, wrist, ui);
-                chat.SetChannel(config.TwitchChannel);
+                chat.Configure(config);
+                youtube.SetChannel(config.YouTubeChannel);
+                follows.Configure(config);
+                AutostartManager.Apply(config.AutostartWithSteamVR);
                 settings.MarkDirty();
             }
 

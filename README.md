@@ -36,21 +36,28 @@ The app is a pure `IVROverlay` client on top of the SteamVR compositor:
   `data/items_database.json` are watched and hot-reloaded; edit them on the
   desktop and the wrist panel updates without restarting
 - [x] **Twitch chat feed** — last messages of your channel's chat at the
-  bottom of the panel (read-only, anonymous IRC — no OAuth, no tokens);
-  usernames keep their Twitch colors, each line carries a source badge so
-  YouTube can merge into the same feed later
+  bottom of the panel; works anonymously (no OAuth, no tokens) out of the box;
+  usernames keep their Twitch colors, each line carries a source badge
+- [x] **Twitch login + replies from VR** — set your account name and an OAuth
+  token and the chat becomes two-way: click the chat feed with the laser and
+  type a reply on the VR keyboard
+- [x] **Follow / sub / raid alerts** — subs, resubs, gift subs and raids pop
+  an accent-colored banner on the panel and stay highlighted in the feed;
+  follow alerts too, when a Twitch app client id + token are configured
+- [x] **YouTube live chat** — point `YouTubeChannel` at your @handle (or a
+  video URL/id) and your YouTube live chat merges into the same feed with a
+  red `Y` badge; Super Chats arrive as alerts; no API key or login needed
 - [x] **Dashboard settings** — a XiloOVR tab in the SteamVR dashboard: hand,
-  panel offsets/size with live preview, Twitch channel via the VR keyboard,
-  chat feed length and connection status; changes apply instantly and persist
-  to `config.json`
+  panel offsets/size with live preview, Twitch/YouTube channels and login via
+  the VR keyboard, alerts and autostart toggles, chat feed length and
+  connection status; changes apply instantly and persist to `config.json`
 - [x] **Background app** — no console window, no desktop windows: an **XO**
   tray icon (open data folder / log / quit), errors as dialogs, all
   diagnostics in `xiloovr.log` next to the exe
+- [x] **Autostart with SteamVR** — one toggle registers the app in SteamVR's
+  own startup list, so the panel is just there whenever VR is
 - [x] **Theming** — one accent color across panel, settings, laser and tray
   (`AccentColorHex` in config or the dashboard tab), green by default
-- [ ] Next: Twitch login + sending chat replies from VR (v0.6), follow/sub
-  alerts on the panel (v0.6), YouTube chat merged into the same feed (v0.7),
-  autostart with SteamVR
 
 Out of scope by design: memory reading, DLL injection, traffic parsing, OCR.
 
@@ -111,6 +118,7 @@ the other, **free hand** is the pointer.
 | −1 collected | **grip** (Touch/Vive) or **A** (Index) on the free hand | |
 | Add items | trigger the **+** cell → type a search on the VR keyboard | in the picker: trigger adds / raises needed, grip lowers / removes; `←` returns |
 | Scroll | trigger the **▲ ▼** buttons in the footer | appear when the list overflows |
+| Reply to chat | trigger the **chat feed** → type on the VR keyboard | needs the Twitch account + token (see [Stream chat](#stream-chat)) |
 
 Rebind anytime in **SteamVR → Settings → Controllers → Manage Controller
 Bindings → XiloOVR** (the app registers itself with SteamVR on
@@ -122,10 +130,11 @@ highlight.
 
 Open the SteamVR dashboard (menu button) and pick the **XiloOVR** tab: hand,
 panel position/rotation/width with ± buttons (the wrist panel moves live as
-you click), show-on-start, Twitch channel via SteamVR's VR keyboard, chat
-feed length and connection status. Every change applies immediately and is
-written to `config.json`, so the file below stays the single source of truth.
-The tab also lists features planned for the next versions.
+you click), show-on-start, autostart with SteamVR, accent color, Twitch
+channel/account/token, alerts toggle and YouTube channel via SteamVR's VR
+keyboard, chat feed length and connection status. Every change applies
+immediately and is written to `config.json`, so the file below stays the
+single source of truth.
 
 ## Configuration
 
@@ -144,6 +153,12 @@ on save — tune the offsets live while wearing the headset:
   "ToggleHoldMs": 0,
   "MaxLaserDistanceMeters": 2,
   "TwitchChannel": "",
+  "TwitchUsername": "",
+  "TwitchOAuthToken": "",
+  "TwitchClientId": "",
+  "AlertsEnabled": true,
+  "YouTubeChannel": "",
+  "AutostartWithSteamVR": false,
   "ChatMessagesShown": 6,
   "AccentColorHex": "#34D399"
 }
@@ -159,7 +174,13 @@ on save — tune the offsets live while wearing the headset:
 | `StartVisible` | show the panel right after launch |
 | `ToggleHoldMs` | 0 = toggle on click; > 0 = button must be held that long |
 | `MaxLaserDistanceMeters` | laser clicks farther than this are ignored |
-| `TwitchChannel` | your channel name (e.g. `"zaymax"`); empty = no chat section |
+| `TwitchChannel` | your channel name (e.g. `"zaymax"`); empty = no Twitch chat |
+| `TwitchUsername` | account to send replies as; empty = anonymous read-only chat |
+| `TwitchOAuthToken` | OAuth token for that account (`chat:read` + `chat:edit`), `oauth:` prefix optional |
+| `TwitchClientId` | Twitch app client id — only needed for **follow** alerts |
+| `AlertsEnabled` | follow/sub/raid banners on the panel |
+| `YouTubeChannel` | `@handle`, channel/watch URL, or video id; empty = no YouTube chat |
+| `AutostartWithSteamVR` | register in SteamVR's startup list so the overlay launches with VR |
 | `ChatMessagesShown` | chat lines at the bottom of the panel (1–20) |
 | `AccentColorHex` | accent color of the panel, settings, laser and tray (HTML hex) |
 
@@ -208,15 +229,40 @@ of the grid.
 Set `"TwitchChannel": "yourchannel"` in `config.json` (hot-reloads, so you can
 do it mid-session) and the bottom of the panel becomes a live chat feed:
 newest messages at the bottom, usernames in their Twitch colors, a purple `T`
-badge per message (the badge marks the platform — YouTube will join the same
-feed later). Reading is anonymous over Twitch IRC: no login, no OAuth token,
-nothing to configure besides the channel name.
+badge per message. Reading is anonymous over Twitch IRC: no login, no OAuth
+token, nothing to configure besides the channel name.
+
+**Sending replies from VR.** Fill in `TwitchUsername` and `TwitchOAuthToken`
+(or use the dashboard tab) and the client logs in properly instead of
+anonymously. Point the laser at the chat feed and pull the trigger — the VR
+keyboard opens and your message goes to the channel. The token is a regular
+Twitch OAuth user token with the `chat:read` + `chat:edit` scopes: generate
+one with any token tool (e.g. https://twitchtokengenerator.com) or your own
+registered app at https://dev.twitch.tv/console; both `oauth:abc...` and bare
+`abc...` forms work. Treat the token like a password — it lives in plain text
+in `config.json`.
+
+**Alerts.** With the chat connected, subs, resubs, gift subs and raids show up
+automatically (they arrive over the same IRC connection): an accent-colored
+banner takes over the panel header for a few seconds and the event line stays
+highlighted with a ★ badge in the feed. Follows are the exception — Twitch
+only exposes them via the Helix API, so follow alerts additionally need
+`TwitchClientId` (the client id of the app your token was issued by) and a
+token with the `moderator:read:followers` scope. `AlertsEnabled: false`
+switches all banners off.
+
+**YouTube.** Set `"YouTubeChannel": "@yourhandle"` (a channel URL, watch URL
+or bare video id also work) and, whenever you're live, the stream's chat
+merges into the same feed with a red `Y` badge. This uses the same public
+endpoints as the youtube.com chat page — no API key, no login. Super Chats
+arrive as alert banners. If the channel isn't live, the client just retries
+every minute until it finds a stream.
 
 The chat section takes `ChatMessagesShown × 22 + 12` pixels from the grid
 area; with the default 520-pixel panel and 6 chat lines about two icon rows
 remain. Raise `PanelPixelHeight` to ~660–700 if you want three icon rows plus
-chat. The client reconnects automatically with backoff if the connection
-drops, and switches channels on the fly when you edit the config.
+chat. Both clients reconnect automatically with backoff if the connection
+drops, and switch channels on the fly when you edit the config.
 
 ## What you should see (verification checklist)
 
@@ -240,9 +286,20 @@ drops, and switches channels on the fly when you edit the config.
    `Twitch chat: joined #yourchannel`, the feed appears at the panel bottom,
    and messages typed in your chat show up within a second.
 10. Open the SteamVR dashboard → **XiloOVR** tab: hand/offset/width buttons
-    move the wrist panel live; `Edit` opens the VR keyboard for the channel
-    and the accent color.
-11. Quit SteamVR → the tracker prints `SteamVR is shutting down` and exits.
+    move the wrist panel live; `Edit` opens the VR keyboard for the channels,
+    account, token and the accent color.
+11. With `TwitchUsername` + `TwitchOAuthToken` set, the log records
+    `joined #channel as yourname`; point the laser at the chat feed, pull the
+    trigger, type a message — it appears in your Twitch chat.
+12. Have someone subscribe/raid (or follow, with client id configured) — an
+    accent banner replaces the panel header for ~8 s and the line stays
+    highlighted in the feed.
+13. Set `YouTubeChannel` while live on YouTube — the log records
+    `YouTube chat: joined live chat`, and YouTube messages show with a `Y`
+    badge.
+14. Toggle **Autostart with SteamVR** on, quit SteamVR entirely and start it
+    again — XiloOVR comes up on its own.
+15. Quit SteamVR → the tracker prints `SteamVR is shutting down` and exits.
 
 ## Project layout
 
@@ -257,7 +314,10 @@ src/XiloOVR/
   Theme.cs             accent color parsing (AccentColorHex)
   IconCache.cs         item icon bitmaps, reloaded when data changes
   InputManager.cs      SteamVR Input: app/action manifests, toggle/+1/−1
-  TwitchChatClient.cs  anonymous read-only Twitch IRC client (background thread)
+  TwitchChatClient.cs  Twitch IRC client: anonymous or logged-in, send, sub/raid alerts
+  TwitchFollowPoller.cs  follow alerts via the Helix followers endpoint (optional)
+  YouTubeChatClient.cs youtube live chat client (public innertube endpoints)
+  AutostartManager.cs  registers/unregisters the app in SteamVR's startup list
   SettingsUI.cs        SteamVR dashboard settings tab (laser buttons + VR keyboard)
   ChecklistData.cs     active checklist model, persistence, file watchers
   ItemDatabase.cs      game-item reference loading
