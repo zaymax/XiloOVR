@@ -363,7 +363,7 @@ public sealed class SettingsUI : IDisposable
             y2 += 32;
             foreach (var planned in new[]
                      {
-                         "Glance to show + hold-to-interact lock",
+                         "Glance to show + two-button interact toggle",
                          "Alert sounds, viewer count in the header",
                          "Checklist presets - saved loadouts",
                      })

@@ -59,12 +59,14 @@ The app is a pure `IVROverlay` client on top of the SteamVR compositor:
 - [x] **Theming** — one accent color across panel, settings, laser and tray
   (`AccentColorHex` in config or the dashboard tab), green by default
 - [ ] **Next (v0.8)** — *glance-to-show*: the panel appears when you turn
-  your wrist toward your face, no button needed; *interaction lock*: the
-  panel stays read-only (chat + checklist hints) until you hold the two
-  buttons next to the stick on the watch hand, which arms the pointer laser
-  on the free hand — accidental two-button chords mid-fight are practically
-  impossible, so you configure everything before a raid and only glance at
-  it during one; alert sounds; viewer count + stream uptime in the header;
+  your wrist toward your face, no button needed; *interaction toggle*: the
+  panel stays read-only (chat + checklist hints) until you press the two
+  buttons next to the stick on the watch hand **at the same time** — that
+  simultaneous press toggles interaction mode and arms the pointer laser
+  on the free hand (pressing both again disarms it) — an accidental
+  simultaneous two-button press mid-fight is practically impossible, so
+  you configure everything before a raid and only glance at the panel
+  during one; alert sounds; viewer count + stream uptime in the header;
   checklist presets (saved loadouts per raid)
 
 Out of scope by design: memory reading, DLL injection, traffic parsing, OCR.
