@@ -1,5 +1,4 @@
 #nullable enable
-using System.Collections.Concurrent;
 using System.Text;
 using System.Text.Json;
 using System.Text.RegularExpressions;
@@ -15,57 +14,37 @@ namespace XiloOVR;
 /// Messages are tagged "yt" and merge into the same feed as Twitch; Super Chats
 /// become alert messages.
 /// </summary>
-public sealed partial class YouTubeChatClient : IChatSource, IDisposable
+public sealed partial class YouTubeChatClient : ChatSourceBase
 {
     private const int ResolveRetryMs = 60_000; // channel set but no live stream found
     private const int DefaultPollMs = 4000;
 
-    private readonly ConcurrentQueue<ChatMessage> _incoming = new();
-
-    private volatile bool _running = true;
     private volatile string _channel = "";
     private string? _announcedVideoId;
-    private Thread? _thread;
 
-    /// <summary>Human-readable connection state for the settings panel.</summary>
-    public string StatusLine { get; private set; } = "off";
+    public override string Name => "YouTube";
 
-    public void Start(string channel)
+    protected override string ThreadName => "youtube-chat";
+
+    protected override bool ApplyConfig(AppConfig config)
     {
-        _channel = channel.Trim();
-        _thread = new Thread(RunLoop) { IsBackground = true, Name = "youtube-chat" };
-        _thread.Start();
+        var channel = config.YouTubeChannel.Trim();
+        if (channel == _channel)
+            return false;
+        _channel = channel; // the poll loop notices and re-resolves
+        return true;
     }
 
-    /// <summary>Applies a config change; reconnects when the channel differs.</summary>
-    public void SetChannel(string channel)
-    {
-        channel = channel.Trim();
-        if (channel != _channel)
-            _channel = channel; // the poll loop notices and re-resolves
-    }
-
-    public bool TryDrain(List<ChatMessage> into)
-    {
-        var any = false;
-        while (_incoming.TryDequeue(out var message))
-        {
-            into.Add(message);
-            any = true;
-        }
-        return any;
-    }
-
-    private void RunLoop()
+    protected override void RunLoop()
     {
         using var http = CreateHttpClient();
-        while (_running)
+        while (Running)
         {
             var channel = _channel;
             if (channel.Length == 0)
             {
                 StatusLine = "off";
-                Sleep(500, channel);
+                SleepInterruptible(500);
                 continue;
             }
 
@@ -76,7 +55,7 @@ public sealed partial class YouTubeChatClient : IChatSource, IDisposable
                 if (videoId == null)
                 {
                     StatusLine = "no live stream found, retrying ...";
-                    Sleep(ResolveRetryMs, channel);
+                    SleepInterruptible(ResolveRetryMs, () => channel == _channel);
                     continue;
                 }
 
@@ -85,7 +64,7 @@ public sealed partial class YouTubeChatClient : IChatSource, IDisposable
                 if (session == null)
                 {
                     StatusLine = "live chat unavailable, retrying ...";
-                    Sleep(ResolveRetryMs, channel);
+                    SleepInterruptible(ResolveRetryMs, () => channel == _channel);
                     continue;
                 }
 
@@ -94,20 +73,20 @@ public sealed partial class YouTubeChatClient : IChatSource, IDisposable
                 if (videoId != _announcedVideoId) // a reconnect to the same stream stays quiet
                 {
                     _announcedVideoId = videoId;
-                    _incoming.Enqueue(new ChatMessage("sys", "XiloOVR", "joined YouTube live chat", null));
+                    Enqueue(new ChatMessage("sys", "XiloOVR", "joined YouTube live chat", null));
                 }
                 PollChat(http, session, channel);
                 // The just-ended stream can keep resolving for a while; don't hammer
                 // YouTube re-opening a dead chat in a tight loop.
-                Sleep(ResolveRetryMs, channel);
+                SleepInterruptible(ResolveRetryMs, () => channel == _channel);
             }
             catch (Exception ex)
             {
-                if (_running && channel == _channel)
+                if (Running && channel == _channel)
                 {
                     Console.Error.WriteLine($"YouTube chat: {ex.Message}");
                     StatusLine = "disconnected, retrying ...";
-                    Sleep(15_000, channel);
+                    SleepInterruptible(15_000, () => channel == _channel);
                 }
             }
         }
@@ -119,7 +98,7 @@ public sealed partial class YouTubeChatClient : IChatSource, IDisposable
     private void PollChat(HttpClient http, ChatSession session, string channel)
     {
         var continuation = session.Continuation;
-        while (_running && channel == _channel)
+        while (Running && channel == _channel)
         {
             var url = $"https://www.youtube.com/youtubei/v1/live_chat/get_live_chat?key={session.ApiKey}&prettyPrint=false";
             var body = JsonSerializer.Serialize(new
@@ -149,7 +128,7 @@ public sealed partial class YouTubeChatClient : IChatSource, IDisposable
                 {
                     var message = ParseAction(action);
                     if (message != null)
-                        _incoming.Enqueue(message);
+                        Enqueue(message);
                 }
             }
 
@@ -167,7 +146,7 @@ public sealed partial class YouTubeChatClient : IChatSource, IDisposable
                     break;
                 }
             }
-            Sleep(timeoutMs, channel);
+            SleepInterruptible(timeoutMs, () => channel == _channel);
         }
     }
 
@@ -379,13 +358,6 @@ public sealed partial class YouTubeChatClient : IChatSource, IDisposable
         return http;
     }
 
-    /// <summary>Interruptible sleep so channel changes and shutdown apply quickly.</summary>
-    private void Sleep(int totalMs, string channel)
-    {
-        for (var waited = 0; waited < totalMs && _running && channel == _channel; waited += 250)
-            Thread.Sleep(250);
-    }
-
     [GeneratedRegex(@"(?:youtube\.com/watch\?v=|youtu\.be/|youtube\.com/live/)([A-Za-z0-9_-]{11})")]
     private static partial Regex VideoIdRegex();
 
@@ -403,10 +375,4 @@ public sealed partial class YouTubeChatClient : IChatSource, IDisposable
 
     [GeneratedRegex(""""INNERTUBE_CONTEXT_CLIENT_VERSION":"([^"]+)"""")]
     private static partial Regex ClientVersionRegex();
-
-    public void Dispose()
-    {
-        _running = false;
-        _thread?.Join(1000);
-    }
 }

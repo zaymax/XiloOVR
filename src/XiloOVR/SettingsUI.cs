@@ -31,9 +31,7 @@ public sealed class SettingsUI : IDisposable
     private static readonly Color HoverFill = Color.FromArgb(70, 90, 200, 250);
 
     private readonly AppConfig _config;
-    private readonly TwitchChatClient _chat;
-    private readonly YouTubeChatClient _youtube;
-    private readonly TwitchFollowPoller _follows;
+    private readonly IReadOnlyList<IChatSource> _chatSources;
     private readonly Action _applyAndSave;
     private readonly List<(Rectangle Bounds, Action OnClick)> _widgets = new();
     private readonly System.Diagnostics.Stopwatch _refresh = System.Diagnostics.Stopwatch.StartNew();
@@ -55,13 +53,10 @@ public sealed class SettingsUI : IDisposable
     private bool _keyboardOpen;
     private KeyboardTarget _keyboardTarget;
 
-    public SettingsUI(AppConfig config, TwitchChatClient chat, YouTubeChatClient youtube,
-        TwitchFollowPoller follows, Action applyAndSave)
+    public SettingsUI(AppConfig config, IReadOnlyList<IChatSource> chatSources, Action applyAndSave)
     {
         _config = config;
-        _chat = chat;
-        _youtube = youtube;
-        _follows = follows;
+        _chatSources = chatSources;
         _applyAndSave = applyAndSave;
 
         var vrOverlay = OpenVR.Overlay;
@@ -165,23 +160,13 @@ public sealed class SettingsUI : IDisposable
         if (_keyboardOpen)
             return;
         _keyboardTarget = target;
-        var error = OpenVR.Overlay.ShowKeyboardForOverlay(
-            _handle,
-            (int)EGamepadTextInputMode.k_EGamepadTextInputModeNormal,
-            (int)EGamepadTextInputLineMode.k_EGamepadTextInputLineModeSingleLine,
-            0, description, 200, existing, 0);
-        _keyboardOpen = error == EVROverlayError.None;
-        if (!_keyboardOpen)
-            Console.Error.WriteLine($"warning: could not open the VR keyboard: {error}");
+        _keyboardOpen = VrKeyboard.Open(_handle, description, existing);
     }
 
     private void OnKeyboardDone()
     {
         _keyboardOpen = false;
-        // The buffer size is in UTF-8 bytes, not chars; leave generous headroom.
-        var buffer = new StringBuilder(1024);
-        OpenVR.Overlay.GetKeyboardText(buffer, 1024);
-        var text = buffer.ToString().Trim();
+        var text = VrKeyboard.ReadText();
         switch (_keyboardTarget)
         {
             case KeyboardTarget.Channel:
@@ -360,8 +345,9 @@ public sealed class SettingsUI : IDisposable
             TwoStateRow(rightX, y2, colWidth, "Alerts (follow/sub/raid)", "On", "Off", _config.AlertsEnabled,
                 () => _config.AlertsEnabled = true, () => _config.AlertsEnabled = false);
             y2 += RowHeight;
-            g.DrawString($"Status: {_chat.StatusLine}", smallFont, Brushes.Gray, rightX, y2 + 2);
-            g.DrawString(_follows.StatusLine == "off" ? "" : $"Follows: {_follows.StatusLine}",
+            g.DrawString($"Status: {Status("Twitch")}", smallFont, Brushes.Gray, rightX, y2 + 2);
+            var followsStatus = Status("Follows");
+            g.DrawString(followsStatus == "off" ? "" : $"Follows: {followsStatus}",
                 smallFont, Brushes.Gray, rightX, y2 + 22);
             y2 += 50;
 
@@ -370,7 +356,21 @@ public sealed class SettingsUI : IDisposable
             EditRow(rightX, ref y2, "Channel / video",
                 string.IsNullOrWhiteSpace(_config.YouTubeChannel) ? "(off)" : _config.YouTubeChannel,
                 KeyboardTarget.YouTubeChannel, "YouTube @handle, URL, or video id (empty = off)", _config.YouTubeChannel);
-            g.DrawString($"Status: {_youtube.StatusLine}", smallFont, Brushes.Gray, rightX, y2 + 2);
+            g.DrawString($"Status: {Status("YouTube")}", smallFont, Brushes.Gray, rightX, y2 + 2);
+            y2 += 40;
+
+            g.DrawString("Coming in v0.8", sectionFont, accentBrush, rightX, y2);
+            y2 += 32;
+            foreach (var planned in new[]
+                     {
+                         "Glance to show + hold-to-interact lock",
+                         "Alert sounds, viewer count in the header",
+                         "Checklist presets - saved loadouts",
+                     })
+            {
+                g.DrawString("•  " + planned, labelFont, Brushes.DimGray, rightX, y2);
+                y2 += 26;
+            }
 
             g.DrawString("Changes apply instantly and save to config.json next to the exe; editing the file by hand still works.",
                 smallFont, Brushes.Gray, Margin, PanelHeight - 30);
@@ -381,6 +381,16 @@ public sealed class SettingsUI : IDisposable
 
     private static float Step(float value, float delta, float min, float max) =>
         Math.Clamp((float)Math.Round(value + delta, 3), min, max);
+
+    private string Status(string sourceName)
+    {
+        foreach (var source in _chatSources)
+        {
+            if (source.Name == sourceName)
+                return source.StatusLine;
+        }
+        return "off";
+    }
 
     /// <summary>Secrets stay recognizable in the UI but never fully readable.</summary>
     private static string Mask(string secret)

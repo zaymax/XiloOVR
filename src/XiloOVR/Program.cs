@@ -82,34 +82,39 @@ internal static class Program
         AutostartManager.Apply(config.AutostartWithSteamVR);
 
         using var chat = new TwitchChatClient();
-        chat.Start(config);
         using var youtube = new YouTubeChatClient();
-        youtube.Start(config.YouTubeChannel);
         using var follows = new TwitchFollowPoller();
-        follows.Start(config);
+        var chatSources = new IChatSource[] { chat, youtube, follows };
+        foreach (var source in chatSources)
+            source.Start(config);
         if (!config.IsChatEnabled)
             Console.WriteLine("Chat disabled (set a Twitch or YouTube channel in the dashboard settings tab or config.json).");
 
         using var laser = new LaserBeam();
-        var chatSources = new IChatSource[] { chat, youtube, follows };
         var ui = new ChecklistUI(overlay, config, checklist, chat, chatSources, laser);
 
-        // The dashboard settings tab edits the same AppConfig instance and calls back here.
-        void ApplyAndSave()
+        // One place that pushes the current AppConfig into everything it drives; used by
+        // the dashboard settings tab and by config.json hot-reloads alike.
+        void ApplyRuntimeConfig()
         {
             OpenVR.Overlay.SetOverlayWidthInMeters(overlay.Handle, config.WidthMeters);
             wrist.Reconfigure();
             ui.MarkDirty();
-            chat.Configure(config);
-            youtube.SetChannel(config.YouTubeChannel);
-            follows.Configure(config);
+            foreach (var source in chatSources)
+                source.Configure(config);
             AutostartManager.Apply(config.AutostartWithSteamVR);
+        }
+
+        // The dashboard settings tab edits the same AppConfig instance and calls back here.
+        void ApplyAndSave()
+        {
+            ApplyRuntimeConfig();
             // Our own write must not bounce back through the file watcher (it would blink the panel).
             Volatile.Write(ref _suppressConfigReloadUntilTicks, DateTime.UtcNow.AddSeconds(1.5).Ticks);
             ConfigLoader.Save(config, configPath);
         }
 
-        using var settings = new SettingsUI(config, chat, youtube, follows, ApplyAndSave);
+        using var settings = new SettingsUI(config, chatSources, ApplyAndSave);
 
         using var configWatcher = WatchConfig(configPath);
 
@@ -125,11 +130,8 @@ internal static class Program
             if (_configChanged)
             {
                 _configChanged = false;
-                ReloadConfig(configPath, config, overlay, wrist, ui);
-                chat.Configure(config);
-                youtube.SetChannel(config.YouTubeChannel);
-                follows.Configure(config);
-                AutostartManager.Apply(config.AutostartWithSteamVR);
+                if (TryReloadConfig(configPath, config))
+                    ApplyRuntimeConfig();
                 settings.MarkDirty();
             }
 
@@ -248,21 +250,21 @@ internal static class Program
         }
     }
 
-    private static void ReloadConfig(string path, AppConfig config, OverlayManager overlay, WristAttachment wrist, ChecklistUI ui)
+    /// <summary>Loads config.json onto the shared instance; false when the read failed.</summary>
+    private static bool TryReloadConfig(string path, AppConfig config)
     {
         try
         {
             var fresh = ConfigLoader.LoadOrCreate(path);
             config.CopyFrom(fresh);
-            OpenVR.Overlay.SetOverlayWidthInMeters(overlay.Handle, config.WidthMeters);
-            wrist.Reconfigure();
-            ui.MarkDirty();
-            Console.WriteLine("config.json reloaded, panel offset/size applied live.");
+            Console.WriteLine("config.json reloaded, settings applied live.");
+            return true;
         }
         catch (Exception ex)
         {
             // Likely caught the editor mid-write; keep current settings, the next event retries.
             Console.Error.WriteLine($"warning: config reload failed, keeping previous settings: {ex.Message}");
+            return false;
         }
     }
 }

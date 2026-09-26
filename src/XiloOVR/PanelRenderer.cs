@@ -30,6 +30,9 @@ public sealed class PanelView
 
     /// <summary>Active follow/sub/raid alert; drawn as a banner over the header while set.</summary>
     public ChatMessage? Alert;
+
+    /// <summary>Shown in the chat section while no messages have arrived yet.</summary>
+    public string ChatPlaceholder = "connecting ...";
 }
 
 /// <summary>
@@ -88,6 +91,20 @@ public static class PanelRenderer
     private static Rectangle DownArrowRect(AppConfig config) =>
         new(config.PanelPixelWidth - Margin - ArrowWidth, config.PanelPixelHeight - FooterHeight + 3, ArrowWidth, FooterHeight - 6);
 
+    /// <summary>
+    /// Where the chat feed lives on the panel; shared by HitTest and the renderer so the
+    /// clickable and painted areas cannot drift apart. Empty when chat is disabled.
+    /// </summary>
+    public static Rectangle ChatSectionRect(AppConfig config)
+    {
+        var sectionHeight = ChatSectionHeight(config);
+        return new Rectangle(
+            Margin,
+            config.PanelPixelHeight - FooterHeight - sectionHeight,
+            config.PanelPixelWidth - 2 * Margin,
+            sectionHeight);
+    }
+
     /// <summary>Maps a panel pixel to a cell index, the scroll arrows, the chat feed, or -1.</summary>
     public static int HitTest(AppConfig config, int cellCount, int x, int y)
     {
@@ -97,13 +114,9 @@ public static class PanelRenderer
             return HitDown;
 
         // Clicking the chat feed opens the reply keyboard (when logged in to Twitch).
-        var chatHeight = ChatSectionHeight(config);
-        if (chatHeight > 0)
-        {
-            var chatTop = config.PanelPixelHeight - FooterHeight - chatHeight;
-            if (y >= chatTop && y < config.PanelPixelHeight - FooterHeight && x >= Margin && x <= config.PanelPixelWidth - Margin)
-                return HitChat;
-        }
+        var chatRect = ChatSectionRect(config);
+        if (chatRect.Height > 0 && chatRect.Contains(x, y))
+            return HitChat;
 
         var cell = CellSize(config);
         var stride = cell + CellGap;
@@ -234,7 +247,7 @@ public static class PanelRenderer
             }
 
             if (config.IsChatEnabled)
-                DrawChatSection(g, config, view.Chat, width, height, smallFont, dividerPen, accent);
+                DrawChatSection(g, config, view, width, height, smallFont, dividerPen, accent);
 
             // Footer: text left, scroll arrows right.
             g.DrawString(view.FooterText, smallFont, Brushes.Gray, Margin, height - FooterHeight + 8);
@@ -258,10 +271,11 @@ public static class PanelRenderer
         return ToRgba(bitmap);
     }
 
-    private static void DrawChatSection(Graphics g, AppConfig config, IReadOnlyList<ChatMessage> chat,
+    private static void DrawChatSection(Graphics g, AppConfig config, PanelView view,
         int width, int height, Font smallFont, Pen dividerPen, Color accent)
     {
-        var sectionTop = height - FooterHeight - ChatSectionHeight(config);
+        var chat = view.Chat;
+        var sectionTop = ChatSectionRect(config).Top;
         g.DrawLine(dividerPen, Margin, sectionTop, width - Margin, sectionTop);
 
         using var chatFont = new Font("Segoe UI", 17, FontStyle.Regular, GraphicsUnit.Pixel);
@@ -275,11 +289,10 @@ public static class PanelRenderer
 
         if (chat.Count == 0)
         {
-            var target = !string.IsNullOrWhiteSpace(config.TwitchChannel)
-                ? $"twitch.tv/{config.TwitchChannelNormalized}"
-                : "youtube live chat";
-            g.DrawString($"connecting to {target} ...",
-                chatFont, Brushes.Gray, Margin, sectionTop + ChatPadding / 2f);
+            // The sources report their own state ("Twitch: joined #x", "YouTube: no live
+            // stream found") so the panel never guesses which platform it is waiting for.
+            g.DrawString(view.ChatPlaceholder, chatFont, Brushes.Gray,
+                new RectangleF(Margin, sectionTop + ChatPadding / 2f, width - 2 * Margin, ChatLineHeight), singleLine);
             return;
         }
 

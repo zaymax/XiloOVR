@@ -58,6 +58,14 @@ The app is a pure `IVROverlay` client on top of the SteamVR compositor:
   own startup list, so the panel is just there whenever VR is
 - [x] **Theming** — one accent color across panel, settings, laser and tray
   (`AccentColorHex` in config or the dashboard tab), green by default
+- [ ] **Next (v0.8)** — *glance-to-show*: the panel appears when you turn
+  your wrist toward your face, no button needed; *interaction lock*: the
+  panel stays read-only (chat + checklist hints) until you hold the two
+  buttons next to the stick on the watch hand, which arms the pointer laser
+  on the free hand — accidental two-button chords mid-fight are practically
+  impossible, so you configure everything before a raid and only glance at
+  it during one; alert sounds; viewer count + stream uptime in the header;
+  checklist presets (saved loadouts per raid)
 
 Out of scope by design: memory reading, DLL injection, traffic parsing, OCR.
 
@@ -134,7 +142,7 @@ you click), show-on-start, autostart with SteamVR, accent color, Twitch
 channel/account/token, alerts toggle and YouTube channel via SteamVR's VR
 keyboard, chat feed length and connection status. Every change applies
 immediately and is written to `config.json`, so the file below stays the
-single source of truth.
+single source of truth. The tab also lists what is planned for v0.8.
 
 ## Configuration
 

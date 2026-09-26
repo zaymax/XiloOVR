@@ -1,5 +1,4 @@
 #nullable enable
-using System.Collections.Concurrent;
 using System.Net.Http.Headers;
 using System.Text.Json;
 
@@ -12,58 +11,34 @@ namespace XiloOVR;
 /// scope, so this runs only when TwitchClientId and TwitchOAuthToken are both set.
 /// The first successful poll is the baseline; alerts fire for followers after that.
 /// </summary>
-public sealed class TwitchFollowPoller : IChatSource, IDisposable
+public sealed class TwitchFollowPoller : ChatSourceBase
 {
     private const int PollIntervalMs = 20_000;
 
-    private readonly ConcurrentQueue<ChatMessage> _incoming = new();
-
-    private volatile bool _running = true;
     private volatile string _channel = "";
     private volatile string _clientId = "";
     private volatile string _token = "";
     private volatile bool _credentialsRejected;
-    private Thread? _thread;
 
-    /// <summary>Human-readable state for the settings panel.</summary>
-    public string StatusLine { get; private set; } = "off";
+    public override string Name => "Follows";
 
-    public void Start(AppConfig config)
-    {
-        Apply(config);
-        _thread = new Thread(RunLoop) { IsBackground = true, Name = "twitch-follows" };
-        _thread.Start();
-    }
+    protected override string ThreadName => "twitch-follows";
 
-    public void Configure(AppConfig config)
+    protected override bool ApplyConfig(AppConfig config)
     {
         if (config.TwitchChannelNormalized == _channel
             && config.TwitchClientId.Trim() == _clientId
             && config.TwitchTokenNormalized == _token)
-            return;
-        Apply(config);
-        _credentialsRejected = false;
-    }
-
-    private void Apply(AppConfig config)
-    {
+            return false;
         _channel = config.TwitchChannelNormalized;
         _clientId = config.TwitchClientId.Trim();
         _token = config.TwitchTokenNormalized;
+        return true;
     }
 
-    public bool TryDrain(List<ChatMessage> into)
-    {
-        var any = false;
-        while (_incoming.TryDequeue(out var message))
-        {
-            into.Add(message);
-            any = true;
-        }
-        return any;
-    }
+    protected override void OnReconfigured() => _credentialsRejected = false;
 
-    private void RunLoop()
+    protected override void RunLoop()
     {
         using var http = new HttpClient { Timeout = TimeSpan.FromSeconds(15) };
         string? broadcasterId = null;
@@ -75,25 +50,26 @@ public sealed class TwitchFollowPoller : IChatSource, IDisposable
         var atWatermark = new HashSet<string>(); // ids sharing the watermark second, for tie-breaks
         var baselined = false;
 
-        while (_running)
+        while (Running)
         {
             var channel = _channel;
             var clientId = _clientId;
             var token = _token;
             var key = $"{channel}\n{clientId}\n{token}";
+            bool SettingsUnchanged() => channel == _channel && clientId == _clientId && token == _token;
 
             if (channel.Length == 0 || clientId.Length == 0 || token.Length == 0)
             {
                 StatusLine = clientId.Length == 0 && channel.Length > 0
                     ? "follows off (set TwitchClientId + token)"
                     : "off";
-                Sleep(1000);
+                SleepInterruptible(1000, SettingsUnchanged);
                 continue;
             }
             if (_credentialsRejected)
             {
                 StatusLine = "follows: token rejected (needs moderator:read:followers)";
-                Sleep(5000);
+                SleepInterruptible(5000, SettingsUnchanged);
                 continue;
             }
 
@@ -115,7 +91,7 @@ public sealed class TwitchFollowPoller : IChatSource, IDisposable
                 if (broadcasterId == null)
                 {
                     StatusLine = $"follows: channel '{channel}' not found";
-                    Sleep(60_000);
+                    SleepInterruptible(60_000, SettingsUnchanged);
                     continue;
                 }
 
@@ -135,7 +111,7 @@ public sealed class TwitchFollowPoller : IChatSource, IDisposable
                         .OrderBy(f => f.FollowedAt)
                         .ToList();
                     foreach (var follower in fresh)
-                        _incoming.Enqueue(new ChatMessage("tw", follower.Name, "just followed!", null, IsAlert: true));
+                        Enqueue(new ChatMessage("tw", follower.Name, "just followed!", null, IsAlert: true));
                     if (fresh.Count > 0)
                     {
                         var newest = fresh[^1].FollowedAt;
@@ -164,21 +140,7 @@ public sealed class TwitchFollowPoller : IChatSource, IDisposable
                 StatusLine = "follows: retrying ...";
             }
 
-            Sleep(PollIntervalMs);
-        }
-    }
-
-    /// <summary>Interruptible sleep so config changes and shutdown apply quickly.</summary>
-    private void Sleep(int totalMs)
-    {
-        var channel = _channel;
-        var clientId = _clientId;
-        var token = _token;
-        for (var waited = 0; waited < totalMs && _running; waited += 250)
-        {
-            if (channel != _channel || clientId != _clientId || token != _token)
-                return;
-            Thread.Sleep(250);
+            SleepInterruptible(PollIntervalMs, SettingsUnchanged);
         }
     }
 
@@ -215,9 +177,4 @@ public sealed class TwitchFollowPoller : IChatSource, IDisposable
         return JsonDocument.Parse(response.Content.ReadAsStringAsync().GetAwaiter().GetResult());
     }
 
-    public void Dispose()
-    {
-        _running = false;
-        _thread?.Join(1000);
-    }
 }

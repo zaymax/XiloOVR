@@ -1,5 +1,4 @@
 #nullable enable
-using System.Collections.Concurrent;
 using System.Net.Security;
 using System.Net.Sockets;
 using System.Text;
@@ -7,34 +6,18 @@ using System.Text;
 namespace XiloOVR;
 
 /// <summary>
-/// One chat message; Source is a short platform tag ("tw", "yt", "sys").
-/// IsAlert marks follow/sub/raid/superchat events that get banner treatment.
-/// </summary>
-public sealed record ChatMessage(string Source, string Author, string Text, string? ColorHex, bool IsAlert = false);
-
-/// <summary>Anything that produces chat messages for the panel feed.</summary>
-public interface IChatSource
-{
-    bool TryDrain(List<ChatMessage> into);
-}
-
-/// <summary>
 /// Twitch chat client over IRC. Reads anonymously (justinfan login) when no credentials
 /// are set; with TwitchUsername + TwitchOAuthToken it logs in properly and can send
 /// messages. Requests the tags + commands capabilities, so besides PRIVMSG it also sees
 /// USERNOTICE events (subs, resubs, gift subs, raids) which become alert messages.
-/// Runs on a background thread, reconnects with backoff, and hands parsed messages to
-/// the UI thread through a queue.
 /// </summary>
-public sealed class TwitchChatClient : IChatSource, IDisposable
+public sealed class TwitchChatClient : ChatSourceBase
 {
     private const string Host = "irc.chat.twitch.tv";
     private const int Port = 6697;
 
-    private readonly ConcurrentQueue<ChatMessage> _incoming = new();
     private readonly object _gate = new();
 
-    private volatile bool _running = true;
     private volatile string _channel = "";
     private volatile string _username = "";
     private volatile string _token = "";
@@ -43,10 +26,10 @@ public sealed class TwitchChatClient : IChatSource, IDisposable
     private volatile bool _loggedIn;
     private TcpClient? _connection;
     private StreamWriter? _writer;
-    private Thread? _thread;
 
-    /// <summary>Human-readable connection state for the settings panel.</summary>
-    public string StatusLine { get; private set; } = "off";
+    public override string Name => "Twitch";
+
+    protected override string ThreadName => "twitch-chat";
 
     /// <summary>True when logged in with a real account and joined, i.e. sending will work.</summary>
     public bool CanSend => _loggedIn && _joined;
@@ -54,30 +37,22 @@ public sealed class TwitchChatClient : IChatSource, IDisposable
     /// <summary>True when the server rejected the configured credentials (cleared on a config change).</summary>
     public bool LoginFailed => _authFailed;
 
-    public void Start(AppConfig config)
-    {
-        ApplyCredentials(config);
-        _thread = new Thread(RunLoop) { IsBackground = true, Name = "twitch-chat" };
-        _thread.Start();
-    }
-
-    /// <summary>Applies a config change; reconnects when the channel or login differs.</summary>
-    public void Configure(AppConfig config)
+    protected override bool ApplyConfig(AppConfig config)
     {
         if (config.TwitchChannelNormalized == _channel
             && config.TwitchUsernameNormalized == _username
             && config.TwitchTokenNormalized == _token)
-            return;
-        ApplyCredentials(config);
-        _authFailed = false; // fresh credentials deserve a fresh attempt
-        CloseConnection(); // wakes the thread out of its blocking read
-    }
-
-    private void ApplyCredentials(AppConfig config)
-    {
+            return false;
         _channel = config.TwitchChannelNormalized;
         _username = config.TwitchUsernameNormalized;
         _token = config.TwitchTokenNormalized;
+        return true;
+    }
+
+    protected override void OnReconfigured()
+    {
+        _authFailed = false; // fresh credentials deserve a fresh attempt
+        CloseConnection(); // wakes the thread out of its blocking read
     }
 
     /// <summary>Sends a chat message to the joined channel; returns false when not logged in.</summary>
@@ -104,20 +79,8 @@ public sealed class TwitchChatClient : IChatSource, IDisposable
             }
         }
         // Twitch does not echo our own messages back; show it in the feed ourselves.
-        _incoming.Enqueue(new ChatMessage("tw", _username, text, null));
+        Enqueue(new ChatMessage("tw", _username, text, null));
         return true;
-    }
-
-    /// <summary>Moves queued messages into the list; returns true when anything arrived.</summary>
-    public bool TryDrain(List<ChatMessage> into)
-    {
-        var any = false;
-        while (_incoming.TryDequeue(out var message))
-        {
-            into.Add(message);
-            any = true;
-        }
-        return any;
     }
 
     /// <summary>
@@ -146,10 +109,10 @@ public sealed class TwitchChatClient : IChatSource, IDisposable
         return end < 0 ? rest : rest[..end];
     }
 
-    private void RunLoop()
+    protected override void RunLoop()
     {
         var attempt = 0;
-        while (_running)
+        while (Running)
         {
             var channel = _channel;
             var username = _username;
@@ -158,7 +121,7 @@ public sealed class TwitchChatClient : IChatSource, IDisposable
             {
                 StatusLine = "off";
                 _joined = false;
-                Thread.Sleep(500); // chat disabled; wait for a config change
+                SleepInterruptible(500); // chat disabled; wait for a config change
                 continue;
             }
 
@@ -198,7 +161,7 @@ public sealed class TwitchChatClient : IChatSource, IDisposable
                 }
 
                 string? line;
-                while (_running && channel == _channel && username == _username && token == _token
+                while (Running && channel == _channel && username == _username && token == _token
                        && (line = reader.ReadLine()) != null)
                 {
                     if (line.StartsWith("PING", StringComparison.Ordinal))
@@ -222,7 +185,7 @@ public sealed class TwitchChatClient : IChatSource, IDisposable
                         Console.WriteLine($"Twitch chat: joined #{channel}{who}");
                         StatusLine = $"joined #{channel}{who}";
                         _joined = true;
-                        _incoming.Enqueue(new ChatMessage("sys", "XiloOVR", $"joined #{channel}{who}", null));
+                        Enqueue(new ChatMessage("sys", "XiloOVR", $"joined #{channel}{who}", null));
                         attempt = 0;
                         continue;
                     }
@@ -233,7 +196,7 @@ public sealed class TwitchChatClient : IChatSource, IDisposable
                         _authFailed = true;
                         authRejected = true;
                         Console.Error.WriteLine("Twitch chat: login failed, check TwitchUsername/TwitchOAuthToken. Falling back to read-only.");
-                        _incoming.Enqueue(new ChatMessage("sys", "XiloOVR", "Twitch login failed - reading anonymously", null));
+                        Enqueue(new ChatMessage("sys", "XiloOVR", "Twitch login failed - reading anonymously", null));
                         break;
                     }
                     if (command == "RECONNECT")
@@ -241,12 +204,12 @@ public sealed class TwitchChatClient : IChatSource, IDisposable
 
                     var message = ParseLine(line, command);
                     if (message != null)
-                        _incoming.Enqueue(message);
+                        Enqueue(message);
                 }
             }
             catch (Exception ex)
             {
-                if (_running && channel == _channel)
+                if (Running && channel == _channel)
                 {
                     Console.Error.WriteLine($"Twitch chat: connection lost ({ex.Message})");
                     StatusLine = $"disconnected from #{channel}, retrying ...";
@@ -263,7 +226,7 @@ public sealed class TwitchChatClient : IChatSource, IDisposable
                 }
             }
 
-            if (!_running)
+            if (!Running)
                 break;
             if (channel != _channel || username != _username || token != _token)
             {
@@ -279,7 +242,8 @@ public sealed class TwitchChatClient : IChatSource, IDisposable
                 continue;
             }
             attempt = Math.Min(attempt + 1, 6);
-            Thread.Sleep(TimeSpan.FromSeconds(5 * attempt)); // 5 s .. 30 s backoff
+            SleepInterruptible(5000 * attempt, // 5 s .. 30 s backoff, cut short by config changes
+                () => channel == _channel && username == _username && token == _token);
         }
     }
 
@@ -419,10 +383,5 @@ public sealed class TwitchChatClient : IChatSource, IDisposable
         }
     }
 
-    public void Dispose()
-    {
-        _running = false;
-        CloseConnection();
-        _thread?.Join(1000);
-    }
+    protected override void OnDisposing() => CloseConnection();
 }

@@ -287,14 +287,7 @@ public sealed class ChecklistUI
         if (_keyboardOpen)
             return;
         _keyboardPurpose = purpose;
-        var error = OpenVR.Overlay.ShowKeyboardForOverlay(
-            _overlay.Handle,
-            (int)EGamepadTextInputMode.k_EGamepadTextInputModeNormal,
-            (int)EGamepadTextInputLineMode.k_EGamepadTextInputLineModeSingleLine,
-            0, description, 200, existing, 0);
-        _keyboardOpen = error == EVROverlayError.None;
-        if (!_keyboardOpen)
-            Console.Error.WriteLine($"warning: could not open the VR keyboard: {error}");
+        _keyboardOpen = VrKeyboard.Open(_overlay.Handle, description, existing);
     }
 
     private void PollOverlayEvents()
@@ -308,11 +301,7 @@ public sealed class ChecklistUI
             {
                 case EVREventType.VREvent_KeyboardDone:
                     _keyboardOpen = false;
-                    // The buffer size is in UTF-8 bytes, not chars: 200 chars of
-                    // Cyrillic/CJK need up to ~800 bytes.
-                    var buffer = new StringBuilder(1024);
-                    vrOverlay.GetKeyboardText(buffer, 1024);
-                    var text = buffer.ToString().Trim();
+                    var text = VrKeyboard.ReadText();
                     if (_keyboardPurpose == KeyboardPurpose.Reply)
                     {
                         if (text.Length > 0 && !_twitch.SendMessage(text))
@@ -417,7 +406,22 @@ public sealed class ChecklistUI
             FooterText = _footerFlash ?? footer,
             Chat = _chat,
             Alert = _alertBanner,
+            ChatPlaceholder = BuildChatPlaceholder(),
         };
+    }
+
+    /// <summary>Shown in the empty chat section: the live status of every active source.</summary>
+    private string BuildChatPlaceholder()
+    {
+        string? parts = null;
+        foreach (var source in _chatSources)
+        {
+            if (source.StatusLine == "off")
+                continue;
+            var part = $"{source.Name}: {source.StatusLine}";
+            parts = parts == null ? part : $"{parts}   {part}";
+        }
+        return parts ?? "chat off";
     }
 
     private static void ClampScroll(ref int scrollRows, int itemCount, int slots)
