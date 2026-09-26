@@ -32,6 +32,9 @@ public sealed class WristAttachment
 
     public bool Present => _deviceIndex != OpenVR.k_unTrackedDeviceIndexInvalid;
 
+    /// <summary>Tracked-device index of the watch-hand controller (invalid while absent).</summary>
+    public uint DeviceIndex => _deviceIndex;
+
     /// <summary>Re-reads hand/offset from config and forces a re-attach on the next update.</summary>
     public void Reconfigure()
     {

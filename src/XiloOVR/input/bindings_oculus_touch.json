@@ -6,35 +6,72 @@
           "path": "/user/hand/left/input/x",
           "mode": "button",
           "inputs": {
-            "click": { "output": "/actions/main/in/toggle_panel" }
+            "click": {
+              "output": "/actions/main/in/toggle_panel"
+            }
+          }
+        },
+        {
+          "path": "/user/hand/left/input/y",
+          "mode": "button",
+          "inputs": {
+            "click": {
+              "output": "/actions/main/in/interact_toggle"
+            }
+          }
+        },
+        {
+          "path": "/user/hand/right/input/a",
+          "mode": "button",
+          "inputs": {
+            "click": {
+              "output": "/actions/main/in/toggle_panel"
+            }
+          }
+        },
+        {
+          "path": "/user/hand/right/input/b",
+          "mode": "button",
+          "inputs": {
+            "click": {
+              "output": "/actions/main/in/interact_toggle"
+            }
           }
         },
         {
           "path": "/user/hand/left/input/trigger",
           "mode": "trigger",
           "inputs": {
-            "click": { "output": "/actions/main/in/interact" }
+            "click": {
+              "output": "/actions/main/in/interact"
+            }
           }
         },
         {
           "path": "/user/hand/right/input/trigger",
           "mode": "trigger",
           "inputs": {
-            "click": { "output": "/actions/main/in/interact" }
+            "click": {
+              "output": "/actions/main/in/interact"
+            }
           }
         },
         {
           "path": "/user/hand/left/input/grip",
           "mode": "trigger",
           "inputs": {
-            "click": { "output": "/actions/main/in/decrement" }
+            "click": {
+              "output": "/actions/main/in/decrement"
+            }
           }
         },
         {
           "path": "/user/hand/right/input/grip",
           "mode": "trigger",
           "inputs": {
-            "click": { "output": "/actions/main/in/decrement" }
+            "click": {
+              "output": "/actions/main/in/decrement"
+            }
           }
         }
       ]

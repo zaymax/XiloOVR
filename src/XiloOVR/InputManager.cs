@@ -16,18 +16,25 @@ public sealed class InputManager
 {
     public const string AppKey = "zaymax.xiloovr";
 
+    /// <summary>Both chord buttons must go down within this window to count as "at the same time".</summary>
+    public const int ChordWindowMs = 200;
+
     private readonly Stopwatch _clock = Stopwatch.StartNew();
 
     private ulong _actionSet = OpenVR.k_ulInvalidActionSetHandle;
     private ulong _toggleAction;
     private ulong _interactAction;
     private ulong _decrementAction;
+    private ulong _interactToggleAction;
     private ulong _leftHandSource;
     private ulong _rightHandSource;
     private VRActiveActionSet_t[]? _activeSets;
 
     private double _togglePressStartMs = -1;
     private bool _toggleFired;
+    private double _chordFirstEdgeMs = double.NegativeInfinity;
+    private double _chordSecondEdgeMs = double.NegativeInfinity;
+    private bool _chordFired;
 
     public bool Available { get; private set; }
 
@@ -60,6 +67,7 @@ public sealed class InputManager
             !TryGetHandle(input.GetActionHandle("/actions/main/in/toggle_panel", ref _toggleAction), "toggle action") ||
             !TryGetHandle(input.GetActionHandle("/actions/main/in/interact", ref _interactAction), "interact action") ||
             !TryGetHandle(input.GetActionHandle("/actions/main/in/decrement", ref _decrementAction), "decrement action") ||
+            !TryGetHandle(input.GetActionHandle("/actions/main/in/interact_toggle", ref _interactToggleAction), "interact-toggle action") ||
             !TryGetHandle(input.GetInputSourceHandle("/user/hand/left", ref _leftHandSource), "left hand source") ||
             !TryGetHandle(input.GetInputSourceHandle("/user/hand/right", ref _rightHandSource), "right hand source"))
         {
@@ -87,13 +95,16 @@ public sealed class InputManager
             Console.Error.WriteLine($"warning: UpdateActionState failed ({error})");
     }
 
-    /// <summary>Fires exactly once when toggle_panel has been held for holdMs (either hand).</summary>
-    public bool PollToggleLongPress(int holdMs)
+    /// <summary>
+    /// Fires exactly once when toggle_panel has been held for holdMs on the watch hand
+    /// (the same hand that carries the chord, so the free hand's buttons stay game-only).
+    /// </summary>
+    public bool PollToggleLongPress(int holdMs, bool leftHand)
     {
         if (!Available)
             return false;
 
-        ReadDigital(_toggleAction, OpenVR.k_ulInvalidInputValueHandle, out var pressed, out _);
+        ReadDigital(_toggleAction, leftHand ? _leftHandSource : _rightHandSource, out var pressed, out _);
         var now = _clock.Elapsed.TotalMilliseconds;
 
         if (!pressed)
@@ -108,6 +119,46 @@ public sealed class InputManager
             return false;
 
         _toggleFired = true;
+        return true;
+    }
+
+    /// <summary>
+    /// Swallows the show/hide press currently in flight: the toggle button is one half of
+    /// the interaction chord, so a chord must not also flip the panel.
+    /// </summary>
+    public void CancelPendingToggle() => _toggleFired = true;
+
+    /// <summary>
+    /// Fires exactly once when toggle_panel and interact_toggle are pressed at the same
+    /// time (both rising edges within ChordWindowMs) on the given hand; the chord cannot
+    /// fire again until both buttons are released.
+    /// </summary>
+    public bool PollInteractChord(bool leftHand)
+    {
+        if (!Available)
+            return false;
+
+        var source = leftHand ? _leftHandSource : _rightHandSource;
+        ReadDigital(_toggleAction, source, out var firstPressed, out var firstChanged);
+        ReadDigital(_interactToggleAction, source, out var secondPressed, out var secondChanged);
+        var now = _clock.Elapsed.TotalMilliseconds;
+
+        if (firstPressed && firstChanged)
+            _chordFirstEdgeMs = now;
+        if (secondPressed && secondChanged)
+            _chordSecondEdgeMs = now;
+
+        if (!firstPressed && !secondPressed)
+        {
+            _chordFired = false;
+            return false;
+        }
+        if (_chordFired || !firstPressed || !secondPressed)
+            return false;
+        if (Math.Abs(_chordFirstEdgeMs - _chordSecondEdgeMs) > ChordWindowMs)
+            return false;
+
+        _chordFired = true;
         return true;
     }
 

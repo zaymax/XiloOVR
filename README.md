@@ -58,16 +58,19 @@ The app is a pure `IVROverlay` client on top of the SteamVR compositor:
   own startup list, so the panel is just there whenever VR is
 - [x] **Theming** — one accent color across panel, settings, laser and tray
   (`AccentColorHex` in config or the dashboard tab), green by default
-- [ ] **Next (v0.8)** — *glance-to-show*: the panel appears when you turn
-  your wrist toward your face, no button needed; *interaction toggle*: the
-  panel stays read-only (chat + checklist hints) until you press the two
-  buttons next to the stick on the watch hand **at the same time** — that
-  simultaneous press toggles interaction mode and arms the pointer laser
-  on the free hand (pressing both again disarms it) — an accidental
-  simultaneous two-button press mid-fight is practically impossible, so
-  you configure everything before a raid and only glance at the panel
-  during one; alert sounds; viewer count + stream uptime in the header;
-  checklist presets (saved loadouts per raid)
+- [x] **Glance to show** — optional mode (`PanelShowMode: "glance"`): the
+  panel appears when you turn your wrist toward your face, like checking a
+  watch, and hides when you drop the arm; no button, with angle hysteresis
+  so it doesn't flicker
+- [x] **Two-button interaction toggle** — optional (`InteractionToggle`):
+  the panel stays read-only (chat, alerts, checklist at a glance) until you
+  press **both buttons next to the stick on the watch hand at the same
+  time** — that chord arms the pointer laser, pressing it again (or hiding
+  the panel) disarms it; accidental simultaneous presses mid-fight are
+  practically impossible, so you configure before a raid and only glance
+  during one
+- [ ] **Next (v0.8)** — alert sounds; viewer count + stream uptime in the
+  header; checklist presets (saved loadouts per raid)
 
 Out of scope by design: memory reading, DLL injection, traffic parsing, OCR.
 
@@ -123,7 +126,9 @@ the other, **free hand** is the pointer.
 
 | Action | Default binding | Notes |
 | --- | --- | --- |
-| Show / hide panel | **X click** (Touch, left hand), **B** (Index), **menu** (Vive) | set `ToggleHoldMs` > 0 to require a long-press |
+| Show / hide panel | **X click** (Touch, left hand) / **A** (Touch, right hand), **B** (Index), **menu** (Vive) — watch hand | set `ToggleHoldMs` > 0 to require a long-press; unused in glance mode |
+| Glance to show | turn the wrist toward your face | `PanelShowMode: "glance"` — no button at all |
+| Arm / disarm the laser | **X + Y** (Touch left) / **A + B** (Touch right) / **B + A** (Index) pressed **together** on the watch hand | only with `InteractionToggle: true`; while disarmed the panel is read-only. Vive wands have a single button — leave the toggle off there |
 | +1 collected | **trigger** on the free hand while pointing at an item cell | the laser beam shows where you point |
 | −1 collected | **grip** (Touch/Vive) or **A** (Index) on the free hand | |
 | Add items | trigger the **+** cell → type a search on the VR keyboard | in the picker: trigger adds / raises needed, grip lowers / removes; `←` returns |
@@ -160,6 +165,10 @@ on save — tune the offsets live while wearing the headset:
   "PanelPixelWidth": 600,
   "PanelPixelHeight": 520,
   "StartVisible": true,
+  "PanelShowMode": "button",
+  "GlanceShowDegrees": 40,
+  "GlanceHideDegrees": 60,
+  "InteractionToggle": false,
   "ToggleHoldMs": 0,
   "MaxLaserDistanceMeters": 2,
   "TwitchChannel": "",
@@ -182,6 +191,9 @@ on save — tune the offsets live while wearing the headset:
 | `RotationDegrees` | `X` = pitch, `Y` = yaw, `Z` = roll; applied yaw → pitch → roll |
 | `PanelPixelWidth/Height` | texture resolution (also defines how many icon cells fit) |
 | `StartVisible` | show the panel right after launch |
+| `PanelShowMode` | `"button"` = the toggle button shows/hides; `"glance"` = shown while the wrist faces you |
+| `GlanceShowDegrees` / `GlanceHideDegrees` | glance mode angles: show under the first, hide over the second (the gap is hysteresis) |
+| `InteractionToggle` | `true` = read-only until both buttons by the stick (watch hand) are pressed together; the chord toggles the laser |
 | `ToggleHoldMs` | 0 = toggle on click; > 0 = button must be held that long |
 | `MaxLaserDistanceMeters` | laser clicks farther than this are ignored |
 | `TwitchChannel` | your channel name (e.g. `"zaymax"`); empty = no Twitch chat |
@@ -309,7 +321,15 @@ drops, and switch channels on the fly when you edit the config.
     badge.
 14. Toggle **Autostart with SteamVR** on, quit SteamVR entirely and start it
     again — XiloOVR comes up on its own.
-15. Quit SteamVR → the tracker prints `SteamVR is shutting down` and exits.
+15. Switch **Show panel** to **Glance** — the panel hides; raise your wrist
+    as if checking a watch → it appears; drop the arm → it hides. It must
+    not flicker when held near the threshold angle.
+16. Switch **Laser arming** to **2-btn** — the footer reads
+    `read-only - press both buttons by the stick together to interact` and
+    the laser is gone; press X+Y (left Touch) together → laser appears,
+    clicks work; press them together again (or drop the wrist in glance
+    mode) → back to read-only. A single X press must not flip anything.
+17. Quit SteamVR → the tracker prints `SteamVR is shutting down` and exits.
 
 ## Project layout
 

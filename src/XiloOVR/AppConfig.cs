@@ -28,6 +28,21 @@ public sealed class AppConfig
     /// <summary>Whether the panel is visible right after launch.</summary>
     public bool StartVisible { get; set; } = true;
 
+    /// <summary>"button" = the toggle button shows/hides the panel; "glance" = it appears when the wrist faces you.</summary>
+    public string PanelShowMode { get; set; } = "button";
+
+    /// <summary>Glance mode: show when the watch face points at the headset within this angle.</summary>
+    public float GlanceShowDegrees { get; set; } = 40f;
+
+    /// <summary>Glance mode: hide when the angle exceeds this (larger than show = hysteresis, no flicker).</summary>
+    public float GlanceHideDegrees { get; set; } = 60f;
+
+    /// <summary>
+    /// When true the panel is read-only until both buttons next to the stick on the watch
+    /// hand are pressed at the same time; that chord toggles the pointer laser on and off.
+    /// </summary>
+    public bool InteractionToggle { get; set; }
+
     /// <summary>How long the toggle button must be held to show/hide the panel. 0 = plain click.</summary>
     public int ToggleHoldMs { get; set; } = 0;
 
@@ -87,6 +102,9 @@ public sealed class AppConfig
     }
 
     [JsonIgnore]
+    public bool IsGlanceMode => PanelShowMode.Trim().ToLowerInvariant() == "glance";
+
+    [JsonIgnore]
     public string HandNormalized => Hand.Trim().ToLowerInvariant() == "left" ? "left" : "right";
 
     [JsonIgnore]
@@ -102,6 +120,10 @@ public sealed class AppConfig
         PanelPixelWidth = other.PanelPixelWidth;
         PanelPixelHeight = other.PanelPixelHeight;
         StartVisible = other.StartVisible;
+        PanelShowMode = other.PanelShowMode;
+        GlanceShowDegrees = other.GlanceShowDegrees;
+        GlanceHideDegrees = other.GlanceHideDegrees;
+        InteractionToggle = other.InteractionToggle;
         ToggleHoldMs = other.ToggleHoldMs;
         MaxLaserDistanceMeters = other.MaxLaserDistanceMeters;
         TwitchChannel = other.TwitchChannel;

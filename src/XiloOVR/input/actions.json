@@ -14,6 +14,11 @@
       "name": "/actions/main/in/decrement",
       "type": "boolean",
       "requirement": "suggested"
+    },
+    {
+      "name": "/actions/main/in/interact_toggle",
+      "type": "boolean",
+      "requirement": "suggested"
     }
   ],
   "action_sets": [
@@ -42,7 +47,8 @@
       "/actions/main": "XiloOVR",
       "/actions/main/in/toggle_panel": "Show / hide wrist panel",
       "/actions/main/in/interact": "Pointed item: +1 collected",
-      "/actions/main/in/decrement": "Pointed item: -1 collected"
+      "/actions/main/in/decrement": "Pointed item: -1 collected",
+      "/actions/main/in/interact_toggle": "Arm / disarm the laser (press together with show/hide)"
     }
   ]
 }

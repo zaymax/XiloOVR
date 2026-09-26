@@ -147,8 +147,24 @@ internal static class Program
             }
             input.Update();
 
-            if (input.PollToggleLongPress(config.ToggleHoldMs))
-                ui.ToggleVisibility();
+            // The chord (both buttons by the stick, watch hand, pressed together) toggles
+            // interaction mode; it also swallows the show/hide press that is half of it.
+            if (config.InteractionToggle && input.PollInteractChord(config.IsLeftHand))
+            {
+                input.CancelPendingToggle();
+                ui.ToggleInteraction();
+            }
+
+            if (!config.IsGlanceMode)
+            {
+                // With the chord enabled, the show/hide button needs a short solo hold, so
+                // a chord's first key can't flip the panel before the second key lands.
+                var holdMs = config.InteractionToggle
+                    ? Math.Max(config.ToggleHoldMs, InputManager.ChordWindowMs + 50)
+                    : config.ToggleHoldMs;
+                if (input.PollToggleLongPress(holdMs, config.IsLeftHand))
+                    ui.ToggleVisibility();
+            }
 
             // The free hand points at the panel; the watch hand carries it.
             var pointerRole = config.IsLeftHand ? ETrackedControllerRole.RightHand : ETrackedControllerRole.LeftHand;
@@ -156,7 +172,7 @@ internal static class Program
             var incrementClicked = input.PollInteractClick(leftHand: !config.IsLeftHand);
             var decrementClicked = input.PollDecrementClick(leftHand: !config.IsLeftHand);
 
-            ui.Update(deltaMs, wrist.Present, pointerDevice, incrementClicked, decrementClicked);
+            ui.Update(deltaMs, wrist.Present, wrist.DeviceIndex, pointerDevice, incrementClicked, decrementClicked);
             settings.Update();
 
             Thread.Sleep(ui.PanelShown ? 20 : 100);

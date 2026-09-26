@@ -18,7 +18,7 @@ namespace XiloOVR;
 public sealed class SettingsUI : IDisposable
 {
     private const int PanelWidth = 1024;
-    private const int PanelHeight = 720;
+    private const int PanelHeight = 800;
     private const int Margin = 24;
     private const int RowHeight = 46;
     private const int ButtonSize = 36;
@@ -303,6 +303,12 @@ public sealed class SettingsUI : IDisposable
             TwoStateRow(leftX, y1, colWidth, "Show on start", "On", "Off", _config.StartVisible,
                 () => _config.StartVisible = true, () => _config.StartVisible = false);
             y1 += RowHeight;
+            TwoStateRow(leftX, y1, colWidth, "Show panel", "Button", "Glance", !_config.IsGlanceMode,
+                () => _config.PanelShowMode = "button", () => _config.PanelShowMode = "glance");
+            y1 += RowHeight;
+            TwoStateRow(leftX, y1, colWidth, "Laser arming", "Always", "2-btn", !_config.InteractionToggle,
+                () => _config.InteractionToggle = false, () => _config.InteractionToggle = true);
+            y1 += RowHeight;
             TwoStateRow(leftX, y1, colWidth, "Autostart with SteamVR", "On", "Off", _config.AutostartWithSteamVR,
                 () => _config.AutostartWithSteamVR = true, () => _config.AutostartWithSteamVR = false);
             y1 += RowHeight;
@@ -363,7 +369,6 @@ public sealed class SettingsUI : IDisposable
             y2 += 32;
             foreach (var planned in new[]
                      {
-                         "Glance to show + two-button interact toggle",
                          "Alert sounds, viewer count in the header",
                          "Checklist presets - saved loadouts",
                      })

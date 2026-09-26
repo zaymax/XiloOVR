@@ -26,6 +26,7 @@ public sealed class ChecklistUI
     private readonly TwitchChatClient _twitch;
     private readonly IReadOnlyList<IChatSource> _chatSources;
     private readonly LaserBeam _laser;
+    private readonly GlanceDetector _glance = new();
     private readonly List<ChatMessage> _chat = new();
     private readonly List<ChatMessage> _drainBuffer = new();
     private readonly TrackedDevicePose_t[] _poses = new TrackedDevicePose_t[OpenVR.k_unMaxTrackedDeviceCount];
@@ -36,6 +37,9 @@ public sealed class ChecklistUI
     private bool _shown;
     private float _alpha;
     private bool _dirty = true;
+
+    // With InteractionToggle on, the laser stays off until the two-button chord arms it.
+    private bool _interactionArmed;
 
     private int _hoverId = -1;
     private int _lastCellCount;
@@ -77,15 +81,31 @@ public sealed class ChecklistUI
 
     public bool PanelShown => _shown;
 
+    /// <summary>True when clicks and the laser are allowed right now.</summary>
+    public bool InteractionArmed => !_config.InteractionToggle || _interactionArmed;
+
     public void ToggleVisibility()
     {
+        if (_config.IsGlanceMode)
+            return; // visibility is driven by the wrist angle
         _userVisible = !_userVisible;
         Console.WriteLine(_userVisible ? "Panel shown." : "Panel hidden (press the toggle again to bring it back).");
     }
 
+    /// <summary>The two-button chord on the watch hand arms/disarms the pointer laser.</summary>
+    public void ToggleInteraction()
+    {
+        if (!_config.InteractionToggle)
+            return;
+        _interactionArmed = !_interactionArmed;
+        Console.WriteLine(_interactionArmed ? "Interaction armed (laser on)." : "Interaction disarmed (read-only).");
+        _dirty = true;
+    }
+
     public void MarkDirty() => _dirty = true;
 
-    public void Update(double deltaMs, bool wristControllerPresent, uint pointerDeviceIndex, bool incrementClicked, bool decrementClicked)
+    public void Update(double deltaMs, bool wristControllerPresent, uint wristDeviceIndex,
+        uint pointerDeviceIndex, bool incrementClicked, bool decrementClicked)
     {
         if (_checklist.ConsumeFileChanges())
         {
@@ -94,6 +114,10 @@ public sealed class ChecklistUI
         }
 
         DrainChatSources();
+
+        // Glance mode: the wrist angle owns visibility, no button involved.
+        if (_config.IsGlanceMode)
+            _userVisible = wristControllerPresent && _glance.Update(_config, wristDeviceIndex);
 
         PollOverlayEvents();
         UpdateAlpha(deltaMs, wristControllerPresent);
@@ -123,9 +147,10 @@ public sealed class ChecklistUI
             _dirty = true; // re-upload the texture as well
         }
 
+        var canInteract = InteractionArmed;
         var hover = -1;
         var laserLength = DefaultLaserLength;
-        if (_shown && pointerDeviceIndex != OpenVR.k_unTrackedDeviceIndexInvalid)
+        if (_shown && canInteract && pointerDeviceIndex != OpenVR.k_unTrackedDeviceIndexInvalid)
             hover = ComputePointerTarget(pointerDeviceIndex, ref laserLength);
         if (hover != _hoverId)
         {
@@ -133,12 +158,12 @@ public sealed class ChecklistUI
             _dirty = true;
         }
 
-        if (_shown && incrementClicked)
+        if (_shown && canInteract && incrementClicked)
             OnTrigger(_hoverId);
-        if (_shown && decrementClicked)
+        if (_shown && canInteract && decrementClicked)
             OnGrip(_hoverId);
 
-        _laser.Update(pointerDeviceIndex, _shown, laserLength, _config);
+        _laser.Update(pointerDeviceIndex, _shown && canInteract, laserLength, _config);
 
         if (_dirty)
         {
@@ -396,6 +421,11 @@ public sealed class ChecklistUI
                 : $"'{_query}' — trigger adds, grip removes";
         }
 
+        // Read-only mode overrides any other footer text: it explains the one gesture
+        // that gets the user out of it.
+        if (!InteractionArmed)
+            footer = "read-only - press both buttons by the stick together to interact";
+
         return new PanelView
         {
             HeaderRight = headerRight,
@@ -455,6 +485,9 @@ public sealed class ChecklistUI
                 vrOverlay.HideOverlay(_overlay.Handle);
                 _shown = false;
                 _hoverId = -1;
+                // Never keep a hidden panel armed: dropping the wrist (or hiding the
+                // panel) always returns to read-only, so the laser can't surprise later.
+                _interactionArmed = false;
             }
             return;
         }
