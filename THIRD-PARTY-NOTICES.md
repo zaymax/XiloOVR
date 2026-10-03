@@ -1,12 +1,20 @@
 # Third-party notices
 
-## exfil-zone-assistant (zelengeo)
+## contractors-data (zaymax)
 
-The item database (`data/items_database.json`) and item icons (`data/icons/`)
-are generated from [exfil-zone-assistant](https://github.com/zelengeo/exfil-zone-assistant),
-a community companion app for Contractors Showdown: ExfilZone, distributed
-under the MIT license. Icons are downscaled and converted to PNG by
-`tools/import_assistant_data.py`.
+The item database (`data/items_database.json`: ids, English and Russian names,
+categories) is generated from the accepted database baseline of
+[contractors-data](https://github.com/zaymax/contractors-data), tables extracted
+from the game files of Contractors Showdown: ExfilZone. The source commit and
+baseline id are recorded in the JSON under `source`.
+
+## exfil-zone-assistant (zaymax fork of zelengeo/exfil-zone-assistant)
+
+Item icons (`data/icons/`) are taken from the item images of
+[exfil-zone-assistant](https://github.com/zaymax/exfil-zone-assistant), a
+community companion app distributed under the MIT license, downscaled and
+converted to PNG by `tools/import_contractors_data.py`. Item images depict
+in-game assets of Contractors Showdown: ExfilZone (Caveman Studio).
 
 ## OpenVR SDK (Valve Corporation)
 

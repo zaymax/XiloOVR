@@ -18,7 +18,7 @@ namespace XiloOVR;
 public sealed class SettingsUI : IDisposable
 {
     private const int PanelWidth = 1024;
-    private const int PanelHeight = 820;
+    private const int PanelHeight = 870;
     private const int Margin = 24;
     private const int RowHeight = 46;
     private const int ButtonSize = 36;
@@ -341,6 +341,9 @@ public sealed class SettingsUI : IDisposable
                     : "Off: the toggle button shows and hides the panel.",
                 smallFont, Brushes.Gray, leftX, y1 + 2);
             y1 += 30;
+            TwoStateRow(leftX, y1, colWidth, "Item names", "EN", "RU", !_config.RussianItemNames,
+                () => _config.ItemLanguage = "en", () => _config.ItemLanguage = "ru");
+            y1 += RowHeight;
             g.DrawString("Accent color", labelFont, Brushes.LightGray, leftX, y1 + 10);
             g.DrawString(_config.AccentColorHex, labelFont, accentBrush,
                 new RectangleF(leftX, y1 + 10, colWidth - 110, 26), rightAlign);

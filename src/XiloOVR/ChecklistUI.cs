@@ -464,7 +464,7 @@ public sealed class ChecklistUI
                     cells.Add(new PanelCell
                     {
                         IconPath = _checklist.IconPathFor(entry),
-                        Label = _checklist.DisplayName(entry),
+                        Label = _checklist.DisplayName(entry, _config.RussianItemNames),
                         CountText = $"{entry.Collected}/{entry.Needed}",
                         Complete = entry.IsComplete,
                     });
@@ -497,7 +497,7 @@ public sealed class ChecklistUI
                     var category = _categories[i];
                     cells.Add(new PanelCell
                     {
-                        Label = category.Name,
+                        Label = category.DisplayName(_config.RussianItemNames),
                         CountText = category.Count.ToString(),
                     });
                 }
@@ -520,7 +520,7 @@ public sealed class ChecklistUI
                 cells.Add(new PanelCell { Glyph = "←" });
                 AddResultCells(cells, offset, capacity);
 
-                var name = _category?.Name ?? "Items";
+                var name = _category?.DisplayName(_config.RussianItemNames) ?? "Items";
                 headerRight = name;
                 canUp = _scrollPicker > 0;
                 canDown = offset + slots < _results.Count;
@@ -573,7 +573,7 @@ public sealed class ChecklistUI
             cells.Add(new PanelCell
             {
                 IconPath = _checklist.IconPathFor(item),
-                Label = item.Name,
+                Label = item.DisplayName(_config.RussianItemNames),
                 CountText = needed > 0 ? $"×{needed}" : null,
             });
         }

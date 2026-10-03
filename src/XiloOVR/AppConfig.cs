@@ -74,6 +74,12 @@ public sealed class AppConfig
     /// <summary>Accent color of every XiloOVR surface (panel, settings, laser), HTML hex.</summary>
     public string AccentColorHex { get; set; } = "#34D399";
 
+    /// <summary>Language of item and category names on the panel: "en" or "ru" (where the database has Russian names).</summary>
+    public string ItemLanguage { get; set; } = "en";
+
+    [JsonIgnore]
+    public bool RussianItemNames => ItemLanguage.Trim().Equals("ru", StringComparison.OrdinalIgnoreCase);
+
     [JsonIgnore]
     public bool IsChatEnabled => !string.IsNullOrWhiteSpace(TwitchChannel) || !string.IsNullOrWhiteSpace(YouTubeChannel);
 
@@ -129,6 +135,7 @@ public sealed class AppConfig
         AutostartWithSteamVR = other.AutostartWithSteamVR;
         ChatMessagesShown = other.ChatMessagesShown;
         AccentColorHex = other.AccentColorHex;
+        ItemLanguage = other.ItemLanguage;
     }
 }
 
