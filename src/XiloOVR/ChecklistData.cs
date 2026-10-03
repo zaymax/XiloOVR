@@ -25,9 +25,9 @@ public sealed class ChecklistEntry
 /// <summary>
 /// The user's active checklist: which items they are hunting and how many are found.
 /// Persisted to checklist.json next to the executable; entries reference the item
-/// database by id. Adding/removing items is done by editing that file; both it and
-/// the item database are watched and hot-reloaded, so edits show up on the wrist
-/// panel without restarting the app.
+/// database by id. Items are added/removed from the in-VR picker or by editing that
+/// file; both it and the item database are watched and hot-reloaded, so edits show up
+/// on the wrist panel without restarting the app.
 /// </summary>
 public sealed class ChecklistData : IDisposable
 {
@@ -83,6 +83,12 @@ public sealed class ChecklistData : IDisposable
         string.IsNullOrEmpty(item.Icon) ? null : Path.Combine(_dataDirectory, item.Icon);
 
     public IReadOnlyList<GameItem> SearchDatabase(string query, int max) => _database.Search(query, max);
+
+    public IReadOnlyList<ItemCategory> DatabaseCategories() => _database.Categories();
+
+    public IReadOnlyList<GameItem> DatabaseCategory(string key) => _database.InCategory(key);
+
+    public int DatabaseCount => _database.Count;
 
     /// <summary>How many of this item the checklist currently wants (0 = not listed).</summary>
     public int NeededOf(string itemId) =>

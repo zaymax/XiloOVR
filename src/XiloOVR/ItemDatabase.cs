@@ -12,6 +12,9 @@ public sealed class GameItem
     public string? Note { get; set; }
 }
 
+/// <summary>One database category as shown in the in-VR browser.</summary>
+public sealed record ItemCategory(string Key, string Name, int Count);
+
 /// <summary>
 /// Static reference of game items shipped as data/items_database.json. Read-only at
 /// runtime; users edit the file with a text editor after game patches, no rebuild needed.
@@ -27,6 +30,48 @@ public sealed class ItemDatabase
     public int Count => _byId.Count;
 
     public GameItem? Find(string id) => _byId.TryGetValue(id, out var item) ? item : null;
+
+    /// <summary>Categories for the in-VR browser: hunt-relevant ones first, the rest alphabetically.</summary>
+    public IReadOnlyList<ItemCategory> Categories()
+    {
+        var counts = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+        foreach (var item in _byId.Values)
+        {
+            var key = NormalizeCategory(item.Category);
+            counts[key] = counts.TryGetValue(key, out var n) ? n + 1 : 1;
+        }
+        return counts
+            .Select(pair => new ItemCategory(pair.Key, DisplayCategory(pair.Key), pair.Value))
+            .OrderBy(c => PreferredOrder(c.Key))
+            .ThenBy(c => c.Name, StringComparer.OrdinalIgnoreCase)
+            .ToList();
+    }
+
+    /// <summary>All items of one category, sorted by name.</summary>
+    public IReadOnlyList<GameItem> InCategory(string category) =>
+        _byId.Values
+            .Where(i => string.Equals(NormalizeCategory(i.Category), category, StringComparison.OrdinalIgnoreCase))
+            .OrderBy(i => i.Name, StringComparer.OrdinalIgnoreCase)
+            .ToList();
+
+    private static readonly string[] CategoryPriority =
+        { "task-items", "keys", "misc", "medicine", "provisions", "gear", "weapons", "attachments", "ammo", "grenades" };
+
+    private static int PreferredOrder(string key)
+    {
+        var index = Array.FindIndex(CategoryPriority, c => string.Equals(c, key, StringComparison.OrdinalIgnoreCase));
+        return index < 0 ? CategoryPriority.Length : index;
+    }
+
+    private static string NormalizeCategory(string? category) =>
+        string.IsNullOrWhiteSpace(category) ? "misc" : category.Trim().ToLowerInvariant();
+
+    /// <summary>"task-items" → "Task items"; one display rule for every category id.</summary>
+    public static string DisplayCategory(string key)
+    {
+        var text = key.Replace('-', ' ').Replace('_', ' ').Trim();
+        return text.Length == 0 ? "Misc" : char.ToUpperInvariant(text[0]) + text[1..];
+    }
 
     /// <summary>Name/category search for the in-VR picker: prefix matches rank first.</summary>
     public IReadOnlyList<GameItem> Search(string query, int max)

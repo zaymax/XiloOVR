@@ -7,10 +7,14 @@ using System.Runtime.InteropServices;
 
 namespace XiloOVR;
 
-/// <summary>One grid cell: either a special glyph ("+", "←"), an item icon, or a text label.</summary>
+/// <summary>
+/// One grid cell: a special glyph ("+", "←"), the search cell (magnifier + label), an
+/// item icon, or a text tile (category name, or an item whose icon is missing).
+/// </summary>
 public sealed class PanelCell
 {
     public string? Glyph;
+    public bool SearchIcon;
     public string? IconPath;
     public string? Label;
     public string? CountText;
@@ -143,6 +147,7 @@ public static class PanelRenderer
             using var titleFont = new Font("Segoe UI", 26, FontStyle.Bold, GraphicsUnit.Pixel);
             using var glyphFont = new Font("Segoe UI", 48, FontStyle.Bold, GraphicsUnit.Pixel);
             using var countFont = new Font("Segoe UI", 19, FontStyle.Bold, GraphicsUnit.Pixel);
+            using var tileFont = new Font("Segoe UI", 18, FontStyle.Regular, GraphicsUnit.Pixel);
             using var smallFont = new Font("Segoe UI", 15, FontStyle.Regular, GraphicsUnit.Pixel);
             using var accentBrush = new SolidBrush(accent);
             using var cellBrush = new SolidBrush(CellFill);
@@ -196,7 +201,20 @@ public static class PanelRenderer
                     g.DrawRectangle(hoverPen, x, y, cell - 1, cell - 1);
                 }
 
-                if (item.Glyph != null)
+                if (item.SearchIcon)
+                {
+                    // Magnifier drawn by hand: Segoe UI has no reliable glyph for it.
+                    var r = cell / 5;
+                    var cx = x + cell / 2 - r / 3;
+                    var cy = y + cell / 2 - r / 2 - 6;
+                    using var lensPen = new Pen(accent, 5);
+                    g.DrawEllipse(lensPen, cx - r, cy - r, 2 * r, 2 * r);
+                    g.DrawLine(lensPen, cx + r * 0.7f, cy + r * 0.7f, cx + r * 1.6f, cy + r * 1.6f);
+                    if (item.Label != null)
+                        g.DrawString(item.Label, smallFont, Brushes.LightGray,
+                            new RectangleF(x, y + cell - 28, cell, 24), center);
+                }
+                else if (item.Glyph != null)
                 {
                     g.DrawString(item.Glyph, glyphFont, accentBrush, new RectangleF(x, y, cell, cell), center);
                 }
@@ -208,7 +226,7 @@ public static class PanelRenderer
                     if (icon != null)
                         g.DrawImage(icon, iconRect);
                     else if (item.Label != null)
-                        g.DrawString(item.Label, smallFont, Brushes.LightGray,
+                        g.DrawString(item.Label, tileFont, Brushes.LightGray,
                             new RectangleF(x + 4, y + 4, cell - 8, cell - 30), center);
 
                     if (item.Complete)

@@ -31,6 +31,19 @@ public sealed class AppConfig
     /// <summary>How long the toggle button must be held to show/hide the panel. 0 = plain click.</summary>
     public int ToggleHoldMs { get; set; } = 0;
 
+    /// <summary>
+    /// Show the panel by looking at the watch hand, like checking a wristwatch: it appears
+    /// while the panel face points at the headset and the headset looks at it, and hides
+    /// again when you turn away. The toggle button then pins the panel on instead.
+    /// </summary>
+    public bool ShowOnWristTurn { get; set; }
+
+    /// <summary>How directly the panel must face the headset to count as "looked at", in degrees.</summary>
+    public float WristTurnAngleDeg { get; set; } = 40f;
+
+    /// <summary>How long the panel stays after you look away from the wrist, in milliseconds.</summary>
+    public int WristTurnHideDelayMs { get; set; } = 800;
+
     /// <summary>Laser clicks farther than this from the panel are ignored.</summary>
     public float MaxLaserDistanceMeters { get; set; } = 2.0f;
 
@@ -103,6 +116,9 @@ public sealed class AppConfig
         PanelPixelHeight = other.PanelPixelHeight;
         StartVisible = other.StartVisible;
         ToggleHoldMs = other.ToggleHoldMs;
+        ShowOnWristTurn = other.ShowOnWristTurn;
+        WristTurnAngleDeg = other.WristTurnAngleDeg;
+        WristTurnHideDelayMs = other.WristTurnHideDelayMs;
         MaxLaserDistanceMeters = other.MaxLaserDistanceMeters;
         TwitchChannel = other.TwitchChannel;
         TwitchUsername = other.TwitchUsername;

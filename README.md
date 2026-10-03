@@ -21,14 +21,19 @@ The app is a pure `IVROverlay` client on top of the SteamVR compositor:
   scene-app switches (self-healing re-assert)
 - [x] **Show/hide toggle** — click a controller button (X on Touch by
   default); rebindable in SteamVR's controller-bindings UI; short fade in/out
+- [x] **Wrist-turn gesture** (optional) — turn your wrist as if checking a
+  watch and the panel appears; look away and it fades out; the button then
+  pins it on for longer sessions
 - [x] **Icon-grid checklist** — item icons with `collected/needed` counters
   and a **visible laser beam** from the free hand: **trigger +1**, **grip −1**
   (custom hit-testing via `ComputeOverlayIntersection`); completed items get
   dimmed with a green check; long lists scroll with ▲▼ footer arrows; state
   persists to `checklist.json`
-- [x] **In-VR item picker** — the **+** cell opens a database search on the
-  VR keyboard: trigger adds an item (or raises its needed count ×2, ×3…),
-  grip lowers it and removes the item at zero
+- [x] **In-VR item picker** — the **+** cell opens the item database by
+  category (task items, keys, medicine, …) to browse with the laser; a search
+  cell on the VR keyboard is there for when you know the name; trigger adds
+  an item (or raises its needed count ×2, ×3…), grip lowers it and removes
+  the item at zero
 - [x] **Real item database** — 600+ items with icons, imported from the
   community project
   [exfil-zone-assistant](https://github.com/zelengeo/exfil-zone-assistant) (MIT)
@@ -113,26 +118,42 @@ the other, **free hand** is the pointer.
 
 | Action | Default binding | Notes |
 | --- | --- | --- |
-| Show / hide panel | **X click** (Touch, left hand), **B** (Index), **menu** (Vive) | set `ToggleHoldMs` > 0 to require a long-press |
+| Show / hide panel | **X click** (Touch, left hand), **B** (Index), **menu** (Vive) | set `ToggleHoldMs` > 0 to require a long-press; with the wrist-turn gesture on, this button **pins** the panel instead |
+| Glance at the panel | turn the watch hand toward your face (optional, `ShowOnWristTurn`) | appears while the panel faces you and you look at it, fades out ~0.8 s after you look away |
 | +1 collected | **trigger** on the free hand while pointing at an item cell | the laser beam shows where you point |
 | −1 collected | **grip** (Touch/Vive) or **A** (Index) on the free hand | |
-| Add items | trigger the **+** cell → type a search on the VR keyboard | in the picker: trigger adds / raises needed, grip lowers / removes; `←` returns |
+| Add items | trigger the **+** cell → pick a category → trigger an item | trigger adds / raises needed, grip lowers / removes; the **search** cell opens the VR keyboard; `←` goes back |
 | Scroll | trigger the **▲ ▼** buttons in the footer | appear when the list overflows |
 | Reply to chat | trigger the **chat feed** → type on the VR keyboard | needs the Twitch account + token (see [Stream chat](#stream-chat)) |
 
 Rebind anytime in **SteamVR → Settings → Controllers → Manage Controller
 Bindings → XiloOVR** (the app registers itself with SteamVR on
-launch; binding load success/failure is logged to `xiloovr.log`). There is no
-visible laser beam yet — aim with the free controller and watch for the cell
-highlight.
+launch; binding load success/failure is logged to `xiloovr.log`).
+
+**Wrist-turn gesture.** Off by default; switch it on in the dashboard tab
+(*Show on wrist turn*) or with `"ShowOnWristTurn": true`. The panel then shows
+up whenever two things are true at once: the panel face points at your headset
+(within `WristTurnAngleDeg`, 40° by default) and your headset is turned toward
+the panel — so an arm hanging by your side does not trigger it. It stays for
+`WristTurnHideDelayMs` after you look away. The toggle button keeps working,
+but its meaning changes to **pin**: press it while glancing and the panel stays
+on until you press it again. Turning the gesture on unpins the panel so the
+gesture takes over right away. If it triggers too eagerly, lower the angle; if
+you have to twist too far, raise it (steps of 5° in the settings tab).
+
+**Browsing the database.** The **+** cell lists the categories of the item
+database with item counts (task items and keys first); trigger one to see its
+items sorted by name, scroll with ▲▼, trigger to add. The **search** cell on
+the category screen opens the VR keyboard; an empty query lists everything.
 
 ## Settings in VR
 
 Open the SteamVR dashboard (menu button) and pick the **XiloOVR** tab: hand,
 panel position/rotation/width with ± buttons (the wrist panel moves live as
-you click), show-on-start, autostart with SteamVR, accent color, Twitch
-channel/account/token, alerts toggle and YouTube channel via SteamVR's VR
-keyboard, chat feed length and connection status. Every change applies
+you click), show-on-start, autostart with SteamVR, the wrist-turn gesture and
+its angle, accent color, Twitch channel/account/token, alerts toggle and
+YouTube channel via SteamVR's VR keyboard, chat feed length and connection
+status. Every change applies
 immediately and is written to `config.json`, so the file below stays the
 single source of truth.
 
@@ -151,6 +172,9 @@ on save — tune the offsets live while wearing the headset:
   "PanelPixelHeight": 520,
   "StartVisible": true,
   "ToggleHoldMs": 0,
+  "ShowOnWristTurn": false,
+  "WristTurnAngleDeg": 40,
+  "WristTurnHideDelayMs": 800,
   "MaxLaserDistanceMeters": 2,
   "TwitchChannel": "",
   "TwitchUsername": "",
@@ -173,6 +197,9 @@ on save — tune the offsets live while wearing the headset:
 | `PanelPixelWidth/Height` | texture resolution (also defines how many icon cells fit) |
 | `StartVisible` | show the panel right after launch |
 | `ToggleHoldMs` | 0 = toggle on click; > 0 = button must be held that long |
+| `ShowOnWristTurn` | show the panel by looking at the watch hand; the toggle button then pins it |
+| `WristTurnAngleDeg` | how directly the panel must face you (and you it) to count as a glance, 10–85 |
+| `WristTurnHideDelayMs` | how long the panel lingers after you look away |
 | `MaxLaserDistanceMeters` | laser clicks farther than this are ignored |
 | `TwitchChannel` | your channel name (e.g. `"zaymax"`); empty = no Twitch chat |
 | `TwitchUsername` | account to send replies as; empty = anonymous read-only chat |
@@ -208,7 +235,7 @@ refresh, or edit the JSON by hand — it hot-reloads.
 
 **`checklist.json`** (created next to the exe on first run) — your active
 hunt: database item ids plus how many you need and how many you've collected.
-This file is also how you add/remove items for now:
+The in-VR picker edits it; you can also edit it by hand:
 
 ```json
 {
@@ -274,10 +301,16 @@ drops, and switch channels on the fly when you edit the config.
 4. A thin beam shoots from the free controller; the cell under it highlights.
    Trigger bumps the counter (`1/3`), grip drops it; a full counter dims the
    icon under a green check; `checklist.json` changes on disk.
-5. Trigger the **+** cell — the VR keyboard opens; type e.g. `key`, confirm —
-   the grid shows matching items; trigger adds one (×1 badge appears), `←`
-   returns to the checklist; overflowing lists scroll with the ▲▼ arrows.
+5. Trigger the **+** cell — the grid lists the database categories with
+   counts; trigger **Keys** — the keys appear sorted by name; trigger one — a
+   ×1 badge appears and it lands on the checklist; `←` goes back. The
+   **search** cell opens the VR keyboard; type e.g. `key`, confirm — matching
+   items show; overflowing lists scroll with the ▲▼ arrows.
 6. Click X (left Touch controller) — the panel fades out; click again — back.
+   Switch **Show on wrist turn** on in the dashboard tab: the panel hides,
+   raise the watch hand and look at it — it fades in; drop the arm — it fades
+   out after a moment; X while glancing pins it on. Open the settings tab and
+   watch it for a minute — it should not blink.
 7. Edit `config.json` / `checklist.json` / the item database on the desktop —
    the panel updates within a second, no restart.
 8. Turn the watch-hand controller off → panel hides; on → reappears. Restart
@@ -308,7 +341,7 @@ src/XiloOVR/
   Program.cs           entry point, main loop, config hot-reload, clean shutdown
   OverlayManager.cs    OpenVR init, overlay lifecycle, SteamVR event pump
   WristAttachment.cs   controller discovery + offset matrix (wrist attach)
-  ChecklistUI.cs       visibility/fade, laser hover + clicks, item picker, scrolling
+  ChecklistUI.cs       visibility/fade, wrist-turn gesture, laser hover + clicks, item picker, scrolling
   PanelRenderer.cs     GDI+ icon-grid rendering + pixel layout for hit-testing
   LaserBeam.cs         visible beam overlays attached to the pointer controller
   Theme.cs             accent color parsing (AccentColorHex)
