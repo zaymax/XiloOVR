@@ -154,7 +154,7 @@ internal static class Program
             var incrementClicked = input.PollInteractClick(leftHand: !config.IsLeftHand);
             var decrementClicked = input.PollDecrementClick(leftHand: !config.IsLeftHand);
 
-            ui.Update(deltaMs, wrist.Present, pointerDevice, incrementClicked, decrementClicked);
+            ui.Update(deltaMs, wrist.DeviceIndex, wrist.Offset, pointerDevice, incrementClicked, decrementClicked);
             settings.Update();
 
             Thread.Sleep(ui.PanelShown ? 20 : 100);

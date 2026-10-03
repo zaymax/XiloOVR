@@ -32,6 +32,12 @@ public sealed class WristAttachment
 
     public bool Present => _deviceIndex != OpenVR.k_unTrackedDeviceIndexInvalid;
 
+    /// <summary>Tracked-device index of the watch-hand controller, or k_unTrackedDeviceIndexInvalid.</summary>
+    public uint DeviceIndex => _deviceIndex;
+
+    /// <summary>The controller-local panel offset currently applied (rotation + translation).</summary>
+    public HmdMatrix34_t Offset => _offset;
+
     /// <summary>Re-reads hand/offset from config and forces a re-attach on the next update.</summary>
     public void Reconfigure()
     {

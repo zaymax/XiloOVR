@@ -18,11 +18,11 @@ namespace XiloOVR;
 public sealed class SettingsUI : IDisposable
 {
     private const int PanelWidth = 1024;
-    private const int PanelHeight = 720;
+    private const int PanelHeight = 870;
     private const int Margin = 24;
     private const int RowHeight = 46;
     private const int ButtonSize = 36;
-    private const int RefreshIntervalMs = 1000; // keeps the chat status line fresh while the dashboard is open
+    private const int RefreshIntervalMs = 1000; // how often the chat status lines are checked for changes
 
     private static readonly Color Background = Color.FromArgb(250, 16, 20, 28);
     private static readonly Color CellFill = Color.FromArgb(255, 26, 32, 44);
@@ -54,6 +54,7 @@ public sealed class SettingsUI : IDisposable
     private bool _dirty = true;
     private bool _keyboardOpen;
     private KeyboardTarget _keyboardTarget;
+    private string _renderedStatus = "";
 
     public SettingsUI(AppConfig config, TwitchChatClient chat, YouTubeChatClient youtube,
         TwitchFollowPoller follows, Action applyAndSave)
@@ -90,11 +91,14 @@ public sealed class SettingsUI : IDisposable
 
         PollEvents();
 
-        // The chat status line changes without user input; refresh it while visible.
+        // The chat status lines change without user input. Re-render only when they
+        // actually did: every texture upload is a visible blink on some setups, so a
+        // fixed-interval redraw made the tab flicker once a second.
         if (_refresh.ElapsedMilliseconds >= RefreshIntervalMs && OpenVR.Overlay.IsOverlayVisible(_handle))
         {
             _refresh.Restart();
-            _dirty = true;
+            if (StatusSnapshot() != _renderedStatus)
+                _dirty = true;
         }
 
         if (_dirty)
@@ -210,9 +214,13 @@ public sealed class SettingsUI : IDisposable
         _dirty = true;
     }
 
+    /// <summary>Everything on the tab that can change without a click, in one comparable string.</summary>
+    private string StatusSnapshot() => $"{_chat.StatusLine}\n{_follows.StatusLine}\n{_youtube.StatusLine}";
+
     private void Render()
     {
         _widgets.Clear();
+        _renderedStatus = StatusSnapshot();
 
         using var bitmap = new Bitmap(PanelWidth, PanelHeight, PixelFormat.Format32bppArgb);
         using (var g = Graphics.FromImage(bitmap))
@@ -320,6 +328,21 @@ public sealed class SettingsUI : IDisposable
             y1 += RowHeight;
             TwoStateRow(leftX, y1, colWidth, "Autostart with SteamVR", "On", "Off", _config.AutostartWithSteamVR,
                 () => _config.AutostartWithSteamVR = true, () => _config.AutostartWithSteamVR = false);
+            y1 += RowHeight;
+            TwoStateRow(leftX, y1, colWidth, "Show on wrist turn", "On", "Off", _config.ShowOnWristTurn,
+                () => _config.ShowOnWristTurn = true, () => _config.ShowOnWristTurn = false);
+            y1 += RowHeight;
+            StepperRow(leftX, y1, colWidth, "Wrist turn angle", $"{_config.WristTurnAngleDeg:0}°",
+                () => _config.WristTurnAngleDeg = Step(_config.WristTurnAngleDeg, -5f, 10f, 85f),
+                () => _config.WristTurnAngleDeg = Step(_config.WristTurnAngleDeg, +5f, 10f, 85f));
+            y1 += RowHeight;
+            g.DrawString(_config.ShowOnWristTurn
+                    ? "Panel appears while you look at your wrist; the toggle button pins it on."
+                    : "Off: the toggle button shows and hides the panel.",
+                smallFont, Brushes.Gray, leftX, y1 + 2);
+            y1 += 30;
+            TwoStateRow(leftX, y1, colWidth, "Item names", "EN", "RU", !_config.RussianItemNames,
+                () => _config.ItemLanguage = "en", () => _config.ItemLanguage = "ru");
             y1 += RowHeight;
             g.DrawString("Accent color", labelFont, Brushes.LightGray, leftX, y1 + 10);
             g.DrawString(_config.AccentColorHex, labelFont, accentBrush,

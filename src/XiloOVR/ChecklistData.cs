@@ -25,9 +25,9 @@ public sealed class ChecklistEntry
 /// <summary>
 /// The user's active checklist: which items they are hunting and how many are found.
 /// Persisted to checklist.json next to the executable; entries reference the item
-/// database by id. Adding/removing items is done by editing that file; both it and
-/// the item database are watched and hot-reloaded, so edits show up on the wrist
-/// panel without restarting the app.
+/// database by id. Items are added/removed from the in-VR picker or by editing that
+/// file; both it and the item database are watched and hot-reloaded, so edits show up
+/// on the wrist panel without restarting the app.
 /// </summary>
 public sealed class ChecklistData : IDisposable
 {
@@ -63,14 +63,15 @@ public sealed class ChecklistData : IDisposable
     {
         var data = new ChecklistData(checklistPath, databasePath, ItemDatabase.Load(databasePath));
         data.LoadEntries();
+        data.MigrateLegacyIds();
         data.StartWatching();
         return data;
     }
 
     public GameItem? ItemFor(ChecklistEntry entry) => _database.Find(entry.ItemId);
 
-    public string DisplayName(ChecklistEntry entry) =>
-        _database.Find(entry.ItemId)?.Name ?? $"{entry.ItemId}?";
+    public string DisplayName(ChecklistEntry entry, bool russian) =>
+        _database.Find(entry.ItemId)?.DisplayName(russian) ?? $"{entry.ItemId}?";
 
     /// <summary>Absolute path of the entry's icon, or null when unknown.</summary>
     public string? IconPathFor(ChecklistEntry entry)
@@ -83,6 +84,12 @@ public sealed class ChecklistData : IDisposable
         string.IsNullOrEmpty(item.Icon) ? null : Path.Combine(_dataDirectory, item.Icon);
 
     public IReadOnlyList<GameItem> SearchDatabase(string query, int max) => _database.Search(query, max);
+
+    public IReadOnlyList<ItemCategory> DatabaseCategories() => _database.Categories();
+
+    public IReadOnlyList<GameItem> DatabaseCategory(string key) => _database.InCategory(key);
+
+    public int DatabaseCount => _database.Count;
 
     /// <summary>How many of this item the checklist currently wants (0 = not listed).</summary>
     public int NeededOf(string itemId) =>
@@ -143,6 +150,7 @@ public sealed class ChecklistData : IDisposable
         {
             _database = ItemDatabase.Load(_databasePath);
             LoadEntries();
+            MigrateLegacyIds();
             Console.WriteLine("Checklist / item database reloaded from disk.");
         }
         catch (Exception ex)
@@ -179,6 +187,39 @@ public sealed class ChecklistData : IDisposable
         }
     }
 
+    /// <summary>
+    /// Rewrites checklist entries that still use ids from an earlier database (the
+    /// database carries each item's legacy ids), merging duplicates, and saves if anything changed.
+    /// </summary>
+    private void MigrateLegacyIds()
+    {
+        var changed = false;
+        var merged = new List<ChecklistEntry>();
+        foreach (var entry in _entries)
+        {
+            var current = _database.CurrentIdFor(entry.ItemId);
+            if (current != null)
+            {
+                Console.WriteLine($"checklist: '{entry.ItemId}' is now '{current}'.");
+                entry.ItemId = current;
+                changed = true;
+            }
+            var existing = merged.FirstOrDefault(e => string.Equals(e.ItemId, entry.ItemId, StringComparison.OrdinalIgnoreCase));
+            if (existing == null)
+            {
+                merged.Add(entry);
+                continue;
+            }
+            existing.Needed = Math.Min(99, existing.Needed + entry.Needed);
+            existing.Collected = Math.Clamp(existing.Collected + entry.Collected, 0, existing.Needed);
+            changed = true;
+        }
+        if (!changed)
+            return;
+        _entries = merged;
+        Save();
+    }
+
     private void Save()
     {
         try
@@ -195,7 +236,7 @@ public sealed class ChecklistData : IDisposable
     {
         // Seed from known database ids so a fresh install shows something meaningful.
         var sample = new List<ChecklistEntry>();
-        foreach (var (id, needed) in new[] { ("taskitem_ark_floppydisk", 1), ("taskitem_baseball", 1), ("taskitem_electricdrill_blue", 3) })
+        foreach (var (id, needed) in new[] { ("valuable.task.ark_floppydisk", 1), ("valuable.task.tommy_baseball", 1), ("valuable.task.johnny_drill", 3) })
         {
             if (_database.Find(id) != null)
                 sample.Add(new ChecklistEntry { ItemId = id, Needed = needed });
