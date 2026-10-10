@@ -1,4 +1,5 @@
 #nullable enable
+using System.Reflection;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
@@ -12,6 +13,8 @@ namespace XiloOVR;
 /// </summary>
 public sealed class AppConfig
 {
+    public const string DefaultAccentColorHex = "#34D399";
+
     public string Hand { get; set; } = "left";
 
     /// <summary>Physical width of the panel in meters; height follows the pixel aspect ratio.</summary>
@@ -72,7 +75,7 @@ public sealed class AppConfig
     public int ChatMessagesShown { get; set; } = 6;
 
     /// <summary>Accent color of every XiloOVR surface (panel, settings, laser), HTML hex.</summary>
-    public string AccentColorHex { get; set; } = "#34D399";
+    public string AccentColorHex { get; set; } = DefaultAccentColorHex;
 
     /// <summary>Language of item and category names on the panel: "en" or "ru" (where the database has Russian names).</summary>
     public string ItemLanguage { get; set; } = "en";
@@ -111,32 +114,51 @@ public sealed class AppConfig
     [JsonIgnore]
     public bool IsLeftHand => HandNormalized == "left";
 
-    /// <summary>Applies freshly loaded values onto the shared instance (hot reload).</summary>
+    private static readonly PropertyInfo[] SettableProperties =
+        typeof(AppConfig).GetProperties().Where(p => p.CanWrite).ToArray();
+
+    /// <summary>
+    /// Applies freshly loaded values onto the shared instance (hot reload). Goes over
+    /// every settable property so a new setting cannot be forgotten here.
+    /// </summary>
     public void CopyFrom(AppConfig other)
     {
-        Hand = other.Hand;
-        WidthMeters = other.WidthMeters;
-        PositionMeters = other.PositionMeters;
-        RotationDegrees = other.RotationDegrees;
-        PanelPixelWidth = other.PanelPixelWidth;
-        PanelPixelHeight = other.PanelPixelHeight;
-        StartVisible = other.StartVisible;
-        ToggleHoldMs = other.ToggleHoldMs;
-        ShowOnWristTurn = other.ShowOnWristTurn;
-        WristTurnAngleDeg = other.WristTurnAngleDeg;
-        WristTurnHideDelayMs = other.WristTurnHideDelayMs;
-        MaxLaserDistanceMeters = other.MaxLaserDistanceMeters;
-        TwitchChannel = other.TwitchChannel;
-        TwitchUsername = other.TwitchUsername;
-        TwitchOAuthToken = other.TwitchOAuthToken;
-        TwitchClientId = other.TwitchClientId;
-        AlertsEnabled = other.AlertsEnabled;
-        YouTubeChannel = other.YouTubeChannel;
-        AutostartWithSteamVR = other.AutostartWithSteamVR;
-        ChatMessagesShown = other.ChatMessagesShown;
-        AccentColorHex = other.AccentColorHex;
-        ItemLanguage = other.ItemLanguage;
+        foreach (var property in SettableProperties)
+            property.SetValue(this, property.GetValue(other));
     }
+
+    /// <summary>
+    /// Repairs values a hand-edited file can contain but the app cannot work with:
+    /// JSON null for strings and vectors (the serializer overrides the defaults with
+    /// null), a zero or absurd panel size (GDI+ would throw on the first frame), and
+    /// out-of-range numbers the UI steppers never produce.
+    /// </summary>
+    public void Sanitize()
+    {
+        Hand ??= "left";
+        PositionMeters ??= new Vec3();
+        RotationDegrees ??= new Vec3();
+        TwitchChannel ??= "";
+        TwitchUsername ??= "";
+        TwitchOAuthToken ??= "";
+        TwitchClientId ??= "";
+        YouTubeChannel ??= "";
+        ItemLanguage ??= "en";
+        if (Theme.Parse(AccentColorHex) == null)
+            AccentColorHex = DefaultAccentColorHex;
+
+        WidthMeters = ClampFinite(WidthMeters, 0.05f, 2f, 0.22f);
+        PanelPixelWidth = Math.Clamp(PanelPixelWidth, 200, 4096);
+        PanelPixelHeight = Math.Clamp(PanelPixelHeight, 200, 4096);
+        ToggleHoldMs = Math.Max(0, ToggleHoldMs);
+        WristTurnAngleDeg = ClampFinite(WristTurnAngleDeg, 10f, 85f, 40f);
+        WristTurnHideDelayMs = Math.Max(0, WristTurnHideDelayMs);
+        MaxLaserDistanceMeters = ClampFinite(MaxLaserDistanceMeters, 0.1f, 100f, 2f);
+        ChatMessagesShown = Math.Clamp(ChatMessagesShown, 1, 20);
+    }
+
+    private static float ClampFinite(float value, float min, float max, float fallback) =>
+        float.IsFinite(value) ? Math.Clamp(value, min, max) : fallback;
 }
 
 public sealed class Vec3
@@ -166,6 +188,7 @@ public static class ConfigLoader
         }
 
         var config = JsonSerializer.Deserialize<AppConfig>(File.ReadAllText(path), JsonOptions) ?? new AppConfig();
+        config.Sanitize();
         var hand = config.Hand.Trim().ToLowerInvariant();
         if (hand is not ("left" or "right"))
             Console.Error.WriteLine($"warning: unknown hand '{config.Hand}' in config, using 'right'");

@@ -26,17 +26,19 @@ public sealed class SettingsUI : IDisposable
 
     private static readonly Color Background = Color.FromArgb(250, 16, 20, 28);
     private static readonly Color CellFill = Color.FromArgb(255, 26, 32, 44);
-    private static readonly Color Accent = Color.FromArgb(255, 90, 200, 250);
-    private static readonly Color AccentDim = Color.FromArgb(90, 90, 200, 250);
-    private static readonly Color HoverFill = Color.FromArgb(70, 90, 200, 250);
 
     private readonly AppConfig _config;
     private readonly TwitchChatClient _chat;
     private readonly YouTubeChatClient _youtube;
     private readonly TwitchFollowPoller _follows;
     private readonly Action _applyAndSave;
-    private readonly List<(Rectangle Bounds, Action OnClick)> _widgets = new();
     private readonly System.Diagnostics.Stopwatch _refresh = System.Diagnostics.Stopwatch.StartNew();
+
+    /// <summary>
+    /// Clickable areas of the last render. Saves is false for buttons that only open the
+    /// VR keyboard: nothing changed yet, so there is nothing to apply or write to disk.
+    /// </summary>
+    private readonly List<(Rectangle Bounds, Action OnClick, bool Saves)> _widgets = new();
 
     private enum KeyboardTarget
     {
@@ -55,6 +57,7 @@ public sealed class SettingsUI : IDisposable
     private bool _keyboardOpen;
     private KeyboardTarget _keyboardTarget;
     private string _renderedStatus = "";
+    private byte[]? _pixels;
 
     public SettingsUI(AppConfig config, TwitchChatClient chat, YouTubeChatClient youtube,
         TwitchFollowPoller follows, Action applyAndSave)
@@ -82,6 +85,9 @@ public sealed class SettingsUI : IDisposable
         Console.WriteLine("Settings tab registered in the SteamVR dashboard.");
     }
 
+    /// <summary>True while the tab is on screen in the dashboard; the main loop ticks faster then.</summary>
+    public bool Visible { get; private set; }
+
     public void MarkDirty() => _dirty = true;
 
     public void Update()
@@ -94,10 +100,11 @@ public sealed class SettingsUI : IDisposable
         // The chat status lines change without user input. Re-render only when they
         // actually did: every texture upload is a visible blink on some setups, so a
         // fixed-interval redraw made the tab flicker once a second.
-        if (_refresh.ElapsedMilliseconds >= RefreshIntervalMs && OpenVR.Overlay.IsOverlayVisible(_handle))
+        if (_refresh.ElapsedMilliseconds >= RefreshIntervalMs)
         {
             _refresh.Restart();
-            if (StatusSnapshot() != _renderedStatus)
+            Visible = OpenVR.Overlay.IsOverlayVisible(_handle); // backs up the shown/hidden events
+            if (Visible && StatusSnapshot() != _renderedStatus)
                 _dirty = true;
         }
 
@@ -118,7 +125,7 @@ public sealed class SettingsUI : IDisposable
             switch ((EVREventType)vrEvent.eventType)
             {
                 case EVREventType.VREvent_MouseMove:
-                    OnPointerMove((int)vrEvent.data.mouse.x, FlipY(vrEvent.data.mouse.y));
+                    SetHover(_widgets.FindIndex(w => w.Bounds.Contains((int)vrEvent.data.mouse.x, FlipY(vrEvent.data.mouse.y))));
                     break;
 
                 case EVREventType.VREvent_MouseButtonDown:
@@ -126,8 +133,17 @@ public sealed class SettingsUI : IDisposable
                         OnClick((int)vrEvent.data.mouse.x, FlipY(vrEvent.data.mouse.y));
                     break;
 
+                case EVREventType.VREvent_FocusLeave:
+                    SetHover(-1); // the laser left the tab: no more mouse moves to clear the highlight
+                    break;
+
                 case EVREventType.VREvent_OverlayShown:
+                    Visible = true;
                     _dirty = true;
+                    break;
+
+                case EVREventType.VREvent_OverlayHidden:
+                    Visible = false;
                     break;
 
                 case EVREventType.VREvent_KeyboardDone:
@@ -144,14 +160,12 @@ public sealed class SettingsUI : IDisposable
     /// <summary>Dashboard mouse coordinates have a bottom-left origin; our pixels are top-down.</summary>
     private static int FlipY(float y) => PanelHeight - 1 - (int)y;
 
-    private void OnPointerMove(int x, int y)
+    private void SetHover(int widget)
     {
-        var hover = _widgets.FindIndex(w => w.Bounds.Contains(x, y));
-        if (hover != _hoverWidget)
-        {
-            _hoverWidget = hover;
-            _dirty = true;
-        }
+        if (widget == _hoverWidget)
+            return;
+        _hoverWidget = widget;
+        _dirty = true;
     }
 
     private void OnClick(int x, int y)
@@ -159,8 +173,10 @@ public sealed class SettingsUI : IDisposable
         var index = _widgets.FindIndex(w => w.Bounds.Contains(x, y));
         if (index < 0)
             return;
-        _widgets[index].OnClick();
-        _applyAndSave();
+        var widget = _widgets[index];
+        widget.OnClick();
+        if (widget.Saves)
+            _applyAndSave();
         _dirty = true;
     }
 
@@ -192,7 +208,12 @@ public sealed class SettingsUI : IDisposable
                 _config.TwitchChannel = text.TrimStart('#').ToLowerInvariant();
                 break;
             case KeyboardTarget.AccentColor:
-                _config.AccentColorHex = text.StartsWith('#') || text.Length == 0 ? text : "#" + text;
+                // Empty resets to the default; "34D399" gets its '#'; names like "red"
+                // pass through; anything that is not a color keeps the current one.
+                if (text.Length == 0)
+                    _config.AccentColorHex = AppConfig.DefaultAccentColorHex;
+                else if (Theme.Parse(WithHashPrefix(text)) != null)
+                    _config.AccentColorHex = WithHashPrefix(text);
                 break;
             case KeyboardTarget.Username:
                 _config.TwitchUsername = text;
@@ -213,6 +234,9 @@ public sealed class SettingsUI : IDisposable
         _applyAndSave();
         _dirty = true;
     }
+
+    private static string WithHashPrefix(string text) =>
+        text.Length is 3 or 4 or 6 or 8 && text.All(Uri.IsHexDigit) ? "#" + text : text;
 
     /// <summary>Everything on the tab that can change without a click, in one comparable string.</summary>
     private string StatusSnapshot() => $"{_chat.StatusLine}\n{_follows.StatusLine}\n{_youtube.StatusLine}";
@@ -254,7 +278,7 @@ public sealed class SettingsUI : IDisposable
             g.DrawLine(dividerPen, Margin, 62, PanelWidth - Margin, 62);
 
             // Local helpers keep the row plumbing in one place.
-            void Button(Rectangle rect, string label, Action onClick, bool active = false)
+            void Button(Rectangle rect, string label, Action onClick, bool active = false, bool saves = true)
             {
                 var index = _widgets.Count;
                 var hovered = index == _hoverWidget;
@@ -264,7 +288,7 @@ public sealed class SettingsUI : IDisposable
                 g.DrawRectangle(pen, rect);
                 g.DrawString(label, buttonFont, active ? Brushes.White : Brushes.LightGray,
                     new RectangleF(rect.X, rect.Y, rect.Width, rect.Height), centered);
-                _widgets.Add((rect, onClick));
+                _widgets.Add((rect, onClick, saves));
             }
 
             void StepperRow(int x, int y, int width, string caption, string value, Action minus, Action plus)
@@ -348,7 +372,8 @@ public sealed class SettingsUI : IDisposable
             g.DrawString(_config.AccentColorHex, labelFont, accentBrush,
                 new RectangleF(leftX, y1 + 10, colWidth - 110, 26), rightAlign);
             Button(new Rectangle(leftX + colWidth - 92, y1 + 4, 92, ButtonSize), "Edit",
-                () => OpenKeyboard(KeyboardTarget.AccentColor, "Accent color, HTML hex (e.g. #34D399)", _config.AccentColorHex));
+                () => OpenKeyboard(KeyboardTarget.AccentColor, "Accent color, HTML hex (e.g. #34D399); empty = default", _config.AccentColorHex),
+                saves: false);
 
             // A value row: caption left, (possibly masked) value right, Edit button.
             void EditRow(int x, ref int y, string caption, string value, KeyboardTarget target, string prompt, string existing)
@@ -357,7 +382,7 @@ public sealed class SettingsUI : IDisposable
                 g.DrawString(value, labelFont, Brushes.White,
                     new RectangleF(x, y + 10, colWidth - 110, 26), rightAlign);
                 Button(new Rectangle(x + colWidth - 92, y + 4, 92, ButtonSize), "Edit",
-                    () => OpenKeyboard(target, prompt, existing));
+                    () => OpenKeyboard(target, prompt, existing), saves: false);
                 y += RowHeight;
             }
 
@@ -399,7 +424,7 @@ public sealed class SettingsUI : IDisposable
                 smallFont, Brushes.Gray, Margin, PanelHeight - 30);
         }
 
-        OverlayManager.UploadTextureTo(_handle, PanelRenderer.ToRgba(bitmap), PanelWidth, PanelHeight);
+        OverlayManager.UploadTextureTo(_handle, PanelRenderer.ToRgba(bitmap, ref _pixels), PanelWidth, PanelHeight);
     }
 
     private static float Step(float value, float delta, float min, float max) =>
@@ -431,7 +456,8 @@ public sealed class SettingsUI : IDisposable
             using var centered = new StringFormat { Alignment = StringAlignment.Center, LineAlignment = StringAlignment.Center };
             g.DrawString("XO", font, brush, new RectangleF(0, 0, 128, 128), centered);
         }
-        OverlayManager.UploadTextureTo(_thumbnail, PanelRenderer.ToRgba(bitmap), 128, 128);
+        byte[]? pixels = null;
+        OverlayManager.UploadTextureTo(_thumbnail, PanelRenderer.ToRgba(bitmap, ref pixels), 128, 128);
     }
 
     public void Dispose()

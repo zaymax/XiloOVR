@@ -104,7 +104,7 @@ public sealed class OverlayManager : IDisposable
                 case EVREventType.VREvent_Input_BindingLoadFailed:
                     Console.Error.WriteLine(
                         "warning: SteamVR failed to load the default controller bindings; " +
-                        "bind the two actions manually in SteamVR > Settings > Controllers > Manage Controller Bindings.");
+                        "bind the three actions manually in SteamVR > Settings > Controllers > Manage Controller Bindings.");
                     break;
             }
         }

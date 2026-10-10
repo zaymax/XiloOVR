@@ -176,6 +176,10 @@ public sealed class TwitchChatClient : IChatSource, IDisposable
                 // A stalled connection must fail a send quickly: SendMessage runs on the
                 // render thread and the default send timeout is infinite.
                 connection.SendTimeout = 5000;
+                // Twitch PINGs every ~5 minutes. Without a read timeout a half-open socket
+                // (network change, sleep/wake) blocks ReadLine forever and the feed silently
+                // dies; with one the read throws and the loop reconnects.
+                connection.ReceiveTimeout = 6 * 60 * 1000;
                 using var tls = new SslStream(connection.GetStream());
                 tls.AuthenticateAsClient(Host);
                 using var reader = new StreamReader(tls, Encoding.UTF8);
@@ -239,7 +243,17 @@ public sealed class TwitchChatClient : IChatSource, IDisposable
                     if (command == "RECONNECT")
                         break; // server-initiated reconnect
 
-                    var message = ParseLine(line, command);
+                    ChatMessage? message;
+                    try
+                    {
+                        message = ParseLine(line, command);
+                    }
+                    catch (Exception ex)
+                    {
+                        // One odd line must not cost the connection (the outer catch would reconnect).
+                        Console.Error.WriteLine($"Twitch chat: could not parse a line ({ex.Message})");
+                        continue;
+                    }
                     if (message != null)
                         _incoming.Enqueue(message);
                 }
@@ -368,7 +382,10 @@ public sealed class TwitchChatClient : IChatSource, IDisposable
             author = bang > 1 ? rest[1..bang] : "?";
         }
 
-        var textStart = rest.IndexOf(" :", rest.IndexOf(" PRIVMSG ", StringComparison.Ordinal), StringComparison.Ordinal);
+        var commandAt = rest.IndexOf(" PRIVMSG ", StringComparison.Ordinal);
+        if (commandAt < 0)
+            return null; // a PRIVMSG without parameters; IndexOf(-1) below would throw
+        var textStart = rest.IndexOf(" :", commandAt, StringComparison.Ordinal);
         if (textStart < 0)
             return null;
         var text = rest[(textStart + 2)..];

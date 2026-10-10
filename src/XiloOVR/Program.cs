@@ -10,8 +10,22 @@ internal static class Program
     private static volatile bool _configChanged;
     private static long _suppressConfigReloadUntilTicks;
 
+    /// <summary>Hand given on the command line; survives config hot-reloads for this run.</summary>
+    private static string? _handOverride;
+
     private static int Main(string[] args)
     {
+        // Windowless app: refuse to run twice (two overlays with one key would fight).
+        // Checked before anything else so the second instance never touches the first
+        // one's log file.
+        using var instanceLock = new Mutex(true, @"Local\XiloOVR-single-instance", out var isFirstInstance);
+        if (!isFirstInstance)
+        {
+            ShowError("XiloOVR is already running - look for the XO icon in the system tray.",
+                System.Windows.Forms.MessageBoxIcon.Information);
+            return 3;
+        }
+
         SetupLogging();
         Console.WriteLine($"XiloOVR v{Version()} - SteamVR overlay, started {DateTime.Now:yyyy-MM-dd HH:mm:ss}");
 
@@ -21,6 +35,26 @@ internal static class Program
             return 2;
         }
 
+        // A WinExe has no console: an unhandled exception would kill the process without
+        // a trace. Background threads (chat clients, file watchers) report here ...
+        AppDomain.CurrentDomain.UnhandledException += (_, e) =>
+            Console.Error.WriteLine($"fatal: unhandled exception: {e.ExceptionObject}");
+
+        try
+        {
+            return Run(args);
+        }
+        catch (Exception ex)
+        {
+            // ... and the main loop reports here, with a dialog the user can actually see.
+            Console.Error.WriteLine($"fatal: {ex}");
+            ShowError($"XiloOVR stopped because of an unexpected error:\n{ex.Message}\n\nDetails are in xiloovr.log next to the exe.");
+            return 1;
+        }
+    }
+
+    private static int Run(string[] args)
+    {
         var configPath = Path.Combine(AppContext.BaseDirectory, "config.json");
         AppConfig config;
         try
@@ -30,8 +64,7 @@ internal static class Program
         catch (Exception ex)
         {
             Console.Error.WriteLine($"Failed to load config '{configPath}': {ex.Message}");
-            System.Windows.Forms.MessageBox.Show($"Failed to load config.json:\n{ex.Message}", "XiloOVR",
-                System.Windows.Forms.MessageBoxButtons.OK, System.Windows.Forms.MessageBoxIcon.Error);
+            ShowError($"Failed to load config.json:\n{ex.Message}");
             return 2;
         }
 
@@ -39,23 +72,16 @@ internal static class Program
         for (var i = 0; i < args.Length - 1; i++)
         {
             if (args[i] == "--hand")
-                config.Hand = args[i + 1];
+                _handOverride = args[i + 1];
         }
+        if (_handOverride != null)
+            config.Hand = _handOverride;
 
         Console.CancelKeyPress += (_, e) =>
         {
             e.Cancel = true; // let the main loop shut OpenVR down cleanly
             _running = false;
         };
-
-        // Windowless app: refuse to run twice (two overlays with one key would fight).
-        using var instanceLock = new Mutex(true, @"Local\XiloOVR-single-instance", out var isFirstInstance);
-        if (!isFirstInstance)
-        {
-            System.Windows.Forms.MessageBox.Show("XiloOVR is already running - look for the XO icon in the system tray.",
-                "XiloOVR", System.Windows.Forms.MessageBoxButtons.OK, System.Windows.Forms.MessageBoxIcon.Information);
-            return 3;
-        }
 
         using var tray = new TrayIcon($"XiloOVR v{Version()}", Theme.Accent(config), () => _running = false);
 
@@ -67,8 +93,7 @@ internal static class Program
         catch (VRInitException ex)
         {
             Console.Error.WriteLine(ex.Message);
-            System.Windows.Forms.MessageBox.Show(ex.Message, "XiloOVR",
-                System.Windows.Forms.MessageBoxButtons.OK, System.Windows.Forms.MessageBoxIcon.Error);
+            ShowError(ex.Message);
             return 1;
         }
 
@@ -94,8 +119,9 @@ internal static class Program
         var chatSources = new IChatSource[] { chat, youtube, follows };
         var ui = new ChecklistUI(overlay, config, checklist, chat, chatSources, laser);
 
-        // The dashboard settings tab edits the same AppConfig instance and calls back here.
-        void ApplyAndSave()
+        // Everything that has to happen when settings change, whether the dashboard tab
+        // edited the shared AppConfig instance or config.json was reloaded from disk.
+        void ApplyConfig()
         {
             OpenVR.Overlay.SetOverlayWidthInMeters(overlay.Handle, config.WidthMeters);
             wrist.Reconfigure();
@@ -104,6 +130,11 @@ internal static class Program
             youtube.SetChannel(config.YouTubeChannel);
             follows.Configure(config);
             AutostartManager.Apply(config.AutostartWithSteamVR);
+        }
+
+        void ApplyAndSave()
+        {
+            ApplyConfig();
             // Our own write must not bounce back through the file watcher (it would blink the panel).
             Volatile.Write(ref _suppressConfigReloadUntilTicks, DateTime.UtcNow.AddSeconds(1.5).Ticks);
             ConfigLoader.Save(config, configPath);
@@ -125,12 +156,11 @@ internal static class Program
             if (_configChanged)
             {
                 _configChanged = false;
-                ReloadConfig(configPath, config, overlay, wrist, ui);
-                chat.Configure(config);
-                youtube.SetChannel(config.YouTubeChannel);
-                follows.Configure(config);
-                AutostartManager.Apply(config.AutostartWithSteamVR);
-                settings.MarkDirty();
+                if (ReloadConfig(configPath, config))
+                {
+                    ApplyConfig();
+                    settings.MarkDirty();
+                }
             }
 
             var now = clock.Elapsed.TotalMilliseconds;
@@ -157,11 +187,20 @@ internal static class Program
             ui.Update(deltaMs, wrist.DeviceIndex, wrist.Offset, pointerDevice, incrementClicked, decrementClicked);
             settings.Update();
 
-            Thread.Sleep(ui.PanelShown ? 20 : 100);
+            // Full rate while something interactive is on screen (the wrist panel, or the
+            // dashboard tab with its laser hover); a quicker idle tick while the wrist
+            // gesture is armed so a glance registers promptly; otherwise mostly asleep.
+            Thread.Sleep(ui.PanelShown || settings.Visible ? 20 : config.ShowOnWristTurn ? 50 : 100);
         }
 
         Console.WriteLine("Clean shutdown.");
         return 0;
+    }
+
+    private static void ShowError(string message,
+        System.Windows.Forms.MessageBoxIcon icon = System.Windows.Forms.MessageBoxIcon.Error)
+    {
+        System.Windows.Forms.MessageBox.Show(message, "XiloOVR", System.Windows.Forms.MessageBoxButtons.OK, icon);
     }
 
     private static FileSystemWatcher? WatchConfig(string configPath)
@@ -207,8 +246,12 @@ internal static class Program
             {
                 AutoFlush = true,
             };
-            Console.SetOut(new TeeWriter(Console.Out, writer));
-            Console.SetError(new TeeWriter(Console.Error, writer));
+            // Console.SetOut/SetError each synchronize their own writer, but both tees end
+            // in this one StreamWriter, and chat threads log to Error while the main thread
+            // logs to Out - so the shared sink needs its own lock.
+            var log = TextWriter.Synchronized(writer);
+            Console.SetOut(new TeeWriter(Console.Out, log));
+            Console.SetError(new TeeWriter(Console.Error, log));
         }
         catch
         {
@@ -248,21 +291,23 @@ internal static class Program
         }
     }
 
-    private static void ReloadConfig(string path, AppConfig config, OverlayManager overlay, WristAttachment wrist, ChecklistUI ui)
+    /// <summary>Re-reads config.json onto the shared instance; false when the file could not be parsed.</summary>
+    private static bool ReloadConfig(string path, AppConfig config)
     {
         try
         {
             var fresh = ConfigLoader.LoadOrCreate(path);
             config.CopyFrom(fresh);
-            OpenVR.Overlay.SetOverlayWidthInMeters(overlay.Handle, config.WidthMeters);
-            wrist.Reconfigure();
-            ui.MarkDirty();
+            if (_handOverride != null)
+                config.Hand = _handOverride;
             Console.WriteLine("config.json reloaded, panel offset/size applied live.");
+            return true;
         }
         catch (Exception ex)
         {
             // Likely caught the editor mid-write; keep current settings, the next event retries.
             Console.Error.WriteLine($"warning: config reload failed, keeping previous settings: {ex.Message}");
+            return false;
         }
     }
 }

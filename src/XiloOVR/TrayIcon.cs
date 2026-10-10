@@ -1,6 +1,7 @@
 #nullable enable
 using System.Diagnostics;
 using System.Drawing;
+using System.Runtime.InteropServices;
 using System.Windows.Forms;
 
 namespace XiloOVR;
@@ -24,7 +25,7 @@ public sealed class TrayIcon : IDisposable
 
     private void Run(string title, Color accent, Action onQuit)
     {
-        Icon trayIcon;
+        IntPtr iconHandle;
         using (var bitmap = new Bitmap(32, 32))
         {
             using (var g = Graphics.FromImage(bitmap))
@@ -36,8 +37,10 @@ public sealed class TrayIcon : IDisposable
                 using var brush = new SolidBrush(accent);
                 g.DrawString("XO", font, brush, 4, 9);
             }
-            trayIcon = Icon.FromHandle(bitmap.GetHicon());
+            iconHandle = bitmap.GetHicon();
         }
+        // Icon.FromHandle does not own the HICON; it has to be released explicitly below.
+        var trayIcon = Icon.FromHandle(iconHandle);
 
         var menu = new ContextMenuStrip();
         menu.Items.Add(title).Enabled = false;
@@ -60,7 +63,14 @@ public sealed class TrayIcon : IDisposable
 
         _icon.Visible = false;
         _icon.Dispose();
+        menu.Dispose();
+        trayIcon.Dispose();
+        DestroyIcon(iconHandle);
     }
+
+    [DllImport("user32.dll", SetLastError = true)]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static extern bool DestroyIcon(IntPtr handle);
 
     private static void OpenPath(string path)
     {
