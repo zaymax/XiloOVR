@@ -28,6 +28,7 @@ public sealed class InputManager
 
     private double _togglePressStartMs = -1;
     private bool _toggleFired;
+    private bool _reportedUpdateError;
 
     public bool Available { get; private set; }
 
@@ -83,8 +84,17 @@ public sealed class InputManager
         if (!Available || _activeSets == null)
             return;
         var error = OpenVR.Input.UpdateActionState(_activeSets, (uint)Marshal.SizeOf<VRActiveActionSet_t>());
-        if (error != EVRInputError.None)
+        if (error == EVRInputError.None)
+        {
+            _reportedUpdateError = false;
+            return;
+        }
+        // Runs every frame: report a persistent failure once, not fifty times a second.
+        if (!_reportedUpdateError)
+        {
+            _reportedUpdateError = true;
             Console.Error.WriteLine($"warning: UpdateActionState failed ({error})");
+        }
     }
 
     /// <summary>Fires exactly once when toggle_panel has been held for holdMs (either hand).</summary>

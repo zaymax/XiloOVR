@@ -59,10 +59,7 @@ public sealed class ItemDatabase
     {
         var counts = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
         foreach (var item in _byId.Values)
-        {
-            var key = NormalizeCategory(item.Category);
-            counts[key] = counts.TryGetValue(key, out var n) ? n + 1 : 1;
-        }
+            counts[item.Category] = counts.TryGetValue(item.Category, out var n) ? n + 1 : 1;
         return counts
             .Select(pair => new ItemCategory(pair.Key, DisplayCategory(pair.Key, false), DisplayCategory(pair.Key, true), pair.Value))
             .OrderBy(c => PreferredOrder(c.Key))
@@ -70,10 +67,10 @@ public sealed class ItemDatabase
             .ToList();
     }
 
-    /// <summary>All items of one category, sorted by name.</summary>
+    /// <summary>All items of one category (a normalized key, see Categories), sorted by name.</summary>
     public IReadOnlyList<GameItem> InCategory(string category) =>
         _byId.Values
-            .Where(i => string.Equals(NormalizeCategory(i.Category), category, StringComparison.OrdinalIgnoreCase))
+            .Where(i => string.Equals(i.Category, category, StringComparison.OrdinalIgnoreCase))
             .OrderBy(i => i.Name, StringComparer.OrdinalIgnoreCase)
             .ToList();
 
@@ -152,6 +149,11 @@ public sealed class ItemDatabase
         {
             if (string.IsNullOrWhiteSpace(item.Id))
                 continue;
+            // A hand-edited file may carry null names/categories (JSON null overrides the
+            // property defaults); normalize once here so the lookups never have to.
+            if (string.IsNullOrWhiteSpace(item.Name))
+                item.Name = item.Id;
+            item.Category = NormalizeCategory(item.Category);
             if (!byId.TryAdd(item.Id, item))
                 Console.Error.WriteLine($"warning: duplicate item id '{item.Id}' in database, keeping the first entry");
         }

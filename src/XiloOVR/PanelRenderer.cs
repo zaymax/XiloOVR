@@ -61,6 +61,34 @@ public static class PanelRenderer
     private static readonly Color CellFill = Color.FromArgb(255, 26, 32, 44);
     private static readonly Color DoneGreen = Color.FromArgb(255, 110, 220, 130);
     private static readonly Color TwitchPurple = Color.FromArgb(255, 145, 70, 255);
+    private static readonly Color YouTubeRed = Color.FromArgb(255, 230, 60, 60);
+
+    // Fonts never change between frames; GDI+ font creation is not free, and a hover
+    // change re-renders the whole panel.
+    private static readonly Font TitleFont = new("Segoe UI", 26, FontStyle.Bold, GraphicsUnit.Pixel);
+    private static readonly Font GlyphFont = new("Segoe UI", 48, FontStyle.Bold, GraphicsUnit.Pixel);
+    private static readonly Font CountFont = new("Segoe UI", 19, FontStyle.Bold, GraphicsUnit.Pixel);
+    private static readonly Font TileFont = new("Segoe UI", 18, FontStyle.Regular, GraphicsUnit.Pixel);
+    private static readonly Font SmallFont = new("Segoe UI", 15, FontStyle.Regular, GraphicsUnit.Pixel);
+    private static readonly Font AlertFont = new("Segoe UI", 20, FontStyle.Bold, GraphicsUnit.Pixel);
+    private static readonly Font ChatFont = new("Segoe UI", 17, FontStyle.Regular, GraphicsUnit.Pixel);
+    private static readonly Font AuthorFont = new("Segoe UI", 17, FontStyle.Bold, GraphicsUnit.Pixel);
+    private static readonly Font BadgeFont = new("Segoe UI", 12, FontStyle.Bold, GraphicsUnit.Pixel);
+
+    private static readonly StringFormat RightAlign = new() { Alignment = StringAlignment.Far };
+    private static readonly StringFormat Center = new() { Alignment = StringAlignment.Center, LineAlignment = StringAlignment.Center };
+    private static readonly StringFormat SingleLine = new()
+    {
+        FormatFlags = StringFormatFlags.NoWrap,
+        Trimming = StringTrimming.EllipsisCharacter,
+    };
+    private static readonly StringFormat CenteredSingleLine = new()
+    {
+        Alignment = StringAlignment.Center,
+        LineAlignment = StringAlignment.Center,
+        FormatFlags = StringFormatFlags.NoWrap,
+        Trimming = StringTrimming.EllipsisCharacter,
+    };
 
     // Fallback username colors for chatters who never set one (deterministic by name).
     private static readonly Color[] NamePalette =
@@ -72,6 +100,11 @@ public static class PanelRenderer
         Color.FromArgb(255, 200, 140, 255),
         Color.FromArgb(255, 250, 150, 200),
     };
+
+    // The panel is re-rendered on every hover change; reusing the bitmap and the pixel
+    // buffer (1.2 MB each at the default size) keeps that off the large-object heap.
+    private static Bitmap? _bitmap;
+    private static byte[]? _pixels;
 
     public static int CellSize(AppConfig config) =>
         (config.PanelPixelWidth - 2 * Margin - (Columns - 1) * CellGap) / Columns;
@@ -125,15 +158,25 @@ public static class PanelRenderer
         return index < Math.Min(cellCount, VisibleCellCapacity(config)) ? index : -1;
     }
 
+    /// <summary>
+    /// Draws the panel and returns its RGBA pixels. The returned buffer is reused by the
+    /// next call; SetOverlayRaw copies it synchronously, so that is safe for the caller.
+    /// </summary>
     public static byte[] RenderPanel(AppConfig config, PanelView view, out int width, out int height)
     {
         width = config.PanelPixelWidth;
         height = config.PanelPixelHeight;
 
+        if (_bitmap == null || _bitmap.Width != width || _bitmap.Height != height)
+        {
+            _bitmap?.Dispose();
+            _bitmap = new Bitmap(width, height, PixelFormat.Format32bppArgb);
+        }
+        var bitmap = _bitmap;
+
         var accent = Theme.Accent(config);
         var hoverFill = Theme.WithAlpha(accent, 70);
 
-        using var bitmap = new Bitmap(width, height, PixelFormat.Format32bppArgb);
         using (var g = Graphics.FromImage(bitmap))
         {
             g.SmoothingMode = SmoothingMode.AntiAlias;
@@ -144,18 +187,11 @@ public static class PanelRenderer
             using var borderPen = new Pen(accent, 3);
             g.DrawRectangle(borderPen, 1, 1, width - 3, height - 3);
 
-            using var titleFont = new Font("Segoe UI", 26, FontStyle.Bold, GraphicsUnit.Pixel);
-            using var glyphFont = new Font("Segoe UI", 48, FontStyle.Bold, GraphicsUnit.Pixel);
-            using var countFont = new Font("Segoe UI", 19, FontStyle.Bold, GraphicsUnit.Pixel);
-            using var tileFont = new Font("Segoe UI", 18, FontStyle.Regular, GraphicsUnit.Pixel);
-            using var smallFont = new Font("Segoe UI", 15, FontStyle.Regular, GraphicsUnit.Pixel);
             using var accentBrush = new SolidBrush(accent);
             using var cellBrush = new SolidBrush(CellFill);
             using var hoverBrush = new SolidBrush(hoverFill);
             using var doneBrush = new SolidBrush(DoneGreen);
             using var dimBrush = new SolidBrush(Color.FromArgb(150, 10, 12, 18));
-            using var rightAlign = new StringFormat { Alignment = StringAlignment.Far };
-            using var center = new StringFormat { Alignment = StringAlignment.Center, LineAlignment = StringAlignment.Center };
             using var dividerPen = new Pen(Theme.WithAlpha(accent, 120), 1);
 
             // Header; an active alert takes the whole strip over for a few seconds.
@@ -163,22 +199,14 @@ public static class PanelRenderer
             {
                 var banner = new Rectangle(Margin / 2, 6, width - Margin, HeaderHeight - 14);
                 g.FillRectangle(accentBrush, banner);
-                using var alertFont = new Font("Segoe UI", 20, FontStyle.Bold, GraphicsUnit.Pixel);
                 using var darkBrush = new SolidBrush(Color.FromArgb(255, 12, 16, 22));
-                using var bannerFormat = new StringFormat
-                {
-                    Alignment = StringAlignment.Center,
-                    LineAlignment = StringAlignment.Center,
-                    FormatFlags = StringFormatFlags.NoWrap,
-                    Trimming = StringTrimming.EllipsisCharacter,
-                };
-                g.DrawString($"★ {view.Alert.Author} {view.Alert.Text}", alertFont, darkBrush,
-                    new RectangleF(banner.X + 6, banner.Y, banner.Width - 12, banner.Height), bannerFormat);
+                g.DrawString($"★ {view.Alert.Author} {view.Alert.Text}", AlertFont, darkBrush,
+                    new RectangleF(banner.X + 6, banner.Y, banner.Width - 12, banner.Height), CenteredSingleLine);
             }
             else
             {
-                g.DrawString("XiloOVR", titleFont, Brushes.White, Margin, 16);
-                g.DrawString(view.HeaderRight, titleFont, accentBrush, new RectangleF(0, 16, width - Margin, 34), rightAlign);
+                g.DrawString("XiloOVR", TitleFont, Brushes.White, Margin, 16);
+                g.DrawString(view.HeaderRight, TitleFont, accentBrush, new RectangleF(0, 16, width - Margin, 34), RightAlign);
             }
             g.DrawLine(dividerPen, Margin, HeaderHeight - 4, width - Margin, HeaderHeight - 4);
 
@@ -211,12 +239,12 @@ public static class PanelRenderer
                     g.DrawEllipse(lensPen, cx - r, cy - r, 2 * r, 2 * r);
                     g.DrawLine(lensPen, cx + r * 0.7f, cy + r * 0.7f, cx + r * 1.6f, cy + r * 1.6f);
                     if (item.Label != null)
-                        g.DrawString(item.Label, smallFont, Brushes.LightGray,
-                            new RectangleF(x, y + cell - 28, cell, 24), center);
+                        g.DrawString(item.Label, SmallFont, Brushes.LightGray,
+                            new RectangleF(x, y + cell - 28, cell, 24), Center);
                 }
                 else if (item.Glyph != null)
                 {
-                    g.DrawString(item.Glyph, glyphFont, accentBrush, new RectangleF(x, y, cell, cell), center);
+                    g.DrawString(item.Glyph, GlyphFont, accentBrush, new RectangleF(x, y, cell, cell), Center);
                 }
                 else
                 {
@@ -226,8 +254,8 @@ public static class PanelRenderer
                     if (icon != null)
                         g.DrawImage(icon, iconRect);
                     else if (item.Label != null)
-                        g.DrawString(item.Label, tileFont, Brushes.LightGray,
-                            new RectangleF(x + 4, y + 4, cell - 8, cell - 30), center);
+                        g.DrawString(item.Label, TileFont, Brushes.LightGray,
+                            new RectangleF(x + 4, y + 4, cell - 8, cell - 30), Center);
 
                     if (item.Complete)
                     {
@@ -246,17 +274,21 @@ public static class PanelRenderer
 
                 if (item.CountText != null)
                 {
-                    g.DrawString(item.CountText, countFont, item.Complete ? doneBrush : Brushes.White,
-                        new RectangleF(x, y + cell - 26, cell - 6, 22), rightAlign);
+                    g.DrawString(item.CountText, CountFont, item.Complete ? doneBrush : Brushes.White,
+                        new RectangleF(x, y + cell - 26, cell - 6, 22), RightAlign);
                 }
             }
 
             if (config.IsChatEnabled)
-                DrawChatSection(g, config, view.Chat, width, height, smallFont, dividerPen, accent);
+                DrawChatSection(g, config, view.Chat, width, height, dividerPen, accent);
 
-            // Footer: text left, scroll arrows right.
-            g.DrawString(view.FooterText, smallFont, Brushes.Gray, Margin, height - FooterHeight + 8);
-            if (view.CanScrollUp || view.CanScrollDown)
+            // Footer: text left, scroll arrows right. The text is clipped before the
+            // arrows so a long "Category 1-7 of 573 — ..." line cannot run under them.
+            var showArrows = view.CanScrollUp || view.CanScrollDown;
+            var footerRight = showArrows ? UpArrowRect(config).X - 8 : width - Margin;
+            g.DrawString(view.FooterText, SmallFont, Brushes.Gray,
+                new RectangleF(Margin, height - FooterHeight + 8, footerRight - Margin, FooterHeight - 8), SingleLine);
+            if (showArrows)
             {
                 DrawArrow(UpArrowRect(config), "▲", view.CanScrollUp, view.HoverId == HitUp);
                 DrawArrow(DownArrowRect(config), "▼", view.CanScrollDown, view.HoverId == HitDown);
@@ -268,28 +300,19 @@ public static class PanelRenderer
                 g.FillRectangle(bg, rect);
                 using var pen = new Pen(enabled ? accent : Color.FromArgb(70, 160, 160, 160), hovered && enabled ? 2 : 1);
                 g.DrawRectangle(pen, rect);
-                g.DrawString(glyph, smallFont, enabled ? accentBrush : Brushes.DimGray,
-                    new RectangleF(rect.X, rect.Y, rect.Width, rect.Height), center);
+                g.DrawString(glyph, SmallFont, enabled ? accentBrush : Brushes.DimGray,
+                    new RectangleF(rect.X, rect.Y, rect.Width, rect.Height), Center);
             }
         }
 
-        return ToRgba(bitmap);
+        return ToRgba(bitmap, ref _pixels);
     }
 
     private static void DrawChatSection(Graphics g, AppConfig config, IReadOnlyList<ChatMessage> chat,
-        int width, int height, Font smallFont, Pen dividerPen, Color accent)
+        int width, int height, Pen dividerPen, Color accent)
     {
         var sectionTop = height - FooterHeight - ChatSectionHeight(config);
         g.DrawLine(dividerPen, Margin, sectionTop, width - Margin, sectionTop);
-
-        using var chatFont = new Font("Segoe UI", 17, FontStyle.Regular, GraphicsUnit.Pixel);
-        using var authorFont = new Font("Segoe UI", 17, FontStyle.Bold, GraphicsUnit.Pixel);
-        using var badgeFont = new Font("Segoe UI", 12, FontStyle.Bold, GraphicsUnit.Pixel);
-        using var singleLine = new StringFormat
-        {
-            FormatFlags = StringFormatFlags.NoWrap,
-            Trimming = StringTrimming.EllipsisCharacter,
-        };
 
         if (chat.Count == 0)
         {
@@ -297,7 +320,7 @@ public static class PanelRenderer
                 ? $"twitch.tv/{config.TwitchChannelNormalized}"
                 : "youtube live chat";
             g.DrawString($"connecting to {target} ...",
-                chatFont, Brushes.Gray, Margin, sectionTop + ChatPadding / 2f);
+                ChatFont, Brushes.Gray, Margin, sectionTop + ChatPadding / 2f);
             return;
         }
 
@@ -318,74 +341,89 @@ public static class PanelRenderer
             var badgeColor = message.IsAlert ? accent : message.Source switch
             {
                 "tw" => TwitchPurple,
-                "yt" => Color.FromArgb(255, 230, 60, 60),
+                "yt" => YouTubeRed,
                 _ => Color.DimGray,
             };
             using (var badgeBrush = new SolidBrush(badgeColor))
                 g.FillRectangle(badgeBrush, x, y + 3, 16, 16);
             g.DrawString(message.IsAlert ? "★" : message.Source == "tw" ? "T" : message.Source == "yt" ? "Y" : "•",
-                badgeFont, Brushes.White, x + (message.IsAlert ? 2f : 3.5f), y + 4);
+                BadgeFont, Brushes.White, x + (message.IsAlert ? 2f : 3.5f), y + 4);
             x += 22;
 
             var authorText = message.Author + ":";
             using (var authorBrush = new SolidBrush(AuthorColor(message)))
-                g.DrawString(authorText, authorFont, authorBrush, x, y);
-            x += g.MeasureString(authorText, authorFont).Width + 2;
+                g.DrawString(authorText, AuthorFont, authorBrush, x, y);
+            x += g.MeasureString(authorText, AuthorFont).Width + 2;
 
-            g.DrawString(message.Text, chatFont, message.IsAlert ? Brushes.White : Brushes.LightGray,
-                new RectangleF(x, y, width - Margin - x, ChatLineHeight), singleLine);
+            g.DrawString(message.Text, ChatFont, message.IsAlert ? Brushes.White : Brushes.LightGray,
+                new RectangleF(x, y, width - Margin - x, ChatLineHeight), SingleLine);
             y += ChatLineHeight;
         }
     }
 
     private static Color AuthorColor(ChatMessage message)
     {
-        if (!string.IsNullOrEmpty(message.ColorHex))
-        {
-            try
-            {
-                return ColorTranslator.FromHtml(message.ColorHex);
-            }
-            catch
-            {
-                // fall through to the palette
-            }
-        }
+        var color = Theme.Parse(message.ColorHex);
+        if (color != null)
+            return color.Value;
         var hash = 0;
         foreach (var c in message.Author)
             hash = hash * 31 + c;
         return NamePalette[Math.Abs(hash % NamePalette.Length)];
     }
 
-    /// <summary>GDI+ stores Format32bppArgb as BGRA in memory; OpenVR raw overlays expect RGBA.</summary>
-    internal static byte[] ToRgba(Bitmap bitmap)
+    /// <summary>
+    /// Copies a 32bpp bitmap into an RGBA8 buffer for SetOverlayRaw. GDI+ stores
+    /// Format32bppArgb as BGRA in memory, so the red and blue bytes are swapped in place
+    /// after one bulk copy. <paramref name="buffer"/> is (re)allocated only when its
+    /// size does not match, so a caller that renders repeatedly keeps one buffer.
+    /// </summary>
+    internal static byte[] ToRgba(Bitmap bitmap, ref byte[]? buffer)
     {
-        var bounds = new Rectangle(0, 0, bitmap.Width, bitmap.Height);
-        var data = bitmap.LockBits(bounds, ImageLockMode.ReadOnly, PixelFormat.Format32bppArgb);
+        var width = bitmap.Width;
+        var height = bitmap.Height;
+        var rowBytes = width * 4;
+        var length = rowBytes * height;
+        if (buffer == null || buffer.Length != length)
+            buffer = new byte[length];
+
+        var data = bitmap.LockBits(new Rectangle(0, 0, width, height), ImageLockMode.ReadOnly, PixelFormat.Format32bppArgb);
         try
         {
-            var stride = data.Stride;
-            var bgra = new byte[stride * bitmap.Height];
-            Marshal.Copy(data.Scan0, bgra, 0, bgra.Length);
-
-            var rgba = new byte[bitmap.Width * bitmap.Height * 4];
-            for (var y = 0; y < bitmap.Height; y++)
+            if (data.Stride == rowBytes)
             {
-                for (var x = 0; x < bitmap.Width; x++)
-                {
-                    var src = y * stride + x * 4;
-                    var dst = (y * bitmap.Width + x) * 4;
-                    rgba[dst] = bgra[src + 2];     // R
-                    rgba[dst + 1] = bgra[src + 1]; // G
-                    rgba[dst + 2] = bgra[src];     // B
-                    rgba[dst + 3] = bgra[src + 3]; // A
-                }
+                Marshal.Copy(data.Scan0, buffer, 0, length);
             }
-            return rgba;
+            else
+            {
+                for (var y = 0; y < height; y++)
+                    Marshal.Copy(data.Scan0 + y * data.Stride, buffer, y * rowBytes, rowBytes);
+            }
         }
         finally
         {
             bitmap.UnlockBits(data);
         }
+
+        SwapRedBlue(buffer);
+        return buffer;
+    }
+
+    private static void SwapRedBlue(byte[] pixels)
+    {
+        if (BitConverter.IsLittleEndian)
+        {
+            // One 32-bit pixel at a time: BGRA little-endian is 0xAARRGGBB; swap the two
+            // outer bytes and the alpha/green stay where they are.
+            var words = MemoryMarshal.Cast<byte, uint>(pixels);
+            for (var i = 0; i < words.Length; i++)
+            {
+                var v = words[i];
+                words[i] = (v & 0xFF00FF00u) | ((v & 0x00FF0000u) >> 16) | ((v & 0x000000FFu) << 16);
+            }
+            return;
+        }
+        for (var i = 0; i + 3 < pixels.Length; i += 4)
+            (pixels[i], pixels[i + 2]) = (pixels[i + 2], pixels[i]);
     }
 }

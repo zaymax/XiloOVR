@@ -47,6 +47,7 @@ public sealed class ChecklistUI
     private bool _wristTurnWasEnabled;
     private bool _shown;
     private float _alpha;
+    private float _appliedAlpha = -1f;
     private bool _dirty = true;
 
     private int _hoverId = -1;
@@ -116,11 +117,15 @@ public sealed class ChecklistUI
     public void Update(double deltaMs, uint wristDeviceIndex, HmdMatrix34_t wristOffset, uint pointerDeviceIndex,
         bool incrementClicked, bool decrementClicked)
     {
-        if (_checklist.ConsumeFileChanges())
+        var changes = _checklist.ConsumeFileChanges();
+        if (changes != DataChanges.None)
         {
-            IconCache.Clear(); // icons may have changed together with the database
-            _categories = _checklist.DatabaseCategories();
-            RefreshPickerResults();
+            if (changes.HasFlag(DataChanges.Database))
+            {
+                IconCache.Clear(); // icons may have changed together with the database
+                _categories = _checklist.DatabaseCategories();
+                RefreshPickerResults();
+            }
             _dirty = true;
         }
 
@@ -705,6 +710,7 @@ public sealed class ChecklistUI
                 vrOverlay.HideOverlay(_overlay.Handle);
                 _shown = false;
                 _hoverId = -1;
+                _appliedAlpha = -1f;
             }
             return;
         }
@@ -714,7 +720,12 @@ public sealed class ChecklistUI
             vrOverlay.ShowOverlay(_overlay.Handle);
             _shown = true;
         }
-        vrOverlay.SetOverlayAlpha(_overlay.Handle, _alpha);
+        // Alpha sits at 1.0 for most of the session; only the fades need to send it.
+        if (_alpha != _appliedAlpha)
+        {
+            vrOverlay.SetOverlayAlpha(_overlay.Handle, _alpha);
+            _appliedAlpha = _alpha;
+        }
     }
 
     /// <summary>Casts a ray from the pointer controller; returns the hit control and beam length.</summary>

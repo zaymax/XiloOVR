@@ -38,11 +38,21 @@ public sealed class WristAttachment
     /// <summary>The controller-local panel offset currently applied (rotation + translation).</summary>
     public HmdMatrix34_t Offset => _offset;
 
-    /// <summary>Re-reads hand/offset from config and forces a re-attach on the next update.</summary>
+    /// <summary>
+    /// Re-reads hand/offset from config. Same hand: the panel just moves on the controller
+    /// it already hangs on (every settings click lands here, so no detach/re-attach and no
+    /// log line). Other hand: detach and let the next update find the new controller.
+    /// </summary>
     public void Reconfigure()
     {
-        _role = _config.IsLeftHand ? ETrackedControllerRole.LeftHand : ETrackedControllerRole.RightHand;
+        var role = _config.IsLeftHand ? ETrackedControllerRole.LeftHand : ETrackedControllerRole.RightHand;
         _offset = BuildOffset(_config);
+        if (role == _role && Present)
+        {
+            ReassertTransform();
+            return;
+        }
+        _role = role;
         _deviceIndex = OpenVR.k_unTrackedDeviceIndexInvalid;
         _reportedWaiting = false;
     }

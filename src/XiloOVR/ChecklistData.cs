@@ -22,6 +22,15 @@ public sealed class ChecklistEntry
     public bool IsComplete => Collected >= Needed;
 }
 
+/// <summary>Which watched files changed since the last check (see ChecklistData.ConsumeFileChanges).</summary>
+[Flags]
+public enum DataChanges
+{
+    None = 0,
+    Checklist = 1,
+    Database = 2,
+}
+
 /// <summary>
 /// The user's active checklist: which items they are hunting and how many are found.
 /// Persisted to checklist.json next to the executable; entries reference the item
@@ -31,6 +40,8 @@ public sealed class ChecklistEntry
 /// </summary>
 public sealed class ChecklistData : IDisposable
 {
+    private const int MaxNeeded = 99;
+
     private static readonly JsonSerializerOptions JsonOptions = new()
     {
         PropertyNameCaseInsensitive = true,
@@ -45,7 +56,9 @@ public sealed class ChecklistData : IDisposable
 
     private ItemDatabase _database;
     private List<ChecklistEntry> _entries = new();
-    private volatile bool _filesChanged;
+    private volatile bool _checklistChanged;
+    private volatile bool _databaseChanged;
+    private long _suppressChecklistReloadUntilTicks;
 
     private ChecklistData(string checklistPath, string databasePath, ItemDatabase database)
     {
@@ -76,8 +89,8 @@ public sealed class ChecklistData : IDisposable
     /// <summary>Absolute path of the entry's icon, or null when unknown.</summary>
     public string? IconPathFor(ChecklistEntry entry)
     {
-        var icon = ItemFor(entry)?.Icon;
-        return string.IsNullOrEmpty(icon) ? null : Path.Combine(_dataDirectory, icon);
+        var item = ItemFor(entry);
+        return item == null ? null : IconPathFor(item);
     }
 
     public string? IconPathFor(GameItem item) =>
@@ -92,24 +105,23 @@ public sealed class ChecklistData : IDisposable
     public int DatabaseCount => _database.Count;
 
     /// <summary>How many of this item the checklist currently wants (0 = not listed).</summary>
-    public int NeededOf(string itemId) =>
-        _entries.FirstOrDefault(e => string.Equals(e.ItemId, itemId, StringComparison.OrdinalIgnoreCase))?.Needed ?? 0;
+    public int NeededOf(string itemId) => FindEntry(itemId)?.Needed ?? 0;
 
     /// <summary>Picker action: add the item, or bump how many of it are needed.</summary>
     public void AddOrIncrementNeeded(string itemId)
     {
-        var entry = _entries.FirstOrDefault(e => string.Equals(e.ItemId, itemId, StringComparison.OrdinalIgnoreCase));
+        var entry = FindEntry(itemId);
         if (entry == null)
             _entries.Add(new ChecklistEntry { ItemId = itemId, Needed = 1 });
         else
-            entry.Needed = Math.Min(entry.Needed + 1, 99);
+            entry.Needed = Math.Min(entry.Needed + 1, MaxNeeded);
         Save();
     }
 
     /// <summary>Picker action: lower the needed count, removing the item at zero.</summary>
     public void DecrementNeededOrRemove(string itemId)
     {
-        var entry = _entries.FirstOrDefault(e => string.Equals(e.ItemId, itemId, StringComparison.OrdinalIgnoreCase));
+        var entry = FindEntry(itemId);
         if (entry == null)
             return;
         entry.Needed--;
@@ -140,25 +152,47 @@ public sealed class ChecklistData : IDisposable
         Save();
     }
 
-    /// <summary>True once after any watched file changed; reloads state as a side effect.</summary>
-    public bool ConsumeFileChanges()
+    private ChecklistEntry? FindEntry(string itemId) =>
+        _entries.FirstOrDefault(e => string.Equals(e.ItemId, itemId, StringComparison.OrdinalIgnoreCase));
+
+    /// <summary>
+    /// Reports which watched files changed since the last call and reloads them as a
+    /// side effect. The two files are tracked separately: a checklist edit must not
+    /// re-parse the 1400-item database (and drop every cached icon with it).
+    /// </summary>
+    public DataChanges ConsumeFileChanges()
     {
-        if (!_filesChanged)
-            return false;
-        _filesChanged = false;
+        var changes = DataChanges.None;
+        if (_databaseChanged)
+        {
+            _databaseChanged = false;
+            changes |= DataChanges.Database;
+        }
+        if (_checklistChanged)
+        {
+            _checklistChanged = false;
+            changes |= DataChanges.Checklist;
+        }
+        if (changes == DataChanges.None)
+            return changes;
+
         try
         {
-            _database = ItemDatabase.Load(_databasePath);
-            LoadEntries();
-            MigrateLegacyIds();
-            Console.WriteLine("Checklist / item database reloaded from disk.");
+            if (changes.HasFlag(DataChanges.Database))
+                _database = ItemDatabase.Load(_databasePath);
+            if (changes.HasFlag(DataChanges.Checklist))
+                LoadEntries();
+            MigrateLegacyIds(); // a new database may know more legacy ids
+            Console.WriteLine(changes.HasFlag(DataChanges.Database)
+                ? "Item database reloaded from disk."
+                : "Checklist reloaded from disk.");
         }
         catch (Exception ex)
         {
             // Likely caught the editor mid-write; keep current state, the next event retries.
             Console.Error.WriteLine($"warning: reload failed, keeping previous state: {ex.Message}");
         }
-        return true;
+        return changes;
     }
 
     private void LoadEntries()
@@ -176,8 +210,7 @@ public sealed class ChecklistData : IDisposable
 
         foreach (var entry in _entries)
         {
-            if (entry.Needed < 1)
-                entry.Needed = 1;
+            entry.Needed = Math.Clamp(entry.Needed, 1, MaxNeeded);
             if (entry.Found.HasValue) // migrate the v0.1 boolean format
             {
                 entry.Collected = entry.Found.Value ? entry.Needed : 0;
@@ -210,7 +243,7 @@ public sealed class ChecklistData : IDisposable
                 merged.Add(entry);
                 continue;
             }
-            existing.Needed = Math.Min(99, existing.Needed + entry.Needed);
+            existing.Needed = Math.Min(MaxNeeded, existing.Needed + entry.Needed);
             existing.Collected = Math.Clamp(existing.Collected + entry.Collected, 0, existing.Needed);
             changed = true;
         }
@@ -222,6 +255,10 @@ public sealed class ChecklistData : IDisposable
 
     private void Save()
     {
+        // Our own write trips the checklist watcher too; reloading what we just wrote is
+        // pointless work (and a chance to catch the file half-written), so ignore events
+        // for a moment. Hand edits made in that window are picked up with the next one.
+        Volatile.Write(ref _suppressChecklistReloadUntilTicks, DateTime.UtcNow.AddSeconds(1.5).Ticks);
         try
         {
             File.WriteAllText(_checklistPath, JsonSerializer.Serialize(new ChecklistFile { Entries = _entries }, JsonOptions));
@@ -246,11 +283,16 @@ public sealed class ChecklistData : IDisposable
 
     private void StartWatching()
     {
-        Watch(_checklistPath);
-        Watch(_databasePath);
+        Watch(_checklistPath, () =>
+        {
+            if (DateTime.UtcNow.Ticks < Volatile.Read(ref _suppressChecklistReloadUntilTicks))
+                return; // our own Save()
+            _checklistChanged = true;
+        });
+        Watch(_databasePath, () => _databaseChanged = true);
     }
 
-    private void Watch(string filePath)
+    private void Watch(string filePath, Action onChanged)
     {
         var directory = Path.GetDirectoryName(filePath);
         if (string.IsNullOrEmpty(directory) || !Directory.Exists(directory))
@@ -261,10 +303,9 @@ public sealed class ChecklistData : IDisposable
             NotifyFilter = NotifyFilters.LastWrite | NotifyFilters.FileName | NotifyFilters.Size,
             EnableRaisingEvents = true,
         };
-        // Our own Save() also trips this; the redundant reload is harmless (same state).
-        watcher.Changed += (_, _) => _filesChanged = true;
-        watcher.Created += (_, _) => _filesChanged = true;
-        watcher.Renamed += (_, _) => _filesChanged = true;
+        watcher.Changed += (_, _) => onChanged();
+        watcher.Created += (_, _) => onChanged();
+        watcher.Renamed += (_, _) => onChanged();
         _watchers.Add(watcher);
     }
 

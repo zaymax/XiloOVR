@@ -213,7 +213,7 @@ on save — tune the offsets live while wearing the headset:
 | `YouTubeChannel` | `@handle`, channel/watch URL, or video id; empty = no YouTube chat |
 | `AutostartWithSteamVR` | register in SteamVR's startup list so the overlay launches with VR |
 | `ChatMessagesShown` | chat lines at the bottom of the panel (1–20) |
-| `AccentColorHex` | accent color of the panel, settings, laser and tray (HTML hex) |
+| `AccentColorHex` | accent color of the panel, settings, laser and tray (HTML hex); empty or unparsable falls back to the default green |
 | `ItemLanguage` | `"en"` or `"ru"`: language of item and category names on the panel |
 
 Controller-local axes (OpenVR convention): **+X** to the right, **+Y** up out
